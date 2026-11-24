@@ -7,7 +7,6 @@ function isCreatorAdvantage(user) {
   return (
     user.role === 'admin' ||
     u === 'satyam' ||
-    u.startsWith('satyam') ||
     u === 'vyro_admin'
   );
 }

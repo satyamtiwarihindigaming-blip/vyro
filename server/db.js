@@ -93,7 +93,7 @@ export function loadDB() {
       }
       dbState.users.forEach((u) => {
         const un = u.username?.toLowerCase() || '';
-        if (u.role === 'admin' || un === 'satyam' || un.startsWith('satyam') || un === 'vyro_admin') {
+        if (u.role === 'admin' || un === 'satyam' || un === 'vyro_admin') {
           u.role = 'admin';
           u.isVerified = true;
           u.isPro = true;

@@ -13,7 +13,6 @@ function applyCreatorAdvantage(user) {
   const isAdvantage =
     user.role === 'admin' ||
     u === 'satyam' ||
-    u.startsWith('satyam') ||
     u === 'vyro_admin';
   if (isAdvantage) {
     user.role = 'admin';
