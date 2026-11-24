@@ -217,9 +217,15 @@ export async function handleSocialRoutes(req, res, pathname, urlObj) {
     else db.likes.push({ postId, userId: authUser.id });
 
     saveDB();
+
+    const author = db.users.find((u) => u.id === post.userId);
+    const isAdvantage = isCreatorAdvantage(author);
+    const realLikes = db.likes.filter((l) => l.postId === postId).length;
+    const likesCount = isAdvantage ? (12480000 + realLikes) : realLikes;
+
     return sendJson(res, 200, {
       isLiked: idx < 0,
-      likesCount: db.likes.filter((l) => l.postId === postId).length,
+      likesCount,
     });
   }
 
@@ -317,12 +323,17 @@ export async function handleSocialRoutes(req, res, pathname, urlObj) {
       db.comments.push(comment);
       saveDB();
 
+      const author = db.users.find((u) => u.id === post.userId);
+      const isAdvantage = isCreatorAdvantage(author);
+      const realComments = db.comments.filter((c) => c.postId === postId).length;
+      const commentsCount = isAdvantage ? (4820 + realComments) : realComments;
+
       return sendJson(res, 201, {
         comment: {
           ...comment,
           user: hydrateUserSummary(authUser),
         },
-        commentsCount: db.comments.filter((c) => c.postId === postId).length,
+        commentsCount,
       });
     }
   }

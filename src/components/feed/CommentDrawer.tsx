@@ -5,6 +5,7 @@ import { VerifiedBadge } from '../ui/VerifiedBadge';
 import { useAuth } from '../../context/AuthContext';
 import { useSocial } from '../../context/SocialContext';
 import { apiRequest } from '../../lib/api';
+import { formatMetric } from '../../lib/musicCatalog';
 import { X, Send } from 'lucide-react';
 
 export interface CommentDrawerProps {
@@ -52,7 +53,9 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({ post, onClose }) =
       <div className="w-full max-w-md h-full glass-panel border-l border-vyro-border flex flex-col">
         {/* Header */}
         <div className="p-4 border-b border-vyro-border flex items-center justify-between">
-          <h3 className="font-bold text-sm text-slate-100">Comments ({comments.length})</h3>
+          <h3 className="font-bold text-sm text-slate-100">
+            Comments ({formatMetric(Math.max(post.commentsCount, comments.length))})
+          </h3>
           <button
             onClick={onClose}
             className="p-1 rounded-lg text-slate-400 hover:text-white"
