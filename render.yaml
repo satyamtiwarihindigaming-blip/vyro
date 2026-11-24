@@ -1,0 +1,21 @@
+# Render.com Blueprint Specification for VYRO
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: vyro-web
+    env: node
+    plan: free
+    region: oregon
+    buildCommand: npm install && npm run build
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false
