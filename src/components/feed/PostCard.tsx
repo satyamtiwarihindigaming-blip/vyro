@@ -1,42 +1,63 @@
 import React, { useState } from 'react';
-import { Heart, MessageCircle, Send, Bookmark, Music, MoreHorizontal, CheckCircle2 } from 'lucide-react';
+import {
+  Heart,
+  MessageCircle,
+  Send,
+  Bookmark,
+  Music,
+  MoreHorizontal,
+  CheckCircle2,
+  EyeOff,
+  Link as LinkIcon,
+  Check,
+} from 'lucide-react';
 import { Post } from '../../types';
 import { Avatar } from '../ui/Avatar';
 
 export interface PostCardProps {
   post: Post;
   onOpenComments?: (post: Post) => void;
+  onToggleLike?: () => void;
+  onToggleSave?: () => void;
+  onNotInterested?: () => void;
 }
 
-export const PostCard: React.FC<PostCardProps> = ({ post, onOpenComments }) => {
-  const [isLiked, setIsLiked] = useState(post.isLiked || false);
-  const [likesCount, setLikesCount] = useState(post.likesCount);
-  const [isSaved, setIsSaved] = useState(post.isSaved || false);
+export const PostCard: React.FC<PostCardProps> = ({
+  post,
+  onOpenComments,
+  onToggleLike,
+  onToggleSave,
+  onNotInterested,
+}) => {
   const [showHeartPop, setShowHeartPop] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
-  const handleToggleLike = () => {
-    if (isLiked) {
-      setLikesCount((prev) => Math.max(0, prev - 1));
-      setIsLiked(false);
-    } else {
-      setLikesCount((prev) => prev + 1);
-      setIsLiked(true);
+  const handleLike = () => {
+    if (onToggleLike) {
+      onToggleLike();
+    }
+    if (!post.isLiked) {
       setShowHeartPop(true);
       setTimeout(() => setShowHeartPop(false), 800);
     }
   };
 
   const handleDoubleTap = () => {
-    if (!isLiked) {
-      handleToggleLike();
-    } else {
-      setShowHeartPop(true);
-      setTimeout(() => setShowHeartPop(false), 800);
-    }
+    handleLike();
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(window.location.origin + `/p/${post.id}`);
+    setCopiedLink(true);
+    setTimeout(() => {
+      setCopiedLink(false);
+      setShowMenu(false);
+    }, 1200);
   };
 
   return (
-    <article className="glass-card rounded-2xl overflow-hidden border border-vyro-border/70 mb-6 transition-all duration-300">
+    <article className="glass-card rounded-2xl overflow-hidden border border-vyro-border/70 mb-6 transition-all duration-300 relative">
       {/* Post Header */}
       <header className="p-3.5 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -64,9 +85,38 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onOpenComments }) => {
           </div>
         </div>
 
-        <button className="text-slate-400 hover:text-white p-1 rounded-lg" aria-label="Post options">
-          <MoreHorizontal className="w-5 h-5" />
-        </button>
+        {/* Options Menu */}
+        <div className="relative">
+          <button
+            onClick={() => setShowMenu(!showMenu)}
+            className="text-slate-400 hover:text-white p-1 rounded-lg"
+            aria-label="Post options"
+          >
+            <MoreHorizontal className="w-5 h-5" />
+          </button>
+
+          {showMenu && (
+            <div className="absolute right-0 top-8 z-30 w-44 rounded-xl glass-panel border border-vyro-border p-1.5 shadow-2xl space-y-1 animate-scaleUp">
+              <button
+                onClick={() => {
+                  if (onNotInterested) onNotInterested();
+                  setShowMenu(false);
+                }}
+                className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:text-rose-400 hover:bg-rose-500/10 flex items-center gap-2 transition-colors"
+              >
+                <EyeOff className="w-4 h-4" />
+                <span>Not Interested</span>
+              </button>
+              <button
+                onClick={handleCopyLink}
+                className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2 transition-colors"
+              >
+                {copiedLink ? <Check className="w-4 h-4 text-emerald-400" /> : <LinkIcon className="w-4 h-4" />}
+                <span>{copiedLink ? 'Copied!' : 'Copy Link'}</span>
+              </button>
+            </div>
+          )}
+        </div>
       </header>
 
       {/* Post Media with Double-tap to Like */}
@@ -94,14 +144,14 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onOpenComments }) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
-              onClick={handleToggleLike}
+              onClick={handleLike}
               className={`flex items-center gap-1.5 text-sm transition-transform active:scale-125 ${
-                isLiked ? 'text-rose-500' : 'text-slate-300 hover:text-white'
+                post.isLiked ? 'text-rose-500' : 'text-slate-300 hover:text-white'
               }`}
-              aria-label={isLiked ? 'Unlike post' : 'Like post'}
+              aria-label={post.isLiked ? 'Unlike post' : 'Like post'}
             >
-              <Heart className={`w-5 h-5 ${isLiked ? 'fill-rose-500' : ''}`} />
-              <span className="font-semibold text-xs">{likesCount.toLocaleString()}</span>
+              <Heart className={`w-5 h-5 ${post.isLiked ? 'fill-rose-500' : ''}`} />
+              <span className="font-semibold text-xs">{post.likesCount.toLocaleString()}</span>
             </button>
 
             <button
@@ -114,6 +164,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onOpenComments }) => {
             </button>
 
             <button
+              onClick={handleCopyLink}
               className="text-slate-300 hover:text-white transition-transform active:scale-110"
               aria-label="Share post"
             >
@@ -122,11 +173,11 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onOpenComments }) => {
           </div>
 
           <button
-            onClick={() => setIsSaved(!isSaved)}
-            className={`transition-colors ${isSaved ? 'text-vyro-primary' : 'text-slate-300 hover:text-white'}`}
-            aria-label={isSaved ? 'Unsave post' : 'Save post'}
+            onClick={() => onToggleSave && onToggleSave()}
+            className={`transition-colors ${post.isSaved ? 'text-vyro-primary' : 'text-slate-300 hover:text-white'}`}
+            aria-label={post.isSaved ? 'Unsave post' : 'Save post'}
           >
-            <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-vyro-primary' : ''}`} />
+            <Bookmark className={`w-5 h-5 ${post.isSaved ? 'fill-vyro-primary' : ''}`} />
           </button>
         </div>
 

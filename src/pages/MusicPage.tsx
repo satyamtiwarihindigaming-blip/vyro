@@ -1,16 +1,15 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Play, Pause, ShieldCheck, Plus } from 'lucide-react';
 import { MOCK_MUSIC_TRACKS } from '../lib/mockData';
+import { useAudio } from '../context/AudioContext';
+import { useNavigate } from 'react-router-dom';
 
 export const MusicPage: React.FC = () => {
-  const [playingTrackId, setPlayingTrackId] = useState<string | null>(null);
+  const { currentTrack, isPlaying, playTrack, togglePlay } = useAudio();
+  const navigate = useNavigate();
 
-  const togglePlay = (id: string) => {
-    if (playingTrackId === id) {
-      setPlayingTrackId(null);
-    } else {
-      setPlayingTrackId(id);
-    }
+  const handleUseAudio = () => {
+    navigate('/create');
   };
 
   return (
@@ -49,10 +48,20 @@ export const MusicPage: React.FC = () => {
             className="w-full h-full object-cover"
           />
           <button
-            onClick={() => togglePlay(MOCK_MUSIC_TRACKS[0].id)}
+            onClick={() => {
+              if (currentTrack?.id === MOCK_MUSIC_TRACKS[0].id) {
+                togglePlay();
+              } else {
+                playTrack(MOCK_MUSIC_TRACKS[0]);
+              }
+            }}
             className="absolute inset-0 m-auto w-10 h-10 rounded-full bg-vyro-primary/90 text-white flex items-center justify-center backdrop-blur-md shadow-lg"
           >
-            {playingTrackId === MOCK_MUSIC_TRACKS[0].id ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
+            {isPlaying && currentTrack?.id === MOCK_MUSIC_TRACKS[0].id ? (
+              <Pause className="w-5 h-5" />
+            ) : (
+              <Play className="w-5 h-5 ml-0.5" />
+            )}
           </button>
         </div>
 
@@ -67,6 +76,12 @@ export const MusicPage: React.FC = () => {
             <span className="text-[11px] px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-slate-300">
               Synthwave / Cyber
             </span>
+            <button
+              onClick={handleUseAudio}
+              className="text-[11px] px-3 py-1 rounded-full bg-vyro-primary text-white font-bold hover:bg-vyro-primaryHover"
+            >
+              Sync in Studio
+            </button>
           </div>
         </div>
       </div>
@@ -78,7 +93,7 @@ export const MusicPage: React.FC = () => {
         </h3>
 
         {MOCK_MUSIC_TRACKS.map((track) => {
-          const isPlaying = playingTrackId === track.id;
+          const isThisTrackPlaying = isPlaying && currentTrack?.id === track.id;
           return (
             <div
               key={track.id}
@@ -86,10 +101,20 @@ export const MusicPage: React.FC = () => {
             >
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => togglePlay(track.id)}
+                  onClick={() => {
+                    if (currentTrack?.id === track.id) {
+                      togglePlay();
+                    } else {
+                      playTrack(track);
+                    }
+                  }}
                   className="w-9 h-9 rounded-xl bg-vyro-card border border-vyro-border text-slate-200 hover:text-white flex items-center justify-center flex-shrink-0 hover:border-vyro-primary"
                 >
-                  {isPlaying ? <Pause className="w-4 h-4 text-vyro-primary" /> : <Play className="w-4 h-4 ml-0.5" />}
+                  {isThisTrackPlaying ? (
+                    <Pause className="w-4 h-4 text-vyro-primary" />
+                  ) : (
+                    <Play className="w-4 h-4 ml-0.5" />
+                  )}
                 </button>
                 <img
                   src={track.coverUrl}
@@ -106,7 +131,10 @@ export const MusicPage: React.FC = () => {
                 <span className="text-[11px] text-slate-500 font-mono">
                   {Math.floor(track.duration / 60)}:{(track.duration % 60).toString().padStart(2, '0')}
                 </span>
-                <button className="px-3 py-1 rounded-lg bg-vyro-primary/20 text-vyro-primary hover:bg-vyro-primary hover:text-white text-xs font-bold transition-all">
+                <button
+                  onClick={handleUseAudio}
+                  className="px-3 py-1 rounded-lg bg-vyro-primary/20 text-vyro-primary hover:bg-vyro-primary hover:text-white text-xs font-bold transition-all"
+                >
                   Use Audio
                 </button>
               </div>

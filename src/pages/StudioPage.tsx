@@ -2,10 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import { RefreshCw, Upload, Music, Sparkles, Check, AlertCircle, ArrowLeft } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { MOCK_MUSIC_TRACKS } from '../lib/mockData';
+import { useSocial } from '../context/SocialContext';
 import { useNavigate } from 'react-router-dom';
 
 export const StudioPage: React.FC = () => {
   const navigate = useNavigate();
+  const { createPost } = useSocial();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -114,13 +116,31 @@ export const StudioPage: React.FC = () => {
     setIsUploading(true);
     setUploadProgress(0);
 
+    const chosenTrack = MOCK_MUSIC_TRACKS.find((t) => t.id === selectedMusicId);
+
     const interval = setInterval(() => {
       setUploadProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval);
           setIsUploading(false);
           setPublishedSuccess(true);
-          setTimeout(() => navigate('/feed'), 1400);
+
+          createPost({
+            caption: caption.trim() || 'New capture via VYRO Studio ⚡ #vyro #creative',
+            postType: 'photo',
+            media: [
+              {
+                id: `med_${Date.now()}`,
+                url: capturedImage,
+                type: 'image',
+                width: 1080,
+                height: 1080,
+              },
+            ],
+            musicTrack: chosenTrack,
+          });
+
+          setTimeout(() => navigate('/feed'), 1200);
           return 100;
         }
         return prev + 25;

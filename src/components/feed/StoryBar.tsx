@@ -1,22 +1,33 @@
 import React, { useState } from 'react';
 import { Avatar } from '../ui/Avatar';
-import { MOCK_STORIES, CURRENT_USER } from '../../lib/mockData';
+import { useAuth } from '../../context/AuthContext';
+import { useSocial } from '../../context/SocialContext';
 import { Story } from '../../types';
 import { Plus, X, Volume2, VolumeX } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export const StoryBar: React.FC = () => {
+  const { currentUser } = useAuth();
+  const { stories } = useSocial();
+  const navigate = useNavigate();
   const [activeStory, setActiveStory] = useState<Story | null>(null);
   const [isMuted, setIsMuted] = useState(false);
+
+  const avatar = currentUser?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150';
+  const name = currentUser?.displayName || 'Your Story';
 
   return (
     <>
       <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-3 px-1">
         {/* Create Your Story Bubble */}
-        <div className="flex flex-col items-center gap-1.5 flex-shrink-0 cursor-pointer group">
+        <div
+          onClick={() => navigate('/create')}
+          className="flex flex-col items-center gap-1.5 flex-shrink-0 cursor-pointer group"
+        >
           <div className="relative">
             <Avatar
-              src={CURRENT_USER.avatarUrl}
-              alt={CURRENT_USER.displayName}
+              src={avatar}
+              alt={name}
               size="md"
             />
             <div className="absolute -bottom-1 -right-1 p-1 bg-gradient-to-r from-vyro-primary to-vyro-accent rounded-full text-white shadow-glow-pink">
@@ -27,7 +38,7 @@ export const StoryBar: React.FC = () => {
         </div>
 
         {/* Stories from following */}
-        {MOCK_STORIES.map((story) => (
+        {stories.map((story) => (
           <button
             key={story.id}
             onClick={() => setActiveStory(story)}

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Post } from '../../types';
 import { Avatar } from '../ui/Avatar';
-import { CURRENT_USER } from '../../lib/mockData';
+import { useAuth } from '../../context/AuthContext';
+import { useSocial } from '../../context/SocialContext';
 import { X, Send, Heart } from 'lucide-react';
 
 export interface CommentDrawerProps {
@@ -19,6 +20,8 @@ interface CommentItem {
 }
 
 export const CommentDrawer: React.FC<CommentDrawerProps> = ({ post, onClose }) => {
+  const { currentUser } = useAuth();
+  const { addComment } = useSocial();
   const [comments, setComments] = useState<CommentItem[]>([
     {
       id: 'c1',
@@ -43,12 +46,14 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({ post, onClose }) =
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim()) return;
+    if (!newComment.trim() || !currentUser) return;
+
+    addComment(post.id, newComment.trim());
 
     const item: CommentItem = {
       id: `c_${Date.now()}`,
-      username: CURRENT_USER.username,
-      avatarUrl: CURRENT_USER.avatarUrl,
+      username: currentUser.username,
+      avatarUrl: currentUser.avatarUrl,
       text: newComment.trim(),
       likes: 0,
       timeAgo: 'Just now',
@@ -95,7 +100,11 @@ export const CommentDrawer: React.FC<CommentDrawerProps> = ({ post, onClose }) =
 
         {/* Input */}
         <form onSubmit={handleSubmit} className="p-3 border-t border-vyro-border flex items-center gap-2 bg-vyro-bg">
-          <Avatar src={CURRENT_USER.avatarUrl} alt={CURRENT_USER.displayName} size="xs" />
+          <Avatar
+            src={currentUser?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'}
+            alt={currentUser?.displayName || 'You'}
+            size="xs"
+          />
           <input
             type="text"
             value={newComment}

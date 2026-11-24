@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { StoryBar } from '../components/feed/StoryBar';
 import { PostCard } from '../components/feed/PostCard';
 import { CommentDrawer } from '../components/feed/CommentDrawer';
-import { MOCK_POSTS, MOCK_USERS, CURRENT_USER } from '../lib/mockData';
+import { useSocial } from '../context/SocialContext';
+import { useAuth } from '../context/AuthContext';
+import { MOCK_USERS } from '../lib/mockData';
 import { Post } from '../types';
 import { Avatar } from '../components/ui/Avatar';
 import { Sparkles, Clock, CheckCircle2 } from 'lucide-react';
@@ -10,6 +12,10 @@ import { Sparkles, Clock, CheckCircle2 } from 'lucide-react';
 export const FeedPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'foryou' | 'following'>('foryou');
   const [selectedPostForComments, setSelectedPostForComments] = useState<Post | null>(null);
+  const { getFilteredFeed, toggleLike, toggleSave, markNotInterested } = useSocial();
+  const { currentUser } = useAuth();
+
+  const posts = getFilteredFeed(activeTab);
 
   return (
     <div className="max-w-4xl mx-auto py-4 px-3 sm:px-6">
@@ -25,7 +31,7 @@ export const FeedPage: React.FC = () => {
             }`}
           >
             <Sparkles className="w-3.5 h-3.5" />
-            <span>For You (Curated)</span>
+            <span>For You (Curated AI)</span>
           </button>
 
           <button
@@ -42,7 +48,7 @@ export const FeedPage: React.FC = () => {
         </div>
 
         <span className="hidden sm:inline-block text-[11px] text-slate-500">
-          Strict Privacy • Zero Ads
+          Strict Privacy • Zero Spyware
         </span>
       </div>
 
@@ -56,31 +62,46 @@ export const FeedPage: React.FC = () => {
 
           {/* Posts Stream */}
           <div>
-            {MOCK_POSTS.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                onOpenComments={(p) => setSelectedPostForComments(p)}
-              />
-            ))}
+            {posts.length > 0 ? (
+              posts.map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  onOpenComments={(p) => setSelectedPostForComments(p)}
+                  onToggleLike={() => toggleLike(post.id)}
+                  onToggleSave={() => toggleSave(post.id)}
+                  onNotInterested={() => markNotInterested(post.id)}
+                />
+              ))
+            ) : (
+              <div className="glass-panel rounded-2xl p-8 text-center border border-vyro-border space-y-2">
+                <Sparkles className="w-8 h-8 text-vyro-primary mx-auto" />
+                <h3 className="text-sm font-bold text-white">Your Feed is Ready</h3>
+                <p className="text-xs text-slate-400">
+                  Follow more creators or publish a post in the studio to populate your stream.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Desktop Sticky Right Sidebar (Creator Recommendations & Audio Trends) */}
+        {/* Desktop Sticky Right Sidebar */}
         <div className="hidden lg:block space-y-6">
           {/* Current Profile Card */}
-          <div className="glass-card rounded-2xl p-4 border border-vyro-border/70 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Avatar src={CURRENT_USER.avatarUrl} alt={CURRENT_USER.displayName} size="md" />
-              <div>
-                <p className="text-xs font-bold text-white">{CURRENT_USER.displayName}</p>
-                <p className="text-[11px] text-slate-400">@{CURRENT_USER.username}</p>
+          {currentUser && (
+            <div className="glass-card rounded-2xl p-4 border border-vyro-border/70 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Avatar src={currentUser.avatarUrl} alt={currentUser.displayName} size="md" />
+                <div>
+                  <p className="text-xs font-bold text-white">{currentUser.displayName}</p>
+                  <p className="text-[11px] text-slate-400">@{currentUser.username}</p>
+                </div>
               </div>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
+                Active
+              </span>
             </div>
-            <button className="text-[11px] text-vyro-primary font-bold hover:underline">
-              Switch
-            </button>
-          </div>
+          )}
 
           {/* Suggested Creators */}
           <div className="glass-card rounded-2xl p-4 border border-vyro-border/70">
@@ -88,7 +109,7 @@ export const FeedPage: React.FC = () => {
               <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
                 Creators to Follow
               </h4>
-              <button className="text-[10px] text-vyro-primary font-bold">See All</button>
+              <span className="text-[10px] text-vyro-primary font-bold">Verified</span>
             </div>
 
             <div className="space-y-3.5">

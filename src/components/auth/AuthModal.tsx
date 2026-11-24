@@ -3,6 +3,7 @@ import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { Mail, Lock, User, AtSign, Check, AlertCircle } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 export interface AuthModalProps {
   isOpen: boolean;
@@ -10,13 +11,12 @@ export interface AuthModalProps {
   defaultMode?: 'login' | 'signup';
 }
 
-const RESERVED_USERNAMES = ['admin', 'vyro', 'official', 'support', 'help', 'root', 'security', 'moderator'];
-
 export const AuthModal: React.FC<AuthModalProps> = ({
   isOpen,
   onClose,
   defaultMode = 'signup',
 }) => {
+  const { login, signup, checkUsernameAvailable } = useAuth();
   const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>(defaultMode);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -43,51 +43,56 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       return;
     }
 
-    if (RESERVED_USERNAMES.includes(clean)) {
-      setUsernameStatus('taken');
-      return;
-    }
-
-    // Check simulated database uniqueness
-    setUsernameStatus('checking');
-    setTimeout(() => {
-      if (clean === 'alex' || clean === 'john') {
-        setUsernameStatus('taken');
-      } else {
-        setUsernameStatus('available');
-      }
-    }, 300);
+    const isAvail = checkUsernameAvailable(clean);
+    setUsernameStatus(isAvail ? 'available' : 'taken');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
 
+    setIsLoading(true);
+
     if (mode === 'signup') {
       if (usernameStatus !== 'available') {
+        setIsLoading(false);
         setErrorMsg('Please select a valid, unique username.');
         return;
       }
       if (password.length < 6) {
+        setIsLoading(false);
         setErrorMsg('Password must be at least 6 characters.');
         return;
       }
-    }
 
-    setIsLoading(true);
-    setTimeout(() => {
+      const res = await signup({
+        username,
+        email,
+        displayName: displayName || username,
+        pass: password,
+      });
+
       setIsLoading(false);
-      if (mode === 'signup') {
+      if (res.success) {
         setSuccessMsg(`Welcome to VYRO, @${username}! Account created.`);
         setTimeout(() => onClose(), 1200);
-      } else if (mode === 'login') {
+      } else {
+        setErrorMsg(res.error || 'Failed to create account.');
+      }
+    } else if (mode === 'login') {
+      const res = await login(email, password);
+      setIsLoading(false);
+      if (res.success) {
         setSuccessMsg('Successfully signed in.');
         setTimeout(() => onClose(), 800);
       } else {
-        setSuccessMsg('Password reset instructions sent to your email.');
+        setErrorMsg(res.error || 'Invalid credentials.');
       }
-    }, 1000);
+    } else {
+      setIsLoading(false);
+      setSuccessMsg('Password reset instructions sent to your email.');
+    }
   };
 
   return (

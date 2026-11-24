@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom';
 import { Bell, Search, Music, Gamepad2 } from 'lucide-react';
 import { Logo } from './Logo';
 import { Avatar } from '../ui/Avatar';
-import { CURRENT_USER } from '../../lib/mockData';
+import { useAuth } from '../../context/AuthContext';
 
 export const Navbar: React.FC = () => {
+  const { currentUser } = useAuth();
   return (
     <header className="sticky top-0 z-30 w-full glass-panel border-b border-vyro-border/60 px-4 py-3 flex items-center justify-between">
       {/* Brand Logo (Visible on mobile & tablet) */}
@@ -53,14 +54,16 @@ export const Navbar: React.FC = () => {
         </button>
 
         {/* User Avatar */}
-        <Link to={`/${CURRENT_USER.username}`}>
-          <Avatar
-            src={CURRENT_USER.avatarUrl}
-            alt={CURRENT_USER.displayName}
-            size="sm"
-            hasStory
-          />
-        </Link>
+        {currentUser && (
+          <Link to={`/${currentUser.username}`}>
+            <Avatar
+              src={currentUser.avatarUrl}
+              alt={currentUser.displayName}
+              size="sm"
+              hasStory
+            />
+          </Link>
+        )}
       </div>
     </header>
   );

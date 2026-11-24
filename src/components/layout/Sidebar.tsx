@@ -13,9 +13,12 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { Logo } from './Logo';
-import { CURRENT_USER } from '../../lib/mockData';
+import { useAuth } from '../../context/AuthContext';
 
 export const Sidebar: React.FC = () => {
+  const { currentUser } = useAuth();
+  const profileUsername = currentUser?.username || 'nova';
+
   const navItems = [
     { name: 'Feed', to: '/feed', icon: Home },
     { name: 'Explore', to: '/explore', icon: Compass },
@@ -23,7 +26,7 @@ export const Sidebar: React.FC = () => {
     { name: 'Messages', to: '/direct', icon: MessageCircle, unread: 2 },
     { name: 'Music Hub', to: '/music', icon: Music },
     { name: 'Arcade', to: '/games', icon: Gamepad2 },
-    { name: 'Profile', to: `/${CURRENT_USER.username}`, icon: User },
+    { name: 'Profile', to: `/${profileUsername}`, icon: User },
     { name: 'Settings', to: '/settings', icon: Settings },
   ];
 

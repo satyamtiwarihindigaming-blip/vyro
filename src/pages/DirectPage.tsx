@@ -16,6 +16,7 @@ import {
 import { MOCK_CONVERSATIONS, CURRENT_USER } from '../lib/mockData';
 import { Avatar } from '../components/ui/Avatar';
 import { Conversation, Message } from '../types';
+import { MiniChess } from '../components/games/MiniChess';
 
 export const DirectPage: React.FC = () => {
   const [activeConv, setActiveConv] = useState<Conversation>(MOCK_CONVERSATIONS[0]);
@@ -51,6 +52,7 @@ export const DirectPage: React.FC = () => {
 
   // Mini-Game inside chat State
   const [gameActive, setGameActive] = useState(false);
+  const [activeGameType, setActiveGameType] = useState<'tictactoe' | 'chess'>('tictactoe');
   const [board, setBoard] = useState<(string | null)[]>(Array(9).fill(null));
   const [isXNext, setIsXNext] = useState(true);
 
@@ -234,34 +236,59 @@ export const DirectPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Embedded Multiplayer Game Drawer (Tic-Tac-Toe) */}
+        {/* Embedded Multiplayer Game Drawer (Tic-Tac-Toe & Chess) */}
         {gameActive && (
           <div className="p-4 bg-vyro-card/90 border-b border-vyro-border flex flex-col items-center animate-slideDown">
-            <div className="flex items-center justify-between w-full max-w-xs mb-3">
-              <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                <Gamepad2 className="w-4 h-4 text-vyro-accent" /> In-Chat Tic-Tac-Toe
-              </span>
+            <div className="flex items-center justify-between w-full max-w-sm mb-3">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setActiveGameType('tictactoe')}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                    activeGameType === 'tictactoe'
+                      ? 'bg-vyro-primary text-white'
+                      : 'bg-vyro-bg text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Tic-Tac-Toe
+                </button>
+                <button
+                  onClick={() => setActiveGameType('chess')}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                    activeGameType === 'chess'
+                      ? 'bg-vyro-primary text-white'
+                      : 'bg-vyro-bg text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Cyber Chess
+                </button>
+              </div>
               <button onClick={() => setGameActive(false)} className="text-slate-400 hover:text-white">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 w-48 h-48">
-              {board.map((cell, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleCellClick(idx)}
-                  className="w-full h-full rounded-xl bg-vyro-bg border border-vyro-border text-lg font-bold flex items-center justify-center hover:bg-vyro-card text-white"
-                >
-                  {cell === 'X' ? <span className="text-vyro-primary">X</span> : cell === 'O' ? <span className="text-vyro-accent">O</span> : ''}
-                </button>
-              ))}
-            </div>
+            {activeGameType === 'tictactoe' ? (
+              <>
+                <div className="grid grid-cols-3 gap-2 w-48 h-48">
+                  {board.map((cell, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleCellClick(idx)}
+                      className="w-full h-full rounded-xl bg-vyro-bg border border-vyro-border text-lg font-bold flex items-center justify-center hover:bg-vyro-card text-white"
+                    >
+                      {cell === 'X' ? <span className="text-vyro-primary">X</span> : cell === 'O' ? <span className="text-vyro-accent">O</span> : ''}
+                    </button>
+                  ))}
+                </div>
 
-            {calculateWinner(board) && (
-              <p className="mt-2 text-xs font-bold text-emerald-400">
-                Winner: Player {calculateWinner(board)}! 🎉
-              </p>
+                {calculateWinner(board) && (
+                  <p className="mt-2 text-xs font-bold text-emerald-400">
+                    Winner: Player {calculateWinner(board)}! 🎉
+                  </p>
+                )}
+              </>
+            ) : (
+              <MiniChess />
             )}
           </div>
         )}
