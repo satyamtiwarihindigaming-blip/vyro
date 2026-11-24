@@ -9,9 +9,11 @@ import {
   RotateCcw,
   Crown,
   LogOut,
+  Camera,
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
+import { openPermissionPrompt } from '../components/permissions/PermissionPromptModal';
 import { useAuth } from '../context/AuthContext';
 import { useSocial } from '../context/SocialContext';
 import { useNavigate } from 'react-router-dom';
@@ -127,6 +129,21 @@ export const SettingsPage: React.FC = () => {
           </p>
         </div>
       )}
+
+      {/* Device & Call Permissions */}
+      <div className="glass-card rounded-2xl p-5 border border-vyro-border space-y-3">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+          <Camera className="w-4 h-4 text-vyro-cyan" />
+          <span>Camera, Mic & Ringtone Permissions</span>
+        </h3>
+        <p className="text-xs text-slate-300">
+          Trigger the browser permission prompt to enable Voice/Video calls, Studio camera, and ringtone alerts.
+        </p>
+        <Button variant="secondary" size="sm" onClick={openPermissionPrompt}>
+          <Camera className="w-3.5 h-3.5 mr-1.5 text-vyro-cyan" />
+          <span>Allow Camera, Mic & Sound</span>
+        </Button>
+      </div>
 
       {/* Privacy Settings */}
       <div className="glass-card rounded-2xl p-5 border border-vyro-border space-y-4">

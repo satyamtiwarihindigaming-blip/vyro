@@ -5,7 +5,12 @@ import { useAuth } from '../../context/AuthContext';
 import { callSoundEngine } from '../../lib/callSounds';
 import { Button } from '../ui/Button';
 
-const DISMISSED_KEY = 'vyro_perm_prompt_dismissed';
+const SESSION_DISMISSED_KEY = 'vyro_perm_prompt_dismissed';
+const VERIFIED_STORAGE_KEY = 'vyro_media_verified';
+
+export function openPermissionPrompt() {
+  window.dispatchEvent(new CustomEvent('vyro:open-permissions'));
+}
 
 export const PermissionPromptModal: React.FC = () => {
   const { currentUser } = useAuth();
@@ -15,33 +20,28 @@ export const PermissionPromptModal: React.FC = () => {
   const [errorDetail, setErrorDetail] = useState('');
 
   useEffect(() => {
+    const handleManualOpen = () => {
+      setMediaStatus('idle');
+      setErrorDetail('');
+      setIsOpen(true);
+    };
+    window.addEventListener('vyro:open-permissions', handleManualOpen);
+    return () => window.removeEventListener('vyro:open-permissions', handleManualOpen);
+  }, []);
+
+  useEffect(() => {
     if (!currentUser) {
       setIsOpen(false);
       return;
     }
 
-    const dismissed = sessionStorage.getItem(DISMISSED_KEY);
-    if (dismissed === 'true') return;
+    const alreadyVerified = localStorage.getItem(VERIFIED_STORAGE_KEY) === 'true';
+    const dismissedThisTab = sessionStorage.getItem(SESSION_DISMISSED_KEY) === 'true';
+    if (alreadyVerified || dismissedThisTab) return;
 
-    const checkPermissions = async () => {
-      try {
-        if (navigator.permissions && navigator.permissions.query) {
-          const micPerm = await navigator.permissions.query({ name: 'microphone' as PermissionName });
-          const camPerm = await navigator.permissions.query({ name: 'camera' as PermissionName });
-
-          if (micPerm.state === 'granted' && camPerm.state === 'granted') {
-            return; // Already allowed, no popup needed
-          }
-        }
-      } catch {
-        // Safari/Firefox may not support camera/microphone in permissions.query
-      }
-
-      // Show clean permission prompt popup shortly after entering app
+    const timer = setTimeout(() => {
       setIsOpen(true);
-    };
-
-    const timer = setTimeout(checkPermissions, 700);
+    }, 500);
     return () => clearTimeout(timer);
   }, [currentUser?.id]);
 
@@ -49,8 +49,9 @@ export const PermissionPromptModal: React.FC = () => {
     setMediaStatus('requesting');
     setErrorDetail('');
     callSoundEngine.unlock();
+    callSoundEngine.vibrate(70);
 
-    // 1. Trigger native browser Notification permission popup if available
+    // 1. Trigger native browser Notification Allow prompt if available
     try {
       if ('Notification' in window && Notification.permission === 'default') {
         const res = await Notification.requestPermission();
@@ -62,38 +63,41 @@ export const PermissionPromptModal: React.FC = () => {
       // Ignore notification prompt error
     }
 
-    // 2. Trigger native browser Camera & Microphone Allow popup, then stop tracks immediately
+    // 2. Trigger native browser Camera & Microphone Allow popup, then release tracks immediately
     try {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error('MediaDevices API unavailable (requires HTTPS).');
       }
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-      // Release hardware immediately so camera/mic never remain active in background
       stream.getTracks().forEach((track) => track.stop());
       setMediaStatus('granted');
-      sessionStorage.setItem(DISMISSED_KEY, 'true');
+      localStorage.setItem(VERIFIED_STORAGE_KEY, 'true');
+      sessionStorage.setItem(SESSION_DISMISSED_KEY, 'true');
+      callSoundEngine.playConnectedChime();
       setTimeout(() => setIsOpen(false), 1100);
     } catch (err: unknown) {
-      // Fallback: try Audio-only if camera hardware missing
+      // Fallback: try Audio-only if camera missing or blocked
       try {
         const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
         audioStream.getTracks().forEach((track) => track.stop());
         setMediaStatus('granted');
-        setErrorDetail('Microphone allowed (No camera detected or camera blocked).');
-        sessionStorage.setItem(DISMISSED_KEY, 'true');
+        localStorage.setItem(VERIFIED_STORAGE_KEY, 'true');
+        sessionStorage.setItem(SESSION_DISMISSED_KEY, 'true');
+        setErrorDetail('Microphone allowed! (Camera not detected or blocked by system).');
+        callSoundEngine.playConnectedChime();
         setTimeout(() => setIsOpen(false), 1400);
       } catch {
         setMediaStatus('denied');
         const msg = (err as Error).message || 'Permission denied by browser or system.';
         setErrorDetail(
-          `${msg}. Check Chrome address-bar Lock/Settings icon and Windows Privacy -> Camera & Microphone.`
+          `${msg}. Open Browser Site Settings (Lock/Tune icon in address bar) -> Allow Camera & Microphone, and check Windows Privacy -> Camera & Microphone.`
         );
       }
     }
   };
 
   const handleDismiss = () => {
-    sessionStorage.setItem(DISMISSED_KEY, 'true');
+    sessionStorage.setItem(SESSION_DISMISSED_KEY, 'true');
     setIsOpen(false);
   };
 
@@ -104,7 +108,7 @@ export const PermissionPromptModal: React.FC = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4"
+          className="fixed inset-0 z-[70] bg-black/75 backdrop-blur-md flex items-center justify-center p-4"
         >
           <motion.div
             initial={{ scale: 0.92, y: 12 }}
