@@ -1,5 +1,6 @@
 # VYRO — The Creative Social Universe 🚀
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/satyamtiwarihindigaming-blip/vyro)
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)
 ![React](https://img.shields.io/badge/React-18-61DAFB)
