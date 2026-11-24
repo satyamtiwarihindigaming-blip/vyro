@@ -1,6 +1,16 @@
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, MicOff, Video, VideoOff, PhoneOff, PhoneIncoming } from 'lucide-react';
+import {
+  Mic,
+  MicOff,
+  Video,
+  VideoOff,
+  PhoneOff,
+  PhoneIncoming,
+  AlertTriangle,
+  RefreshCw,
+  Volume2,
+} from 'lucide-react';
 import { useCall } from '../../context/CallContext';
 import { Avatar } from '../ui/Avatar';
 import { VerifiedBadge } from '../ui/VerifiedBadge';
@@ -14,26 +24,33 @@ export const GlobalCallOverlay: React.FC = () => {
     isCameraOff,
     callDuration,
     callError,
+    mediaWarning,
     localStream,
     remoteStream,
     acceptIncomingCall,
     declineOrEndCall,
     toggleMute,
     toggleCamera,
+    retryMediaAccess,
   } = useCall();
 
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
+  const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (localVideoRef.current && localStream) {
       localVideoRef.current.srcObject = localStream;
     }
-  }, [localStream, callStatus]);
+  }, [localStream, callStatus, isCameraOff]);
 
   useEffect(() => {
     if (remoteVideoRef.current && remoteStream) {
       remoteVideoRef.current.srcObject = remoteStream;
+    }
+    if (remoteAudioRef.current && remoteStream) {
+      remoteAudioRef.current.srcObject = remoteStream;
+      remoteAudioRef.current.play().catch(() => {});
     }
   }, [remoteStream, callStatus]);
 
@@ -64,6 +81,9 @@ export const GlobalCallOverlay: React.FC = () => {
           transition={{ duration: 0.2 }}
           className="fixed inset-0 z-50 bg-black/95 backdrop-blur-2xl flex flex-col justify-between p-6"
         >
+          {/* Dedicated active audio element so Voice & Video call audio ALWAYS plays reliably */}
+          <audio ref={remoteAudioRef} autoPlay playsInline className="sr-only" />
+
           {/* Header */}
           <div className="flex items-center justify-between text-white max-w-4xl mx-auto w-full">
             <div className="flex items-center gap-3">
@@ -82,24 +102,42 @@ export const GlobalCallOverlay: React.FC = () => {
                   {callStatus === 'ringing'
                     ? `Incoming ${callType} call...`
                     : callStatus === 'calling'
-                    ? `Ringing @${remotePartner.username}...`
+                    ? `Calling @${remotePartner.username}... (Dial tone & vibrate active)`
                     : `Live WebRTC ${callType} (${formatTime(callDuration)})`}
                 </p>
               </div>
             </div>
 
-            <span className="hidden sm:inline-block px-3 py-1 rounded-full bg-white/10 text-[11px] font-semibold text-slate-300">
-              P2P Encrypted • STUN Active
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-[11px] font-semibold text-slate-300">
+              <Volume2 className="w-3.5 h-3.5 text-vyro-cyan" />
+              <span>P2P Encrypted • STUN</span>
             </span>
           </div>
+
+          {/* Non-blocking System Permission Warning + Retry Button */}
+          {mediaWarning && (
+            <div className="max-w-2xl mx-auto w-full mt-3 p-3 rounded-2xl bg-amber-500/15 border border-amber-500/40 text-amber-200 text-xs flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                <span>{mediaWarning}</span>
+              </div>
+              <button
+                onClick={retryMediaAccess}
+                className="px-3 py-1 rounded-xl bg-amber-500/25 hover:bg-amber-500/40 text-amber-200 font-bold flex items-center gap-1 transition-colors"
+              >
+                <RefreshCw className="w-3 h-3" />
+                <span>Retry Mic/Cam</span>
+              </button>
+            </div>
+          )}
 
           {/* Ringing Prompt vs Active Call Stream Tiles */}
           {callStatus === 'ringing' ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
               <motion.div
-                animate={{ scale: [1, 1.08, 1] }}
-                transition={{ repeat: Infinity, duration: 1.5 }}
-                className="p-2 rounded-full bg-gradient-to-tr from-vyro-primary via-vyro-accent to-vyro-cyan shadow-glow-pink"
+                animate={{ scale: [1, 1.09, 1] }}
+                transition={{ repeat: Infinity, duration: 1.4 }}
+                className="p-2.5 rounded-full bg-gradient-to-tr from-vyro-primary via-vyro-accent to-vyro-cyan shadow-glow-pink"
               >
                 <Avatar src={remotePartner.avatarUrl} alt={remotePartner.displayName} size="xl" />
               </motion.div>
@@ -130,22 +168,32 @@ export const GlobalCallOverlay: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div className="flex-1 my-6 max-w-4xl mx-auto w-full grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+            <div className="flex-1 my-4 max-w-4xl mx-auto w-full grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
               {/* Remote Stream */}
               <div className="relative h-64 sm:h-96 rounded-3xl overflow-hidden bg-slate-900 border border-white/10 flex items-center justify-center">
                 <video
                   ref={remoteVideoRef}
                   autoPlay
                   playsInline
+                  muted
                   className={`w-full h-full object-cover ${
                     callType === 'voice' || !remoteStream?.getVideoTracks().length ? 'hidden' : ''
                   }`}
                 />
                 {(callType === 'voice' || !remoteStream?.getVideoTracks().length) && (
                   <div className="flex flex-col items-center gap-3">
-                    <Avatar src={remotePartner.avatarUrl} alt={remotePartner.displayName} size="xl" hasStory />
+                    <motion.div
+                      animate={
+                        callStatus === 'calling'
+                          ? { scale: [1, 1.07, 1], opacity: [0.8, 1, 0.8] }
+                          : {}
+                      }
+                      transition={{ repeat: Infinity, duration: 1.5 }}
+                    >
+                      <Avatar src={remotePartner.avatarUrl} alt={remotePartner.displayName} size="xl" hasStory />
+                    </motion.div>
                     <span className="text-xs text-slate-300">
-                      {callStatus === 'calling' ? 'Waiting for answer...' : 'Voice Connected'}
+                      {callStatus === 'calling' ? 'Ringing...' : 'Audio Connected'}
                     </span>
                   </div>
                 )}
@@ -156,10 +204,16 @@ export const GlobalCallOverlay: React.FC = () => {
 
               {/* Local Stream */}
               <div className="relative h-64 sm:h-96 rounded-3xl overflow-hidden bg-slate-900 border border-white/10 flex items-center justify-center">
-                {isCameraOff || callType === 'voice' ? (
-                  <div className="text-center text-xs text-slate-400">
-                    <VideoOff className="w-8 h-8 mx-auto mb-2 text-rose-400" />
-                    <span>{callType === 'voice' ? 'Voice Audio Active' : 'Camera turned off'}</span>
+                {isCameraOff || callType === 'voice' || !localStream?.getVideoTracks().length ? (
+                  <div className="text-center text-xs text-slate-400 space-y-2 px-4">
+                    <VideoOff className="w-8 h-8 mx-auto text-rose-400" />
+                    <p>
+                      {!localStream
+                        ? 'Listen-only mode (Mic/Cam blocked by OS)'
+                        : callType === 'voice'
+                        ? 'Voice Microphone Active'
+                        : 'Camera turned off'}
+                    </p>
                   </div>
                 ) : (
                   <video
@@ -182,10 +236,11 @@ export const GlobalCallOverlay: React.FC = () => {
             <div className="flex items-center justify-center gap-4">
               <button
                 onClick={toggleMute}
-                className={`p-3.5 rounded-full transition-colors ${
+                disabled={!localStream?.getAudioTracks().length}
+                className={`p-3.5 rounded-full transition-colors disabled:opacity-40 ${
                   isMuted ? 'bg-rose-500 text-white' : 'bg-white/20 text-white hover:bg-white/30'
                 }`}
-                title={isMuted ? 'Unmute' : 'Mute'}
+                title={isMuted ? 'Unmute Mic' : 'Mute Mic'}
               >
                 {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
               </button>
@@ -193,7 +248,8 @@ export const GlobalCallOverlay: React.FC = () => {
               {callType === 'video' && (
                 <button
                   onClick={toggleCamera}
-                  className={`p-3.5 rounded-full transition-colors ${
+                  disabled={!localStream?.getVideoTracks().length}
+                  className={`p-3.5 rounded-full transition-colors disabled:opacity-40 ${
                     isCameraOff ? 'bg-rose-500 text-white' : 'bg-white/20 text-white hover:bg-white/30'
                   }`}
                   title={isCameraOff ? 'Turn Camera On' : 'Turn Camera Off'}

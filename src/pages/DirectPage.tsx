@@ -18,7 +18,7 @@ import { VerifiedBadge } from '../components/ui/VerifiedBadge';
 import { DirectConversation, Message } from '../types';
 import { MiniChess } from '../components/games/MiniChess';
 import { Button } from '../components/ui/Button';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 type ChatTheme = 'obsidian' | 'neon' | 'cyber' | 'aurora';
 
@@ -33,10 +33,11 @@ export const DirectPage: React.FC = () => {
   const { currentUser, isPro } = useAuth();
   const { startCall } = useCall();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [conversations, setConversations] = useState<DirectConversation[]>([]);
   const [userFilter, setUserFilter] = useState('');
-  const [activePartnerId, setActivePartnerId] = useState<string | null>(null);
+  const [activePartnerId, setActivePartnerId] = useState<string | null>(searchParams.get('user'));
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [chatTheme, setChatTheme] = useState<ChatTheme>('obsidian');

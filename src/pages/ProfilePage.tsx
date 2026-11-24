@@ -212,19 +212,35 @@ export const ProfilePage: React.FC = () => {
                     </>
                   )}
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => navigate('/direct')}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(`/direct?user=${profileUser.id}`)}
+                >
                   <MessageCircle className="w-4 h-4 mr-1.5" />
                   <span>Message</span>
                 </Button>
                 <button
-                  onClick={() => startCall(profileUser, 'voice')}
+                  onClick={() => {
+                    if (!currentUser) {
+                      navigate('/');
+                      return;
+                    }
+                    startCall(profileUser, 'voice');
+                  }}
                   className="p-2 rounded-xl bg-vyro-primary/20 text-vyro-primary hover:bg-vyro-primary hover:text-white transition-colors"
                   title="Voice Call"
                 >
                   <Phone className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => startCall(profileUser, 'video')}
+                  onClick={() => {
+                    if (!currentUser) {
+                      navigate('/');
+                      return;
+                    }
+                    startCall(profileUser, 'video');
+                  }}
                   className="p-2 rounded-xl bg-vyro-cyan/20 text-vyro-cyan hover:bg-vyro-cyan hover:text-white transition-colors"
                   title="Video Call"
                 >
