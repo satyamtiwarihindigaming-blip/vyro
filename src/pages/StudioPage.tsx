@@ -294,7 +294,7 @@ export const StudioPage: React.FC = () => {
             </label>
             <textarea
               value={caption}
-              onChange={(e) => setCaption(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setCaption(e.target.value)}
               placeholder="What are you expressing? #tags, ideas, mood..."
               rows={3}
               className="w-full bg-vyro-card border border-vyro-border rounded-xl p-3 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-vyro-primary"
@@ -308,7 +308,7 @@ export const StudioPage: React.FC = () => {
             </label>
             <select
               value={selectedMusicId}
-              onChange={(e) => setSelectedMusicId(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedMusicId(e.target.value)}
               className="w-full bg-vyro-card border border-vyro-border rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-vyro-primary"
             >
               {MOCK_MUSIC_TRACKS.map((t) => (
