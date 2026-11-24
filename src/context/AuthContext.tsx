@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '../types';
-import { CURRENT_USER, MOCK_USERS } from '../lib/mockData';
+import { MOCK_USERS } from '../lib/mockData';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -17,28 +17,62 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const USERS_STORAGE_KEY = 'vyro_registered_users';
 const CURRENT_USER_KEY = 'vyro_session_user';
+const PASSWORDS_STORAGE_KEY = 'vyro_user_passwords';
 const RESERVED_NAMES = ['admin', 'vyro', 'official', 'support', 'help', 'root', 'security'];
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [users, setUsers] = useState<User[]>(() => {
-    const saved = localStorage.getItem(USERS_STORAGE_KEY);
-    return saved ? JSON.parse(saved) : MOCK_USERS;
+    try {
+      const saved = localStorage.getItem(USERS_STORAGE_KEY);
+      return saved ? JSON.parse(saved) : MOCK_USERS;
+    } catch {
+      return MOCK_USERS;
+    }
   });
 
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem(CURRENT_USER_KEY);
-    return saved ? JSON.parse(saved) : CURRENT_USER;
+    try {
+      const saved = localStorage.getItem(CURRENT_USER_KEY);
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [passwords, setPasswords] = useState<Record<string, string>>(() => {
+    try {
+      const saved = localStorage.getItem(PASSWORDS_STORAGE_KEY);
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
   });
 
   useEffect(() => {
-    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+    try {
+      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+    } catch (e) {
+      console.warn('Failed to save users in localStorage', e);
+    }
   }, [users]);
 
   useEffect(() => {
-    if (currentUser) {
-      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(currentUser));
-    } else {
-      localStorage.removeItem(CURRENT_USER_KEY);
+    try {
+      localStorage.setItem(PASSWORDS_STORAGE_KEY, JSON.stringify(passwords));
+    } catch (e) {
+      console.warn('Failed to save passwords', e);
+    }
+  }, [passwords]);
+
+  useEffect(() => {
+    try {
+      if (currentUser) {
+        localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(currentUser));
+      } else {
+        localStorage.removeItem(CURRENT_USER_KEY);
+      }
+    } catch (e) {
+      console.warn('Failed to save session user', e);
     }
   }, [currentUser]);
 
@@ -51,14 +85,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return !users.some((u) => u.username.toLowerCase() === clean);
   };
 
-  const login = async (usernameOrEmail: string, _pass: string) => {
+  const login = async (usernameOrEmail: string, pass: string) => {
     const clean = usernameOrEmail.trim().toLowerCase();
+    if (!clean) {
+      return { success: false, error: 'Please enter your username or email.' };
+    }
+
     const found = users.find(
       (u) => u.username.toLowerCase() === clean || u.email.toLowerCase() === clean
     );
 
     if (!found) {
-      return { success: false, error: 'User not found. Please check your credentials.' };
+      return { success: false, error: 'No account found with this username or email.' };
+    }
+
+    // Check password if stored
+    const storedPass = passwords[found.id];
+    if (storedPass && storedPass !== pass) {
+      return { success: false, error: 'Incorrect password. Please try again.' };
     }
 
     setCurrentUser(found);
@@ -76,22 +120,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     displayName: string;
     pass: string;
   }) => {
-    // In production pass is hashed using bcrypt/Argon2
-    void pass;
     const cleanUsername = username.trim().toLowerCase();
-    if (!checkUsernameAvailable(cleanUsername)) {
-      return { success: false, error: 'Username is taken, reserved, or invalid.' };
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (!cleanUsername) {
+      return { success: false, error: 'Username is required.' };
     }
 
-    if (users.some((u) => u.email.toLowerCase() === email.trim().toLowerCase())) {
+    if (!checkUsernameAvailable(cleanUsername)) {
+      return { success: false, error: 'Username is already taken or invalid.' };
+    }
+
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      return { success: false, error: 'A valid email address is required.' };
+    }
+
+    if (users.some((u) => u.email.toLowerCase() === cleanEmail)) {
       return { success: false, error: 'An account with this email already exists.' };
+    }
+
+    if (!pass || pass.length < 6) {
+      return { success: false, error: 'Password must be at least 6 characters.' };
     }
 
     const newUser: User = {
       id: `usr_${Date.now()}`,
       username: cleanUsername,
       displayName: displayName.trim() || cleanUsername,
-      email: email.trim().toLowerCase(),
+      email: cleanEmail,
       avatarUrl: `https://images.unsplash.com/photo-${1534528741775 + Math.floor(Math.random() * 50)}?w=150`,
       bio: 'New creator on VYRO ⚡',
       isPrivate: false,
@@ -103,8 +159,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       createdAt: new Date().toISOString(),
     };
 
+    setPasswords((prev) => ({ ...prev, [newUser.id]: pass }));
     setUsers((prev) => [newUser, ...prev]);
     setCurrentUser(newUser);
+
     return { success: true };
   };
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Sparkles,
   Zap,
@@ -17,12 +17,19 @@ import {
 import { Logo } from '../components/layout/Logo';
 import { Button } from '../components/ui/Button';
 import { AuthModal } from '../components/auth/AuthModal';
+import { useAuth } from '../context/AuthContext';
 
 export const LandingPage: React.FC = () => {
+  const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('signup');
 
   const openAuth = (mode: 'login' | 'signup') => {
+    if (currentUser) {
+      navigate('/feed');
+      return;
+    }
     setAuthMode(mode);
     setAuthOpen(true);
   };
@@ -67,21 +74,33 @@ export const LandingPage: React.FC = () => {
           >
             Explore Feed
           </Link>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => openAuth('login')}
-            className="hidden sm:inline-flex"
-          >
-            Sign In
-          </Button>
-          <Button
-            variant="gradient"
-            size="sm"
-            onClick={() => openAuth('signup')}
-          >
-            Get Started
-          </Button>
+          {currentUser ? (
+            <Button
+              variant="gradient"
+              size="sm"
+              onClick={() => navigate('/feed')}
+            >
+              Open App (@{currentUser.username})
+            </Button>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => openAuth('login')}
+                className="hidden sm:inline-flex"
+              >
+                Sign In
+              </Button>
+              <Button
+                variant="gradient"
+                size="sm"
+                onClick={() => openAuth('signup')}
+              >
+                Get Started
+              </Button>
+            </>
+          )}
         </div>
       </header>
 
@@ -109,10 +128,10 @@ export const LandingPage: React.FC = () => {
           <Button
             variant="gradient"
             size="lg"
-            onClick={() => openAuth('signup')}
+            onClick={() => (currentUser ? navigate('/feed') : openAuth('signup'))}
             className="w-full sm:w-auto font-bold px-8 shadow-glow-pink"
           >
-            <span>Launch VYRO Web</span>
+            <span>{currentUser ? 'Enter VYRO Feed' : 'Launch VYRO Web'}</span>
             <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
 

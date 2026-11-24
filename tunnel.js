@@ -25,4 +25,7 @@ async function connectTunnel() {
   }
 }
 
+// Keep event loop alive permanently
+setInterval(() => {}, 1000 * 60);
+
 connectTunnel();

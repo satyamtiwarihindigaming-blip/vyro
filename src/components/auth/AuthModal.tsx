@@ -4,6 +4,7 @@ import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { Mail, Lock, User, AtSign, Check, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export interface AuthModalProps {
   isOpen: boolean;
@@ -16,12 +17,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onClose,
   defaultMode = 'signup',
 }) => {
+  const navigate = useNavigate();
   const { login, signup, checkUsernameAvailable } = useAuth();
   const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>(defaultMode);
+
+  // Signup fields
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+
+  // Login identifier (can be username or email)
+  const [loginIdentifier, setLoginIdentifier] = useState('');
+
+  const [password, setPassword] = useState('');
   const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -47,17 +55,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setUsernameStatus(isAvail ? 'available' : 'taken');
   };
 
+  const switchMode = (newMode: 'login' | 'signup' | 'forgot') => {
+    setMode(newMode);
+    setErrorMsg('');
+    setSuccessMsg('');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
-
     setIsLoading(true);
 
     if (mode === 'signup') {
       if (usernameStatus !== 'available') {
         setIsLoading(false);
-        setErrorMsg('Please select a valid, unique username.');
+        setErrorMsg('Please choose an available username (letters, numbers, underscores).');
         return;
       }
       if (password.length < 6) {
@@ -69,25 +82,31 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       const res = await signup({
         username,
         email,
-        displayName: displayName || username,
+        displayName: displayName.trim() || username,
         pass: password,
       });
 
       setIsLoading(false);
       if (res.success) {
-        setSuccessMsg(`Welcome to VYRO, @${username}! Account created.`);
-        setTimeout(() => onClose(), 1200);
+        setSuccessMsg(`Welcome to VYRO, @${username}! Entering platform...`);
+        setTimeout(() => {
+          onClose();
+          navigate('/feed');
+        }, 800);
       } else {
         setErrorMsg(res.error || 'Failed to create account.');
       }
     } else if (mode === 'login') {
-      const res = await login(email, password);
+      const res = await login(loginIdentifier, password);
       setIsLoading(false);
       if (res.success) {
-        setSuccessMsg('Successfully signed in.');
-        setTimeout(() => onClose(), 800);
+        setSuccessMsg('Successfully signed in! Entering platform...');
+        setTimeout(() => {
+          onClose();
+          navigate('/feed');
+        }, 600);
       } else {
-        setErrorMsg(res.error || 'Invalid credentials.');
+        setErrorMsg(res.error || 'Invalid username/email or password.');
       }
     } else {
       setIsLoading(false);
@@ -122,7 +141,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </div>
         )}
 
-        {mode === 'signup' && (
+        {mode === 'signup' ? (
           <>
             <div>
               <Input
@@ -159,18 +178,38 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               icon={<User className="w-4 h-4" />}
               required
             />
-          </>
-        )}
 
-        <Input
-          label="Email Address"
-          type="email"
-          placeholder="you@domain.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          icon={<Mail className="w-4 h-4" />}
-          required
-        />
+            <Input
+              label="Email Address"
+              type="email"
+              placeholder="you@domain.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              icon={<Mail className="w-4 h-4" />}
+              required
+            />
+          </>
+        ) : mode === 'login' ? (
+          <Input
+            label="Username or Email"
+            type="text"
+            placeholder="Username or email address"
+            value={loginIdentifier}
+            onChange={(e) => setLoginIdentifier(e.target.value)}
+            icon={<AtSign className="w-4 h-4" />}
+            required
+          />
+        ) : (
+          <Input
+            label="Email Address"
+            type="email"
+            placeholder="you@domain.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            icon={<Mail className="w-4 h-4" />}
+            required
+          />
+        )}
 
         {mode !== 'forgot' && (
           <Input
@@ -199,7 +238,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               Already have an account?{' '}
               <button
                 type="button"
-                onClick={() => setMode('login')}
+                onClick={() => switchMode('login')}
                 className="text-vyro-primary font-bold hover:underline"
               >
                 Sign In
@@ -211,7 +250,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 Don't have an account?{' '}
                 <button
                   type="button"
-                  onClick={() => setMode('signup')}
+                  onClick={() => switchMode('signup')}
                   className="text-vyro-primary font-bold hover:underline"
                 >
                   Create One
@@ -219,7 +258,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </p>
               <button
                 type="button"
-                onClick={() => setMode('forgot')}
+                onClick={() => switchMode('forgot')}
                 className="text-slate-500 hover:text-slate-300 text-[11px]"
               >
                 Forgot your password?
@@ -228,7 +267,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           ) : (
             <button
               type="button"
-              onClick={() => setMode('login')}
+              onClick={() => switchMode('login')}
               className="text-vyro-primary font-bold hover:underline"
             >
               Back to Sign In
