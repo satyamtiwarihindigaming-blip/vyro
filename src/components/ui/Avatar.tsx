@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 export interface AvatarProps {
   src?: string;
@@ -17,6 +17,8 @@ export const Avatar: React.FC<AvatarProps> = ({
   isViewed = false,
   className = '',
 }) => {
+  const [imgError, setImgError] = useState(false);
+
   const sizes = {
     xs: 'w-7 h-7 text-xs',
     sm: 'w-9 h-9 text-xs',
@@ -31,18 +33,23 @@ export const Avatar: React.FC<AvatarProps> = ({
       : 'p-[2px] bg-gradient-to-tr from-vyro-primary via-vyro-accent to-vyro-cyan rounded-full animate-pulse-slow'
     : '';
 
+  const initials = alt ? alt.trim().slice(0, 2).toUpperCase() : 'VY';
+
   return (
     <div className={`relative inline-block ${ringStyles} ${className}`}>
-      {src ? (
+      {src && !imgError ? (
         <img
           src={src}
           alt={alt}
+          onError={() => setImgError(true)}
           className={`${sizes[size]} rounded-full object-cover bg-vyro-card border border-vyro-border`}
           loading="lazy"
         />
       ) : (
-        <div className={`${sizes[size]} rounded-full bg-gradient-to-br from-vyro-primary to-vyro-accent flex items-center justify-center font-bold text-white uppercase`}>
-          {alt.slice(0, 2)}
+        <div
+          className={`${sizes[size]} rounded-full bg-gradient-to-br from-vyro-primary via-vyro-accent to-vyro-cyan flex items-center justify-center font-bold text-white uppercase select-none shadow-glow-purple/30`}
+        >
+          {initials}
         </div>
       )}
     </div>

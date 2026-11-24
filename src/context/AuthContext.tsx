@@ -143,12 +143,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: false, error: 'Password must be at least 6 characters.' };
     }
 
+    const AVATAR_SEEDS = [
+      'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=150&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+    ];
+
     const newUser: User = {
       id: `usr_${Date.now()}`,
       username: cleanUsername,
       displayName: displayName.trim() || cleanUsername,
       email: cleanEmail,
-      avatarUrl: `https://images.unsplash.com/photo-${1534528741775 + Math.floor(Math.random() * 50)}?w=150`,
+      avatarUrl: AVATAR_SEEDS[Math.floor(Math.random() * AVATAR_SEEDS.length)],
       bio: 'New creator on VYRO ⚡',
       isPrivate: false,
       isVerified: false,
