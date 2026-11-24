@@ -1,25 +1,42 @@
 import { loadDB, saveDB, sanitizeUser } from '../db.js';
 import { sendJson, parseBody, getAuthUser } from '../utils.js';
 
+function isCreatorAdvantage(user) {
+  if (!user) return false;
+  return (
+    user.role === 'admin' ||
+    user.username?.toLowerCase() === 'satyam' ||
+    user.username?.toLowerCase() === 'vyro_admin'
+  );
+}
+
 function hydrateUserSummary(user) {
   if (!user) return null;
+  const isAdvantage = isCreatorAdvantage(user);
   return {
     id: user.id,
     username: user.username,
     displayName: user.displayName,
     avatarUrl: user.avatarUrl,
-    isVerified: Boolean(user.isVerified),
-    isPro: Boolean(user.isPro),
-    proBadge: user.proBadge || '',
-    role: user.role || 'user',
+    isVerified: isAdvantage ? true : Boolean(user.isVerified),
+    isPro: isAdvantage ? true : Boolean(user.isPro),
+    proBadge: isAdvantage ? (user.proBadge || 'Founder') : (user.proBadge || ''),
+    role: isAdvantage ? 'admin' : (user.role || 'user'),
   };
 }
 
 function hydratePost(db, post, viewerId) {
   const author = db.users.find((u) => u.id === post.userId);
   if (!author) return null;
-  const likesCount = db.likes.filter((l) => l.postId === post.id).length;
-  const commentsCount = db.comments.filter((c) => c.postId === post.id).length;
+  const isAdvantage = isCreatorAdvantage(author);
+
+  const realLikes = db.likes.filter((l) => l.postId === post.id).length;
+  const realComments = db.comments.filter((c) => c.postId === post.id).length;
+
+  // Creator advantage: 12.4M base likes and 4,820 base comments for admin without fake users in DB
+  const likesCount = isAdvantage ? (12480000 + realLikes) : realLikes;
+  const commentsCount = isAdvantage ? (4820 + realComments) : realComments;
+
   const isLiked = viewerId ? db.likes.some((l) => l.postId === post.id && l.userId === viewerId) : false;
   const isSaved = viewerId ? db.saves.some((s) => s.postId === post.id && s.userId === viewerId) : false;
 
@@ -38,6 +55,13 @@ function sanitizePublicUser(user) {
   if (!safe) return null;
   const { email, ...pub } = safe;
   void email;
+  if (isCreatorAdvantage(pub)) {
+    pub.followersCount = Math.max(pub.followersCount || 0, 1000000000); // 1 Billion!
+    pub.role = 'admin';
+    pub.isVerified = true;
+    pub.isPro = true;
+    pub.proBadge = pub.proBadge || 'Founder';
+  }
   return pub;
 }
 
@@ -121,7 +145,8 @@ export async function handleSocialRoutes(req, res, pathname, urlObj) {
       isFollowing = true;
     }
 
-    targetUser.followersCount = db.follows.filter((f) => f.followingId === targetId).length;
+    const realFollowers = db.follows.filter((f) => f.followingId === targetId).length;
+    targetUser.followersCount = isCreatorAdvantage(targetUser) ? (1000000000 + realFollowers) : realFollowers;
     authUser.followingCount = db.follows.filter((f) => f.followerId === authUser.id).length;
     saveDB();
 
@@ -219,7 +244,10 @@ export async function handleSocialRoutes(req, res, pathname, urlObj) {
     if (!post) return sendJson(res, 404, { error: 'Post not found.' });
 
     if (req.method === 'GET') {
-      const comments = db.comments
+      const author = db.users.find((u) => u.id === post.userId);
+      const isAdvantage = isCreatorAdvantage(author);
+
+      const realComments = db.comments
         .filter((c) => c.postId === postId)
         .map((c) => {
           const u = db.users.find((usr) => usr.id === c.userId);
@@ -232,6 +260,43 @@ export async function handleSocialRoutes(req, res, pathname, urlObj) {
           };
         })
         .reverse();
+
+      // For admin posts, provide high-energy fan comments on the fly WITHOUT creating fake database users
+      let comments = realComments;
+      if (isAdvantage) {
+        const dynamicFanComments = [
+          {
+            id: `dyn_1_${post.id}`,
+            postId,
+            text: '🔥 Legendary content! Keep crushing it.',
+            createdAt: post.createdAt,
+            user: { id: 'fan_1', username: 'leo_vibe', displayName: 'Leo', avatarUrl: '', isVerified: true, isPro: false },
+          },
+          {
+            id: `dyn_2_${post.id}`,
+            postId,
+            text: '1B club on VYRO let\'s gooo! 👑',
+            createdAt: post.createdAt,
+            user: { id: 'fan_2', username: 'priya_m', displayName: 'Priya', avatarUrl: '', isVerified: false, isPro: true, proBadge: 'Creator' },
+          },
+          {
+            id: `dyn_3_${post.id}`,
+            postId,
+            text: 'Best reel quality on the platform ⚡',
+            createdAt: post.createdAt,
+            user: { id: 'fan_3', username: 'aryan_k', displayName: 'Aryan', avatarUrl: '', isVerified: true, isPro: false },
+          },
+          {
+            id: `dyn_4_${post.id}`,
+            postId,
+            text: 'Pure visual masterpiece ✨',
+            createdAt: post.createdAt,
+            user: { id: 'fan_4', username: 'sam_tech', displayName: 'Sam', avatarUrl: '', isVerified: false, isPro: false },
+          },
+        ];
+        comments = [...realComments, ...dynamicFanComments];
+      }
+
       return sendJson(res, 200, { comments });
     }
 
@@ -292,7 +357,12 @@ export async function handleSocialRoutes(req, res, pathname, urlObj) {
         .map((s) => {
           const author = db.users.find((u) => u.id === s.userId);
           if (!author) return null;
-          return { ...s, user: hydrateUserSummary(author) };
+          const isAdvantage = isCreatorAdvantage(author);
+          return {
+            ...s,
+            user: hydrateUserSummary(author),
+            viewsCount: isAdvantage ? (14200000 + (s.viewsCount || 0)) : (s.viewsCount || 1),
+          };
         })
         .filter(Boolean);
       return sendJson(res, 200, { stories });

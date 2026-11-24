@@ -5,6 +5,7 @@ import { useSocial } from '../context/SocialContext';
 import { useCall } from '../context/CallContext';
 import { apiRequest } from '../lib/api';
 import { compressImageFile } from '../lib/imageCompressor';
+import { formatMetric } from '../lib/musicCatalog';
 import { User, ProfileAccent } from '../types';
 import { Avatar } from '../components/ui/Avatar';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
@@ -263,11 +264,16 @@ export const ProfilePage: React.FC = () => {
               <span className="text-slate-400">Posts</span>
             </div>
             <div>
-              <span className="font-extrabold text-white mr-1.5">{profileUser.followersCount}</span>
+              <span
+                className="font-extrabold text-white mr-1.5 cursor-pointer hover:text-vyro-primary transition-colors"
+                title={`${profileUser.followersCount.toLocaleString()} Followers`}
+              >
+                {formatMetric(profileUser.followersCount)}
+              </span>
               <span className="text-slate-400">Followers</span>
             </div>
             <div>
-              <span className="font-extrabold text-white mr-1.5">{profileUser.followingCount}</span>
+              <span className="font-extrabold text-white mr-1.5">{formatMetric(profileUser.followingCount)}</span>
               <span className="text-slate-400">Following</span>
             </div>
           </div>
@@ -289,16 +295,16 @@ export const ProfilePage: React.FC = () => {
 
           <div className="grid grid-cols-3 gap-3 text-center">
             <div className="p-3 rounded-xl bg-vyro-bg border border-vyro-border">
-              <p className="text-lg font-extrabold text-white">{totalLikes}</p>
+              <p className="text-lg font-extrabold text-white">{formatMetric(totalLikes)}</p>
               <p className="text-[10px] text-slate-400">Total Likes Earned</p>
             </div>
             <div className="p-3 rounded-xl bg-vyro-bg border border-vyro-border">
-              <p className="text-lg font-extrabold text-vyro-cyan">{totalComments}</p>
+              <p className="text-lg font-extrabold text-vyro-cyan">{formatMetric(totalComments)}</p>
               <p className="text-[10px] text-slate-400">Total Discussions</p>
             </div>
             <div className="p-3 rounded-xl bg-vyro-bg border border-vyro-border">
               <p className="text-lg font-extrabold text-vyro-accent">
-                {userPosts.length > 0 ? Math.round((totalLikes + totalComments) / userPosts.length) : 0}
+                {userPosts.length > 0 ? formatMetric(Math.round((totalLikes + totalComments) / userPosts.length)) : '0'}
               </p>
               <p className="text-[10px] text-slate-400">Avg. Interactions/Post</p>
             </div>

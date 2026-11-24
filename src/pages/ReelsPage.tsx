@@ -4,6 +4,7 @@ import { Heart, MessageCircle, Send, Bookmark, Music, Volume2, VolumeX, Film } f
 import { Avatar } from '../components/ui/Avatar';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
 import { useSocial } from '../context/SocialContext';
+import { formatMetric } from '../lib/musicCatalog';
 
 export const ReelsPage: React.FC = () => {
   const { posts, toggleLike, toggleSave } = useSocial();
@@ -111,14 +112,18 @@ export const ReelsPage: React.FC = () => {
                   >
                     <Heart className={`w-5 h-5 ${reel.isLiked ? 'fill-rose-500' : ''}`} />
                   </div>
-                  <span className="text-[10px] font-bold">{reel.likesCount}</span>
+                  <span className="text-[10px] font-bold" title={`${reel.likesCount.toLocaleString()} likes`}>
+                    {formatMetric(reel.likesCount)}
+                  </span>
                 </button>
 
                 <div className="flex flex-col items-center gap-1">
                   <div className="p-2.5 rounded-full bg-black/40 backdrop-blur-md text-white">
                     <MessageCircle className="w-5 h-5" />
                   </div>
-                  <span className="text-[10px] font-bold">{reel.commentsCount}</span>
+                  <span className="text-[10px] font-bold" title={`${reel.commentsCount.toLocaleString()} comments`}>
+                    {formatMetric(reel.commentsCount)}
+                  </span>
                 </div>
 
                 <button

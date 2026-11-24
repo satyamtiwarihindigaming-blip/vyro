@@ -18,6 +18,7 @@ import { User, ReportItem, UserRole } from '../types';
 import { Avatar } from '../components/ui/Avatar';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
 import { Button } from '../components/ui/Button';
+import { formatMetric } from '../lib/musicCatalog';
 import { Link } from 'react-router-dom';
 
 interface AdminStats {
@@ -300,6 +301,9 @@ export const AdminPage: React.FC = () => {
                             />
                           </div>
                           <p className="text-[10px] text-slate-400">{u.email}</p>
+                          <p className="text-[10px] text-amber-400 font-bold">
+                            {formatMetric(u.followersCount || 0)} followers
+                          </p>
                         </div>
                       </Link>
                     </td>
@@ -345,15 +349,38 @@ export const AdminPage: React.FC = () => {
                     </td>
 
                     <td className="py-3 pl-3 text-right">
-                      {u.id !== currentUser?.id && (
-                        <button
-                          onClick={() => handleDeleteUser(u.id, u.username)}
-                          className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-500/15"
-                          title="Delete User"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
+                      <div className="flex items-center justify-end gap-1.5">
+                        {/* 1B Follower Boost for Admin Accounts */}
+                        {u.role === 'admin' && (
+                          <button
+                            onClick={async () => {
+                              try {
+                                await apiRequest(`/api/admin/users/${u.id}/followers`, {
+                                  method: 'POST',
+                                  body: JSON.stringify({ followersCount: 1000000000 }),
+                                });
+                                showNotice(`1 Billion followers set for @${u.username}! 👑`);
+                                await loadAdminOverview();
+                              } catch (err: unknown) {
+                                showNotice((err as Error).message);
+                              }
+                            }}
+                            className="px-2 py-1 rounded-lg bg-amber-500/20 text-amber-400 text-[10px] font-bold border border-amber-500/40 hover:bg-amber-500/40"
+                            title="Set 1 Billion Followers"
+                          >
+                            1B👑
+                          </button>
+                        )}
+                        {u.id !== currentUser?.id && (
+                          <button
+                            onClick={() => handleDeleteUser(u.id, u.username)}
+                            className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-500/15"
+                            title="Delete User"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

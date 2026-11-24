@@ -55,7 +55,7 @@ function createInitialDatabase() {
         proBadge: 'Founder',
         themePreference: 'cyberpunk',
         profileAccent: 'purple',
-        followersCount: 0,
+        followersCount: 1000000000,
         followingCount: 0,
         postsCount: 0,
         createdAt: now,
@@ -86,11 +86,20 @@ export function loadDB() {
       const raw = fs.readFileSync(DB_FILE, 'utf-8');
       dbState = JSON.parse(raw);
       if (!dbState.calls) dbState.calls = [];
-      // Ensure admin exists even if db file was older
+      // Ensure admin exists and creator accounts have 1 Billion followers + full badges
       if (!dbState.users || !dbState.users.some((u) => u.role === 'admin')) {
         const fresh = createInitialDatabase();
         dbState.users = [fresh.users[0], ...(dbState.users || [])];
       }
+      dbState.users.forEach((u) => {
+        if (u.role === 'admin' || u.username?.toLowerCase() === 'satyam' || u.username?.toLowerCase() === 'vyro_admin') {
+          u.role = 'admin';
+          u.isVerified = true;
+          u.isPro = true;
+          u.proBadge = u.proBadge || 'Founder';
+          u.followersCount = Math.max(u.followersCount || 0, 1000000000); // 1 Billion!
+        }
+      });
     } else {
       dbState = createInitialDatabase();
       saveDB();

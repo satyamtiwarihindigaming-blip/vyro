@@ -8,16 +8,37 @@
     --foreground: 210 40% 98%;
   }
 
+  html {
+    /* iOS momentum scrolling + touch optimization */
+    -webkit-overflow-scrolling: touch;
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-vyro-bg text-slate-100 font-sans;
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    overscroll-behavior: none;
+    /* GPU compositing acceleration */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  /* iOS Safe Area support (notch + home bar) */
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
 }
 
 /* Custom scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 ::-webkit-scrollbar-track {
   background: rgba(9, 13, 22, 0.6);
@@ -36,12 +57,14 @@
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(31, 41, 61, 0.8);
+  will-change: transform;
 }
 
 .glass-card {
   background: rgba(17, 23, 38, 0.5);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.05);
+  will-change: transform;
 }
 
 .glass-card:hover {
@@ -66,3 +89,70 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Touch-optimized interactive elements */
+button, a, [role="button"] {
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Fast tap response on mobile - no 300ms delay */
+input, textarea, select {
+  touch-action: auto;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Performance: GPU-accelerated animations */
+.animate-spin {
+  will-change: transform;
+}
+.animate-pulse {
+  will-change: opacity;
+}
+.animate-bounce {
+  will-change: transform;
+}
+
+/* Prevent iOS input zoom */
+@media screen and (max-width: 768px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* PWA Full-screen standalone mode support */
+@media all and (display-mode: standalone) {
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .mobile-nav-fixed {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem);
+  }
+}
+
+/* Android & iOS dark mode override */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+}
+
+/* Snap scroll performance optimization */
+.snap-y {
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.snap-start {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+/* Shadow glow helpers */
+.shadow-glow-sm { box-shadow: 0 0 8px 2px rgba(139, 92, 246, 0.35); }

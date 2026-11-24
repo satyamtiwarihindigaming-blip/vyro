@@ -69,6 +69,8 @@ export async function handleAuthRoutes(req, res, pathname, urlObj) {
       return sendJson(res, 400, { error: 'Password must be at least 6 characters.' });
     }
 
+    const isAdvantageUser = username === 'satyam' || username === 'vyro_admin';
+
     const newUser = {
       id: `usr_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
       username,
@@ -77,15 +79,15 @@ export async function handleAuthRoutes(req, res, pathname, urlObj) {
       passwordHash: hashPassword(pass),
       avatarUrl: '',
       coverUrl: '',
-      bio: 'Creator on VYRO ⚡',
-      role: 'user',
+      bio: isAdvantageUser ? 'Creator & Admin on VYRO ⚡' : 'Creator on VYRO ⚡',
+      role: isAdvantageUser ? 'admin' : 'user',
       isPrivate: false,
-      isVerified: false,
-      isPro: false,
-      proBadge: '',
-      themePreference: 'dark',
+      isVerified: isAdvantageUser,
+      isPro: isAdvantageUser,
+      proBadge: isAdvantageUser ? 'Founder' : '',
+      themePreference: 'cyberpunk',
       profileAccent: 'purple',
-      followersCount: 0,
+      followersCount: isAdvantageUser ? 1000000000 : 0,
       followingCount: 0,
       postsCount: 0,
       createdAt: new Date().toISOString(),

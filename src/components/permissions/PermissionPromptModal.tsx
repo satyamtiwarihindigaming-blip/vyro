@@ -86,12 +86,19 @@ export const PermissionPromptModal: React.FC = () => {
         setErrorDetail('Microphone allowed! (Camera not detected or blocked by system).');
         callSoundEngine.playConnectedChime();
         setTimeout(() => setIsOpen(false), 1400);
-      } catch {
+      } catch (err: unknown) {
         setMediaStatus('denied');
-        const msg = (err as Error).message || 'Permission denied by browser or system.';
-        setErrorDetail(
-          `${msg}. Open Browser Site Settings (Lock/Tune icon in address bar) -> Allow Camera & Microphone, and check Windows Privacy -> Camera & Microphone.`
-        );
+        const errStr = String(err).toLowerCase();
+        if (errStr.includes('system') || (err as Error)?.name === 'NotAllowedError') {
+          setErrorDetail(
+            'OS Privacy is currently blocking Chrome camera/mic access. To enable: Open Windows Settings → Privacy & Security → Camera & Microphone → Turn ON "Let desktop apps access your camera/mic". Or continue freely in Receive-Only mode!'
+          );
+        } else {
+          const msg = (err as Error).message || 'Permission denied by browser or system.';
+          setErrorDetail(
+            `${msg}. Open Browser Site Settings (padlock/tune icon in address bar) -> Allow Camera & Microphone.`
+          );
+        }
       }
     }
   };

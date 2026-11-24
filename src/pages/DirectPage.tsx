@@ -17,6 +17,7 @@ import { Avatar } from '../components/ui/Avatar';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
 import { DirectConversation, Message } from '../types';
 import { MiniChess } from '../components/games/MiniChess';
+import { LudoGame } from '../components/games/LudoGame';
 import { Button } from '../components/ui/Button';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -45,7 +46,7 @@ export const DirectPage: React.FC = () => {
 
   // In-chat Mini-Game State
   const [gameActive, setGameActive] = useState(false);
-  const [activeGameType, setActiveGameType] = useState<'tictactoe' | 'chess'>('tictactoe');
+  const [activeGameType, setActiveGameType] = useState<'ludo' | 'tictactoe' | 'chess'>('ludo');
   const [board, setBoard] = useState<(string | null)[]>(Array(9).fill(null));
   const [isXNext, setIsXNext] = useState(true);
 
@@ -310,9 +311,17 @@ export const DirectPage: React.FC = () => {
             </div>
 
             {gameActive && (
-              <div className="p-4 bg-vyro-card/90 border-b border-vyro-border flex flex-col items-center">
-                <div className="flex items-center justify-between w-full max-w-sm mb-3">
-                  <div className="flex items-center gap-2">
+              <div className="p-3 bg-vyro-card/95 border-b border-vyro-border flex flex-col items-center max-h-[500px] overflow-y-auto">
+                <div className="flex items-center justify-between w-full max-w-sm mb-2">
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => setActiveGameType('ludo')}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
+                        activeGameType === 'ludo' ? 'bg-gradient-to-r from-vyro-primary to-vyro-accent text-white' : 'bg-vyro-bg text-slate-400'
+                      }`}
+                    >
+                      🎲 Ludo
+                    </button>
                     <button
                       onClick={() => setActiveGameType('tictactoe')}
                       className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
@@ -335,7 +344,9 @@ export const DirectPage: React.FC = () => {
                   </button>
                 </div>
 
-                {activeGameType === 'tictactoe' ? (
+                {activeGameType === 'ludo' ? (
+                  <LudoGame inChat />
+                ) : activeGameType === 'tictactoe' ? (
                   <>
                     <div className="grid grid-cols-3 gap-2 w-48 h-48">
                       {board.map((cell, idx) => (

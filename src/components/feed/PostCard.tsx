@@ -18,6 +18,7 @@ import { Avatar } from '../ui/Avatar';
 import { VerifiedBadge } from '../ui/VerifiedBadge';
 import { useAuth } from '../../context/AuthContext';
 import { apiRequest } from '../../lib/api';
+import { formatMetric } from '../../lib/musicCatalog';
 
 export interface PostCardProps {
   post: Post;
@@ -208,7 +209,9 @@ export const PostCard: React.FC<PostCardProps> = ({
               aria-label={post.isLiked ? 'Unlike post' : 'Like post'}
             >
               <Heart className={`w-5 h-5 ${post.isLiked ? 'fill-rose-500' : ''}`} />
-              <span className="font-semibold text-xs">{post.likesCount.toLocaleString()}</span>
+              <span className="font-semibold text-xs" title={`${post.likesCount.toLocaleString()} likes`}>
+                {formatMetric(post.likesCount)}
+              </span>
             </button>
 
             <button
@@ -217,7 +220,9 @@ export const PostCard: React.FC<PostCardProps> = ({
               aria-label="View comments"
             >
               <MessageCircle className="w-5 h-5" />
-              <span className="font-semibold text-xs">{post.commentsCount}</span>
+              <span className="font-semibold text-xs" title={`${post.commentsCount.toLocaleString()} comments`}>
+                {formatMetric(post.commentsCount)}
+              </span>
             </button>
 
             <button

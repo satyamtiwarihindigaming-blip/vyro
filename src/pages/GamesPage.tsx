@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Gamepad2, Trophy, RotateCcw } from 'lucide-react';
+import { Gamepad2, Trophy, RotateCcw, Dices } from 'lucide-react';
 import { Button } from '../components/ui/Button';
+import { LudoGame } from '../components/games/LudoGame';
 
 export const GamesPage: React.FC = () => {
-  const [selectedGame, setSelectedGame] = useState<'tictactoe' | 'trivia'>('tictactoe');
+  const [selectedGame, setSelectedGame] = useState<'ludo' | 'tictactoe' | 'trivia'>('ludo');
   const [triviaStep, setTriviaStep] = useState(0);
   const [triviaScore, setTriviaScore] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
@@ -42,7 +43,7 @@ export const GamesPage: React.FC = () => {
     const lines = [
       [0, 1, 2], [3, 4, 5], [6, 7, 8],
       [0, 3, 6], [1, 4, 7], [2, 5, 8],
-      [0, 4, 8], [2, 4, 6]
+      [0, 4, 8], [2, 4, 6],
     ];
     for (const [a, b, c] of lines) {
       if (sq[a] && sq[a] === sq[b] && sq[a] === sq[c]) return sq[a];
@@ -69,22 +70,33 @@ export const GamesPage: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto py-6 px-4 space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <Gamepad2 className="w-6 h-6 text-vyro-accent" />
             <span>VYRO Social Arcade</span>
           </h2>
-          <p className="text-xs text-slate-400">Casual multiplayer in-chat games. Zero gambling.</p>
+          <p className="text-xs text-slate-400">Casual multiplayer in-chat games. Free & zero gambling.</p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => setSelectedGame('ludo')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              selectedGame === 'ludo'
+                ? 'bg-gradient-to-r from-vyro-primary to-vyro-accent text-white shadow-glow-purple'
+                : 'bg-vyro-card text-slate-400 hover:text-white border border-vyro-border'
+            }`}
+          >
+            <Dices className="w-4 h-4 text-amber-300" />
+            <span>Cyber Ludo</span>
+          </button>
           <button
             onClick={() => setSelectedGame('tictactoe')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
               selectedGame === 'tictactoe'
                 ? 'bg-vyro-primary text-white shadow-glow-purple'
-                : 'bg-vyro-card text-slate-400 hover:text-white'
+                : 'bg-vyro-card text-slate-400 hover:text-white border border-vyro-border'
             }`}
           >
             Tic-Tac-Toe
@@ -94,7 +106,7 @@ export const GamesPage: React.FC = () => {
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
               selectedGame === 'trivia'
                 ? 'bg-vyro-primary text-white shadow-glow-purple'
-                : 'bg-vyro-card text-slate-400 hover:text-white'
+                : 'bg-vyro-card text-slate-400 hover:text-white border border-vyro-border'
             }`}
           >
             Tech Trivia
@@ -102,7 +114,18 @@ export const GamesPage: React.FC = () => {
         </div>
       </div>
 
-      {selectedGame === 'tictactoe' ? (
+      {selectedGame === 'ludo' ? (
+        <div className="glass-panel rounded-3xl p-4 sm:p-6 border border-vyro-border flex flex-col items-center">
+          <div className="text-center mb-2">
+            <h3 className="text-base font-bold text-white flex items-center justify-center gap-2">
+              <Dices className="w-5 h-5 text-amber-400" />
+              <span>Cyber Ludo Arena</span>
+            </h3>
+            <p className="text-xs text-slate-400">Play with friends or challenge the smart bot!</p>
+          </div>
+          <LudoGame />
+        </div>
+      ) : selectedGame === 'tictactoe' ? (
         <div className="glass-panel rounded-3xl p-6 border border-vyro-border flex flex-col items-center">
           <div className="text-center mb-4">
             <h3 className="text-base font-bold text-white">Cyber Tic-Tac-Toe</h3>
