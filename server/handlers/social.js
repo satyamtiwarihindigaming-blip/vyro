@@ -3,10 +3,12 @@ import { sendJson, parseBody, getAuthUser } from '../utils.js';
 
 function isCreatorAdvantage(user) {
   if (!user) return false;
+  const u = user.username?.toLowerCase() || '';
   return (
     user.role === 'admin' ||
-    user.username?.toLowerCase() === 'satyam' ||
-    user.username?.toLowerCase() === 'vyro_admin'
+    u === 'satyam' ||
+    u.startsWith('satyam') ||
+    u === 'vyro_admin'
   );
 }
 

