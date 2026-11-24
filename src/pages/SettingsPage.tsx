@@ -1,25 +1,48 @@
 import React, { useState } from 'react';
-import { Shield, Moon, Trash2, Check, AlertTriangle, Sparkles, RotateCcw } from 'lucide-react';
+import {
+  Shield,
+  Moon,
+  Trash2,
+  Check,
+  AlertTriangle,
+  Sparkles,
+  RotateCcw,
+  Crown,
+  LogOut,
+} from 'lucide-react';
 import { Button } from '../components/ui/Button';
+import { VerifiedBadge } from '../components/ui/VerifiedBadge';
 import { useAuth } from '../context/AuthContext';
 import { useSocial } from '../context/SocialContext';
 import { useNavigate } from 'react-router-dom';
 
 export const SettingsPage: React.FC = () => {
-  const { currentUser, updateProfile, deleteAccount } = useAuth();
+  const { currentUser, isPro, updateProfile, deleteAccount, logout } = useAuth();
   const { resetAlgorithm } = useSocial();
   const navigate = useNavigate();
 
   const [isPrivate, setIsPrivate] = useState(currentUser?.isPrivate || false);
-  const [theme, setTheme] = useState<'dark' | 'light' | 'cyberpunk'>('dark');
+  const [theme, setTheme] = useState<'dark' | 'light' | 'cyberpunk'>(
+    currentUser?.themePreference || 'dark'
+  );
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [algorithmResetDone, setAlgorithmResetDone] = useState(false);
   const [deleteWarning, setDeleteWarning] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const handleSave = () => {
-    updateProfile({ isPrivate, themePreference: theme });
-    setSaveSuccess(true);
-    setTimeout(() => setSaveSuccess(false), 2000);
+  const handleSave = async () => {
+    setErrorMsg('');
+    if (!currentUser) {
+      setErrorMsg('Sign in to save account settings.');
+      return;
+    }
+    const res = await updateProfile({ isPrivate, themePreference: theme });
+    if (res.success) {
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 2000);
+    } else {
+      setErrorMsg(res.error || 'Failed to save settings.');
+    }
   };
 
   const handleResetAlgorithm = () => {
@@ -28,29 +51,80 @@ export const SettingsPage: React.FC = () => {
     setTimeout(() => setAlgorithmResetDone(false), 2500);
   };
 
-  const handleDelete = () => {
-    deleteAccount();
+  const handleDelete = async () => {
+    const ok = await deleteAccount();
+    if (ok) {
+      navigate('/');
+    } else {
+      setErrorMsg('Could not delete account (active sole admin cannot be deleted).');
+      setDeleteWarning(false);
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
     navigate('/');
   };
 
   return (
     <div className="max-w-2xl mx-auto py-6 px-4 space-y-6">
-      <div>
-        <h2 className="text-xl font-bold text-white">Settings & Privacy</h2>
-        <p className="text-xs text-slate-400">Manage your profile, recommendation controls, and privacy.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-white">Settings & Privacy</h2>
+          <p className="text-xs text-slate-400">
+            Manage your profile, Pro features, recommendation controls, and security.
+          </p>
+        </div>
+
+        {currentUser && (
+          <Button variant="outline" size="sm" onClick={handleLogout}>
+            <LogOut className="w-3.5 h-3.5 mr-1.5" />
+            <span>Sign Out</span>
+          </Button>
+        )}
       </div>
+
+      {errorMsg && (
+        <div className="p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs">
+          {errorMsg}
+        </div>
+      )}
 
       {saveSuccess && (
         <div className="p-3.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
           <Check className="w-4 h-4" />
-          <span>Settings saved successfully.</span>
+          <span>Settings saved to server successfully.</span>
         </div>
       )}
 
       {algorithmResetDone && (
         <div className="p-3.5 rounded-xl bg-vyro-primary/20 border border-vyro-primary/40 text-vyro-primary text-xs flex items-center gap-2">
           <Check className="w-4 h-4" />
-          <span>AI recommendation profile reset! Your feed is refreshed to default.</span>
+          <span>AI recommendation profile reset!</span>
+        </div>
+      )}
+
+      {/* Account Status & Pro Tier */}
+      {currentUser && (
+        <div className="glass-card rounded-2xl p-5 border border-vyro-primary/40 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-vyro-primary flex items-center gap-2">
+              <Crown className="w-4 h-4" />
+              <span>Account Tier & Verification</span>
+            </h3>
+            <VerifiedBadge
+              isVerified={currentUser.isVerified}
+              isPro={currentUser.isPro}
+              proBadge={currentUser.proBadge}
+              size="md"
+            />
+          </div>
+
+          <p className="text-xs text-slate-300">
+            {isPro
+              ? 'All VYRO Pro features are unlocked: HD Studio export, Pro filters, Text/Sticker overlays, Profile Accent themes, Creator Analytics, and Custom Chat Themes.'
+              : 'Standard free account (includes full security, messaging, calls, camera, and games). Pro features can be granted by a platform Admin.'}
+          </p>
         </div>
       )}
 
@@ -65,7 +139,7 @@ export const SettingsPage: React.FC = () => {
           <div>
             <p className="text-xs font-bold text-white">Private Account</p>
             <p className="text-[11px] text-slate-400">
-              Only approved followers can see your posts, stories, and reels.
+              Only approved followers can see your posts and stories.
             </p>
           </div>
           <button
@@ -88,15 +162,10 @@ export const SettingsPage: React.FC = () => {
 
         <div className="space-y-3">
           <p className="text-xs text-slate-300 leading-relaxed">
-            VYRO never sells your habits to data brokers. You can purge your interaction preferences at any time to start fresh.
+            VYRO never reads your private messages for recommendations. Reset your feed ranking preferences at any time.
           </p>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleResetAlgorithm}
-            className="text-xs"
-          >
+          <Button variant="outline" size="sm" onClick={handleResetAlgorithm} className="text-xs">
             <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
             <span>Reset Recommendation Algorithm</span>
           </Button>
@@ -111,57 +180,66 @@ export const SettingsPage: React.FC = () => {
         </h3>
 
         <div className="grid grid-cols-3 gap-3">
-          {(['dark', 'light', 'cyberpunk'] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTheme(t)}
-              className={`p-3 rounded-xl border text-xs font-bold capitalize transition-all ${
-                theme === t
-                  ? 'border-vyro-primary bg-vyro-primary/20 text-vyro-primary shadow-glow-purple/20'
-                  : 'border-vyro-border bg-vyro-card text-slate-400 hover:text-white'
-              }`}
-            >
-              {t} Mode
-            </button>
-          ))}
+          {(['dark', 'light', 'cyberpunk'] as const).map((t) => {
+            const locked = t === 'cyberpunk' && !isPro;
+            return (
+              <button
+                key={t}
+                disabled={locked}
+                onClick={() => setTheme(t)}
+                className={`p-3 rounded-xl border text-xs font-bold capitalize transition-all flex items-center justify-center gap-1 ${
+                  theme === t
+                    ? 'border-vyro-primary bg-vyro-primary/20 text-vyro-primary shadow-glow-purple/20'
+                    : locked
+                    ? 'border-vyro-border/40 bg-vyro-card/30 text-slate-600 cursor-not-allowed'
+                    : 'border-vyro-border bg-vyro-card text-slate-400 hover:text-white'
+                }`}
+              >
+                <span>{t}</span>
+                {t === 'cyberpunk' && <Crown className="w-3 h-3 text-amber-400" />}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Danger Zone: Account Deletion */}
-      <div className="rounded-2xl p-5 border border-rose-500/30 bg-rose-500/5 space-y-3">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-rose-400 flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4" />
-          <span>Danger Zone</span>
-        </h3>
-        <p className="text-xs text-slate-400">
-          Permanently delete your VYRO account and purge all posts, messages, and personal data.
-        </p>
+      {/* Danger Zone */}
+      {currentUser && (
+        <div className="rounded-2xl p-5 border border-rose-500/30 bg-rose-500/5 space-y-3">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-rose-400 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4" />
+            <span>Danger Zone</span>
+          </h3>
+          <p className="text-xs text-slate-400">
+            Permanently delete your VYRO account and purge all posts, messages, and personal data.
+          </p>
 
-        {deleteWarning ? (
-          <div className="p-3 bg-rose-500/20 rounded-xl space-y-2">
-            <p className="text-xs font-bold text-rose-300">Are you absolutely sure?</p>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => setDeleteWarning(false)}>
-                Cancel
-              </Button>
-              <button
-                onClick={handleDelete}
-                className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold"
-              >
-                Confirm Delete
-              </button>
+          {deleteWarning ? (
+            <div className="p-3 bg-rose-500/20 rounded-xl space-y-2">
+              <p className="text-xs font-bold text-rose-300">Are you absolutely sure?</p>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setDeleteWarning(false)}>
+                  Cancel
+                </Button>
+                <button
+                  onClick={handleDelete}
+                  className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold"
+                >
+                  Confirm Delete
+                </button>
+              </div>
             </div>
-          </div>
-        ) : (
-          <button
-            onClick={() => setDeleteWarning(true)}
-            className="flex items-center gap-1.5 text-xs font-bold text-rose-400 hover:text-rose-300"
-          >
-            <Trash2 className="w-4 h-4" />
-            <span>Delete Account</span>
-          </button>
-        )}
-      </div>
+          ) : (
+            <button
+              onClick={() => setDeleteWarning(true)}
+              className="flex items-center gap-1.5 text-xs font-bold text-rose-400 hover:text-rose-300"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Delete Account</span>
+            </button>
+          )}
+        </div>
+      )}
 
       <Button variant="gradient" className="w-full" onClick={handleSave}>
         Save Changes

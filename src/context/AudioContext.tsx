@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
 import { MusicTrack } from '../types';
-import { MOCK_MUSIC_TRACKS } from '../lib/mockData';
+import { ROYALTY_FREE_TRACKS } from '../lib/musicCatalog';
 
 interface AudioContextType {
   currentTrack: MusicTrack | null;
@@ -19,7 +19,7 @@ interface AudioContextType {
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
 
 export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentTrack, setCurrentTrack] = useState<MusicTrack | null>(MOCK_MUSIC_TRACKS[0]);
+  const [currentTrack, setCurrentTrack] = useState<MusicTrack | null>(ROYALTY_FREE_TRACKS[0]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);

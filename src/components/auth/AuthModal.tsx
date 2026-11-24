@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
@@ -21,38 +21,42 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const { login, signup, checkUsernameAvailable } = useAuth();
   const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>(defaultMode);
 
-  // Signup fields
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [displayName, setDisplayName] = useState('');
-
-  // Login identifier (can be username or email)
   const [loginIdentifier, setLoginIdentifier] = useState('');
-
   const [password, setPassword] = useState('');
-  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
+
+  const [usernameStatus, setUsernameStatus] = useState<
+    'idle' | 'checking' | 'available' | 'taken' | 'invalid'
+  >('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Validate username format and availability
+  const checkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const handleUsernameChange = (val: string) => {
     const clean = val.toLowerCase().replace(/\s+/g, '');
     setUsername(clean);
+
+    if (checkTimerRef.current) clearTimeout(checkTimerRef.current);
 
     if (clean.length < 3) {
       setUsernameStatus('idle');
       return;
     }
 
-    const validRegex = /^[a-z0-9_.]{3,30}$/;
-    if (!validRegex.test(clean)) {
+    if (!/^[a-z0-9_.]{3,30}$/.test(clean)) {
       setUsernameStatus('invalid');
       return;
     }
 
-    const isAvail = checkUsernameAvailable(clean);
-    setUsernameStatus(isAvail ? 'available' : 'taken');
+    setUsernameStatus('checking');
+    checkTimerRef.current = setTimeout(async () => {
+      const res = await checkUsernameAvailable(clean);
+      setUsernameStatus(res.available ? 'available' : 'taken');
+    }, 250);
   };
 
   const switchMode = (newMode: 'login' | 'signup' | 'forgot') => {
@@ -70,7 +74,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     if (mode === 'signup') {
       if (usernameStatus !== 'available') {
         setIsLoading(false);
-        setErrorMsg('Please choose an available username (letters, numbers, underscores).');
+        setErrorMsg('Please choose a valid, available username.');
         return;
       }
       if (password.length < 6) {
@@ -92,7 +96,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         setTimeout(() => {
           onClose();
           navigate('/feed');
-        }, 800);
+        }, 700);
       } else {
         setErrorMsg(res.error || 'Failed to create account.');
       }
@@ -104,13 +108,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         setTimeout(() => {
           onClose();
           navigate('/feed');
-        }, 600);
+        }, 500);
       } else {
         setErrorMsg(res.error || 'Invalid username/email or password.');
       }
     } else {
       setIsLoading(false);
-      setSuccessMsg('Password reset instructions sent to your email.');
+      setSuccessMsg('If this email is registered, password recovery steps have been queued.');
     }
   };
 
@@ -172,7 +176,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
             <Input
               label="Display Name"
-              placeholder="e.g. Nova Vance"
+              placeholder="e.g. Satyam Tiwari"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               icon={<User className="w-4 h-4" />}

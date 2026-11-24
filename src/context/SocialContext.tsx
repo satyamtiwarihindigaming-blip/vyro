@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Post, Story } from '../types';
-import { MOCK_POSTS, MOCK_STORIES } from '../lib/mockData';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { Post, Story, User } from '../types';
+import { apiRequest } from '../lib/api';
 import { useAuth } from './AuthContext';
 import {
   getStoredPreferences,
@@ -13,89 +13,125 @@ import {
 interface SocialContextType {
   posts: Post[];
   stories: Story[];
-  createPost: (newPostData: Partial<Post>) => void;
-  toggleLike: (postId: string) => void;
-  toggleSave: (postId: string) => void;
-  addComment: (postId: string, text: string) => void;
+  users: User[];
+  isLoadingFeed: boolean;
+  refreshSocialData: () => Promise<void>;
+  createPost: (newPostData: Partial<Post>) => Promise<boolean>;
+  deletePost: (postId: string) => Promise<void>;
+  toggleLike: (postId: string) => Promise<void>;
+  toggleSave: (postId: string) => Promise<void>;
+  toggleFollow: (userId: string) => Promise<void>;
+  incrementCommentCount: (postId: string) => void;
   markNotInterested: (postId: string) => void;
   getFilteredFeed: (tab: 'foryou' | 'following') => Post[];
   resetAlgorithm: () => void;
-  createStory: (mediaUrl: string, mediaType: 'image' | 'video') => void;
+  createStory: (mediaUrl: string, mediaType: 'image' | 'video') => Promise<boolean>;
 }
 
 const SocialContext = createContext<SocialContextType | undefined>(undefined);
 
-const POSTS_KEY = 'vyro_posts_state';
-const STORIES_KEY = 'vyro_stories_state';
-
 export const SocialProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { currentUser } = useAuth();
-  const [posts, setPosts] = useState<Post[]>(() => {
-    const saved = localStorage.getItem(POSTS_KEY);
-    return saved ? JSON.parse(saved) : MOCK_POSTS;
-  });
-
-  const [stories, setStories] = useState<Story[]>(() => {
-    const saved = localStorage.getItem(STORIES_KEY);
-    return saved ? JSON.parse(saved) : MOCK_STORIES;
-  });
-
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [stories, setStories] = useState<Story[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoadingFeed, setIsLoadingFeed] = useState<boolean>(true);
   const [preferences, setPreferences] = useState<UserPreferences>(getStoredPreferences);
 
-  useEffect(() => {
-    localStorage.setItem(POSTS_KEY, JSON.stringify(posts));
-  }, [posts]);
+  const refreshSocialData = useCallback(async () => {
+    setIsLoadingFeed(true);
+    try {
+      const [postsRes, storiesRes, usersRes] = await Promise.all([
+        apiRequest<{ posts: Post[] }>('/api/posts'),
+        apiRequest<{ stories: Story[] }>('/api/stories'),
+        apiRequest<{ users: User[] }>('/api/users'),
+      ]);
+      setPosts(postsRes.posts || []);
+      setStories(storiesRes.stories || []);
+      setUsers(usersRes.users || []);
+    } catch (err) {
+      console.warn('Error fetching social feed:', err);
+    } finally {
+      setIsLoadingFeed(false);
+    }
+  }, []);
 
   useEffect(() => {
-    localStorage.setItem(STORIES_KEY, JSON.stringify(stories));
-  }, [stories]);
+    refreshSocialData();
+  }, [currentUser?.id, refreshSocialData]);
 
-  const toggleLike = (postId: string) => {
-    setPosts((prev) =>
-      prev.map((post) => {
-        if (post.id === postId) {
-          const wasLiked = post.isLiked;
-          const updatedLikes = wasLiked ? post.likesCount - 1 : post.likesCount + 1;
+  const toggleLike = async (postId: string) => {
+    if (!currentUser) return;
+    try {
+      const res = await apiRequest<{ isLiked: boolean; likesCount: number }>(
+        `/api/posts/${postId}/like`,
+        { method: 'POST' }
+      );
 
-          // AI Tag preference update: If liked, boost tags!
-          const tags = post.caption.toLowerCase().match(/#[a-z0-9_]+/g) || [];
-          const newPrefs = { ...preferences };
-          tags.forEach((t) => {
-            const raw = t.replace('#', '');
-            newPrefs.preferredTags[raw] = (newPrefs.preferredTags[raw] || 0) + (wasLiked ? -1 : 1);
-          });
-          setPreferences(newPrefs);
-          savePreferences(newPrefs);
+      setPosts((prev) =>
+        prev.map((post) => {
+          if (post.id === postId) {
+            const tags = post.caption.toLowerCase().match(/#[a-z0-9_]+/g) || [];
+            const newPrefs = { ...preferences };
+            tags.forEach((t) => {
+              const raw = t.replace('#', '');
+              newPrefs.preferredTags[raw] = (newPrefs.preferredTags[raw] || 0) + (res.isLiked ? 1 : -1);
+            });
+            setPreferences(newPrefs);
+            savePreferences(newPrefs);
 
-          return {
-            ...post,
-            isLiked: !wasLiked,
-            likesCount: Math.max(0, updatedLikes),
-          };
-        }
-        return post;
-      })
-    );
+            return {
+              ...post,
+              isLiked: res.isLiked,
+              likesCount: res.likesCount,
+            };
+          }
+          return post;
+        })
+      );
+    } catch (err) {
+      console.warn('Toggle like failed:', err);
+    }
   };
 
-  const toggleSave = (postId: string) => {
-    setPosts((prev) =>
-      prev.map((post) => (post.id === postId ? { ...post, isSaved: !post.isSaved } : post))
-    );
+  const toggleSave = async (postId: string) => {
+    if (!currentUser) return;
+    try {
+      const res = await apiRequest<{ isSaved: boolean }>(`/api/posts/${postId}/save`, {
+        method: 'POST',
+      });
+      setPosts((prev) =>
+        prev.map((post) => (post.id === postId ? { ...post, isSaved: res.isSaved } : post))
+      );
+    } catch (err) {
+      console.warn('Toggle save failed:', err);
+    }
   };
 
-  const addComment = (postId: string, text: string) => {
-    if (!currentUser || !text.trim()) return;
+  const toggleFollow = async (userId: string) => {
+    if (!currentUser) return;
+    try {
+      const res = await apiRequest<{ isFollowing: boolean; followersCount: number }>(
+        `/api/users/${userId}/follow`,
+        { method: 'POST' }
+      );
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === userId
+            ? { ...u, isFollowing: res.isFollowing, followersCount: res.followersCount }
+            : u
+        )
+      );
+    } catch (err) {
+      console.warn('Follow toggle failed:', err);
+    }
+  };
+
+  const incrementCommentCount = (postId: string) => {
     setPosts((prev) =>
-      prev.map((post) => {
-        if (post.id === postId) {
-          return {
-            ...post,
-            commentsCount: post.commentsCount + 1,
-          };
-        }
-        return post;
-      })
+      prev.map((post) =>
+        post.id === postId ? { ...post, commentsCount: post.commentsCount + 1 } : post
+      )
     );
   };
 
@@ -108,57 +144,53 @@ export const SocialProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     savePreferences(updated);
   };
 
-  const createPost = (newPostData: Partial<Post>) => {
-    if (!currentUser) return;
-    const post: Post = {
-      id: `post_${Date.now()}`,
-      userId: currentUser.id,
-      user: {
-        id: currentUser.id,
-        username: currentUser.username,
-        displayName: currentUser.displayName,
-        avatarUrl: currentUser.avatarUrl,
-        isVerified: currentUser.isVerified,
-      },
-      caption: newPostData.caption || '',
-      postType: newPostData.postType || 'photo',
-      media: newPostData.media || [],
-      musicTrack: newPostData.musicTrack,
-      likesCount: 0,
-      commentsCount: 0,
-      sharesCount: 0,
-      isLiked: false,
-      isSaved: false,
-      createdAt: new Date().toISOString(),
-    };
-
-    setPosts((prev) => [post, ...prev]);
+  const createPost = async (newPostData: Partial<Post>): Promise<boolean> => {
+    if (!currentUser) return false;
+    try {
+      const res = await apiRequest<{ post: Post }>('/api/posts', {
+        method: 'POST',
+        body: JSON.stringify(newPostData),
+      });
+      setPosts((prev) => [res.post, ...prev]);
+      return true;
+    } catch (err) {
+      console.error('Create post error:', err);
+      return false;
+    }
   };
 
-  const createStory = (mediaUrl: string, mediaType: 'image' | 'video') => {
-    if (!currentUser) return;
-    const story: Story = {
-      id: `st_${Date.now()}`,
-      userId: currentUser.id,
-      user: {
-        id: currentUser.id,
-        username: currentUser.username,
-        displayName: currentUser.displayName,
-        avatarUrl: currentUser.avatarUrl,
-        isVerified: currentUser.isVerified,
-      },
-      mediaUrl,
-      mediaType,
-      duration: 5,
-      hasViewed: false,
-      createdAt: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-    };
-    setStories((prev) => [story, ...prev]);
+  const deletePost = async (postId: string) => {
+    try {
+      await apiRequest(`/api/posts/${postId}`, { method: 'DELETE' });
+      setPosts((prev) => prev.filter((p) => p.id !== postId));
+    } catch (err) {
+      console.warn('Delete post failed:', err);
+    }
+  };
+
+  const createStory = async (mediaUrl: string, mediaType: 'image' | 'video'): Promise<boolean> => {
+    if (!currentUser) return false;
+    try {
+      const res = await apiRequest<{ story: Story }>('/api/stories', {
+        method: 'POST',
+        body: JSON.stringify({ mediaUrl, mediaType }),
+      });
+      setStories((prev) => [res.story, ...prev]);
+      return true;
+    } catch (err) {
+      console.error('Create story error:', err);
+      return false;
+    }
   };
 
   const getFilteredFeed = (tab: 'foryou' | 'following') => {
-    return rankFeedPosts(posts, tab, preferences);
+    if (tab === 'following') {
+      const followedIds = new Set(users.filter((u) => u.isFollowing).map((u) => u.id));
+      if (currentUser) followedIds.add(currentUser.id);
+      const followingPosts = posts.filter((p) => followedIds.has(p.userId));
+      return rankFeedPosts(followingPosts, 'following', preferences);
+    }
+    return rankFeedPosts(posts, 'foryou', preferences);
   };
 
   const resetAlgorithm = () => {
@@ -171,10 +203,15 @@ export const SocialProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       value={{
         posts,
         stories,
+        users,
+        isLoadingFeed,
+        refreshSocialData,
         createPost,
+        deletePost,
         toggleLike,
         toggleSave,
-        addComment,
+        toggleFollow,
+        incrementCommentCount,
         markNotInterested,
         getFilteredFeed,
         resetAlgorithm,

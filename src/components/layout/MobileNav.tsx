@@ -1,8 +1,11 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Compass, Plus, Film, MessageCircle } from 'lucide-react';
+import { Home, Compass, Plus, Film, MessageCircle, ShieldAlert } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 export const MobileNav: React.FC = () => {
+  const { isAdmin } = useAuth();
+
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 glass-panel border-t border-vyro-border/70 pb-safe px-3 py-2 flex items-center justify-around select-none">
       <NavLink
@@ -50,18 +53,31 @@ export const MobileNav: React.FC = () => {
         <span className="text-[10px] font-medium">Reels</span>
       </NavLink>
 
-      <NavLink
-        to="/direct"
-        className={({ isActive }) =>
-          `relative flex flex-col items-center gap-1 p-2 rounded-xl transition-colors ${
-            isActive ? 'text-vyro-primary' : 'text-slate-400 hover:text-slate-200'
-          }`
-        }
-      >
-        <MessageCircle className="w-5 h-5" />
-        <span className="text-[10px] font-medium">Chat</span>
-        <span className="absolute top-2 right-2 w-2 h-2 bg-vyro-accent rounded-full animate-ping" />
-      </NavLink>
+      {isAdmin ? (
+        <NavLink
+          to="/admin"
+          className={({ isActive }) =>
+            `flex flex-col items-center gap-1 p-2 rounded-xl transition-colors ${
+              isActive ? 'text-amber-400' : 'text-slate-400 hover:text-amber-300'
+            }`
+          }
+        >
+          <ShieldAlert className="w-5 h-5" />
+          <span className="text-[10px] font-medium">Admin</span>
+        </NavLink>
+      ) : (
+        <NavLink
+          to="/direct"
+          className={({ isActive }) =>
+            `flex flex-col items-center gap-1 p-2 rounded-xl transition-colors ${
+              isActive ? 'text-vyro-primary' : 'text-slate-400 hover:text-slate-200'
+            }`
+          }
+        >
+          <MessageCircle className="w-5 h-5" />
+          <span className="text-[10px] font-medium">Chat</span>
+        </NavLink>
+      )}
     </nav>
   );
 };

@@ -2,6 +2,8 @@ import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { handleApiRequest } from './server/routes.js';
+import { loadDB } from './server/db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,15 +25,23 @@ const MIME_TYPES = {
   '.woff2': 'font/woff2',
 };
 
-const server = http.createServer((req, res) => {
-  // Health check endpoint for Render.com and monitoring
-  if (req.url === '/api/health' || req.url === '/health') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ status: 'ok', service: 'vyro-web', timestamp: new Date().toISOString() }));
+// Initialize database cleanly on server boot
+loadDB();
+
+const server = http.createServer(async (req, res) => {
+  // Handle API routes
+  const handled = await handleApiRequest(req, res);
+  if (handled || res.writableEnded) return;
+
+  const urlPath = (req.url || '/').split('?')[0];
+  let filePath = path.join(DIST_DIR, urlPath === '/' ? 'index.html' : urlPath);
+
+  // Prevent directory traversal outside dist
+  if (!filePath.startsWith(DIST_DIR)) {
+    res.writeHead(403);
+    res.end('Forbidden');
     return;
   }
-
-  let filePath = path.join(DIST_DIR, req.url === '/' ? 'index.html' : req.url);
 
   // If path has no extension, fallback to index.html for SPA client-side routing
   if (!path.extname(filePath)) {
@@ -44,7 +54,6 @@ const server = http.createServer((req, res) => {
   fs.readFile(filePath, (err, content) => {
     if (err) {
       if (err.code === 'ENOENT') {
-        // SPA fallback to index.html
         fs.readFile(path.join(DIST_DIR, 'index.html'), (fallbackErr, indexContent) => {
           if (fallbackErr) {
             res.writeHead(500, { 'Content-Type': 'text/plain' });
@@ -69,5 +78,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`🚀 VYRO Platform running on http://localhost:${PORT}`);
+  console.log(`🚀 VYRO Platform API & Web running on http://localhost:${PORT}`);
 });

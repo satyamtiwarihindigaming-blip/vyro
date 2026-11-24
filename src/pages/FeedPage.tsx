@@ -1,25 +1,36 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { StoryBar } from '../components/feed/StoryBar';
 import { PostCard } from '../components/feed/PostCard';
 import { CommentDrawer } from '../components/feed/CommentDrawer';
 import { useSocial } from '../context/SocialContext';
 import { useAuth } from '../context/AuthContext';
-import { MOCK_USERS } from '../lib/mockData';
 import { Post } from '../types';
 import { Avatar } from '../components/ui/Avatar';
-import { Sparkles, Clock, CheckCircle2 } from 'lucide-react';
+import { VerifiedBadge } from '../components/ui/VerifiedBadge';
+import { Sparkles, Clock, Camera } from 'lucide-react';
 
 export const FeedPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'foryou' | 'following'>('foryou');
   const [selectedPostForComments, setSelectedPostForComments] = useState<Post | null>(null);
-  const { getFilteredFeed, toggleLike, toggleSave, markNotInterested } = useSocial();
+  const {
+    users,
+    isLoadingFeed,
+    getFilteredFeed,
+    toggleLike,
+    toggleSave,
+    toggleFollow,
+    deletePost,
+    markNotInterested,
+  } = useSocial();
   const { currentUser } = useAuth();
 
   const posts = getFilteredFeed(activeTab);
+  const otherUsers = users.filter((u) => u.id !== currentUser?.id);
 
   return (
     <div className="max-w-4xl mx-auto py-4 px-3 sm:px-6">
-      {/* Feed Category Tabs (For You vs Following) */}
+      {/* Feed Category Tabs */}
       <div className="flex items-center justify-between mb-4 border-b border-vyro-border/60 pb-3">
         <div className="flex items-center gap-2">
           <button
@@ -48,94 +59,132 @@ export const FeedPage: React.FC = () => {
         </div>
 
         <span className="hidden sm:inline-block text-[11px] text-slate-500">
-          Strict Privacy • Zero Spyware
+          Real Profiles Only • Zero Bots
         </span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Feed Column */}
         <div className="lg:col-span-2">
-          {/* Stories Bar */}
           <div className="glass-card rounded-2xl p-2.5 mb-6 border border-vyro-border/60">
             <StoryBar />
           </div>
 
-          {/* Posts Stream */}
-          <div>
-            {posts.length > 0 ? (
-              posts.map((post) => (
-                <PostCard
-                  key={post.id}
-                  post={post}
-                  onOpenComments={(p) => setSelectedPostForComments(p)}
-                  onToggleLike={() => toggleLike(post.id)}
-                  onToggleSave={() => toggleSave(post.id)}
-                  onNotInterested={() => markNotInterested(post.id)}
-                />
-              ))
-            ) : (
-              <div className="glass-panel rounded-2xl p-8 text-center border border-vyro-border space-y-2">
-                <Sparkles className="w-8 h-8 text-vyro-primary mx-auto" />
-                <h3 className="text-sm font-bold text-white">Your Feed is Ready</h3>
-                <p className="text-xs text-slate-400">
-                  Follow more creators or publish a post in the studio to populate your stream.
+          {isLoadingFeed ? (
+            <div className="space-y-4">
+              <div className="glass-card rounded-2xl h-64 animate-pulse border border-vyro-border" />
+            </div>
+          ) : posts.length > 0 ? (
+            posts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                onOpenComments={(p) => setSelectedPostForComments(p)}
+                onToggleLike={() => toggleLike(post.id)}
+                onToggleSave={() => toggleSave(post.id)}
+                onNotInterested={() => markNotInterested(post.id)}
+                onDeletePost={() => deletePost(post.id)}
+              />
+            ))
+          ) : (
+            <div className="glass-panel rounded-2xl p-10 text-center border border-vyro-border space-y-4">
+              <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-vyro-primary to-vyro-accent flex items-center justify-center text-white shadow-glow-purple">
+                <Camera className="w-7 h-7" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-bold text-white">No Posts Yet</h3>
+                <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                  VYRO has zero fake bots or filler posts. Capture your first real photo, reel, or announcement in Studio!
                 </p>
               </div>
-            )}
-          </div>
+              <Link
+                to="/create"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-vyro-primary via-vyro-accent to-vyro-cyan text-white text-xs font-bold shadow-glow-pink"
+              >
+                <Camera className="w-4 h-4" />
+                <span>Open Camera Studio</span>
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Desktop Sticky Right Sidebar */}
         <div className="hidden lg:block space-y-6">
-          {/* Current Profile Card */}
           {currentUser && (
-            <div className="glass-card rounded-2xl p-4 border border-vyro-border/70 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Avatar src={currentUser.avatarUrl} alt={currentUser.displayName} size="md" />
-                <div>
-                  <p className="text-xs font-bold text-white">{currentUser.displayName}</p>
-                  <p className="text-[11px] text-slate-400">@{currentUser.username}</p>
+            <Link
+              to={`/${currentUser.username}`}
+              className="glass-card rounded-2xl p-4 border border-vyro-border/70 flex items-center justify-between hover:border-vyro-primary/50 transition-colors"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <Avatar src={currentUser.avatarUrl} alt={currentUser.displayName} size="md" hasStory={currentUser.isPro} />
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1">
+                    <p className="text-xs font-bold text-white truncate">{currentUser.displayName}</p>
+                    <VerifiedBadge
+                      isVerified={currentUser.isVerified}
+                      isPro={currentUser.isPro}
+                      proBadge={currentUser.proBadge}
+                    />
+                  </div>
+                  <p className="text-[11px] text-slate-400 truncate">@{currentUser.username}</p>
                 </div>
               </div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
-                Active
-              </span>
-            </div>
+            </Link>
           )}
 
-          {/* Suggested Creators */}
+          {/* Real Registered Accounts */}
           <div className="glass-card rounded-2xl p-4 border border-vyro-border/70">
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                Creators to Follow
+                Real Users on VYRO
               </h4>
-              <span className="text-[10px] text-vyro-primary font-bold">Verified</span>
+              <span className="text-[10px] text-emerald-400 font-bold">
+                {users.length} Active
+              </span>
             </div>
 
-            <div className="space-y-3.5">
-              {MOCK_USERS.slice(1).map((usr) => (
-                <div key={usr.id} className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2.5">
-                    <Avatar src={usr.avatarUrl} alt={usr.displayName} size="xs" />
-                    <div>
-                      <div className="flex items-center gap-1">
-                        <span className="font-bold text-slate-200">{usr.username}</span>
-                        {usr.isVerified && <CheckCircle2 className="w-3 h-3 text-vyro-cyan" />}
+            {otherUsers.length === 0 ? (
+              <p className="text-xs text-slate-500">
+                Invite friends to join VYRO — real accounts appear here as they register!
+              </p>
+            ) : (
+              <div className="space-y-3.5">
+                {otherUsers.slice(0, 6).map((usr) => (
+                  <div key={usr.id} className="flex items-center justify-between text-xs gap-2">
+                    <Link to={`/${usr.username}`} className="flex items-center gap-2.5 min-w-0">
+                      <Avatar src={usr.avatarUrl} alt={usr.displayName} size="xs" />
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1">
+                          <span className="font-bold text-slate-200 truncate">{usr.username}</span>
+                          <VerifiedBadge
+                            isVerified={usr.isVerified}
+                            isPro={usr.isPro}
+                            proBadge={usr.proBadge}
+                          />
+                        </div>
+                        <p className="text-[10px] text-slate-400 truncate max-w-[120px]">{usr.bio}</p>
                       </div>
-                      <p className="text-[10px] text-slate-400 truncate max-w-[120px]">{usr.bio}</p>
-                    </div>
+                    </Link>
+                    {currentUser && (
+                      <button
+                        onClick={() => toggleFollow(usr.id)}
+                        className={`px-3 py-1 rounded-lg font-bold text-[11px] transition-all flex-shrink-0 ${
+                          usr.isFollowing
+                            ? 'bg-vyro-card border border-vyro-border text-slate-300'
+                            : 'bg-vyro-primary/20 hover:bg-vyro-primary text-vyro-primary hover:text-white'
+                        }`}
+                      >
+                        {usr.isFollowing ? 'Following' : 'Follow'}
+                      </button>
+                    )}
                   </div>
-                  <button className="px-3 py-1 rounded-lg bg-vyro-primary/20 hover:bg-vyro-primary text-vyro-primary hover:text-white font-bold text-[11px] transition-all">
-                    Follow
-                  </button>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Comment Drawer Modal */}
       <CommentDrawer
         post={selectedPostForComments}
         onClose={() => setSelectedPostForComments(null)}

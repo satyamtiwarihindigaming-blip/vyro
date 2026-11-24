@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Heart,
   MessageCircle,
@@ -6,13 +7,17 @@ import {
   Bookmark,
   Music,
   MoreHorizontal,
-  CheckCircle2,
   EyeOff,
   Link as LinkIcon,
   Check,
+  Flag,
+  Trash2,
 } from 'lucide-react';
 import { Post } from '../../types';
 import { Avatar } from '../ui/Avatar';
+import { VerifiedBadge } from '../ui/VerifiedBadge';
+import { useAuth } from '../../context/AuthContext';
+import { apiRequest } from '../../lib/api';
 
 export interface PostCardProps {
   post: Post;
@@ -20,6 +25,7 @@ export interface PostCardProps {
   onToggleLike?: () => void;
   onToggleSave?: () => void;
   onNotInterested?: () => void;
+  onDeletePost?: () => void;
 }
 
 export const PostCard: React.FC<PostCardProps> = ({
@@ -28,53 +34,73 @@ export const PostCard: React.FC<PostCardProps> = ({
   onToggleLike,
   onToggleSave,
   onNotInterested,
+  onDeletePost,
 }) => {
+  const { currentUser, isAdmin } = useAuth();
   const [showHeartPop, setShowHeartPop] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [reported, setReported] = useState(false);
+
+  const canDelete = currentUser && (currentUser.id === post.userId || isAdmin);
 
   const handleLike = () => {
-    if (onToggleLike) {
-      onToggleLike();
-    }
+    if (onToggleLike) onToggleLike();
     if (!post.isLiked) {
       setShowHeartPop(true);
       setTimeout(() => setShowHeartPop(false), 800);
     }
   };
 
-  const handleDoubleTap = () => {
-    handleLike();
-  };
-
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.origin + `/p/${post.id}`);
+    navigator.clipboard.writeText(`${window.location.origin}/${post.user.username}`);
     setCopiedLink(true);
     setTimeout(() => {
       setCopiedLink(false);
       setShowMenu(false);
-    }, 1200);
+    }, 1000);
   };
+
+  const handleReport = async () => {
+    try {
+      await apiRequest('/api/reports', {
+        method: 'POST',
+        body: JSON.stringify({
+          targetType: 'post',
+          targetId: post.id,
+          reason: 'Reported by user from feed',
+        }),
+      });
+      setReported(true);
+      setTimeout(() => setShowMenu(false), 1200);
+    } catch {
+      setShowMenu(false);
+    }
+  };
+
+  const mediaItem = post.media[0];
 
   return (
     <article className="glass-card rounded-2xl overflow-hidden border border-vyro-border/70 mb-6 transition-all duration-300 relative">
       {/* Post Header */}
       <header className="p-3.5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <Link to={`/${post.user.username}`} className="flex items-center gap-3 group">
           <Avatar
             src={post.user.avatarUrl}
             alt={post.user.displayName}
             size="sm"
-            hasStory
+            hasStory={post.user.isPro}
           />
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="text-sm font-bold text-slate-100 hover:text-vyro-primary cursor-pointer transition-colors">
+              <span className="text-sm font-bold text-slate-100 group-hover:text-vyro-primary transition-colors">
                 {post.user.username}
               </span>
-              {post.user.isVerified && (
-                <CheckCircle2 className="w-3.5 h-3.5 text-vyro-cyan fill-vyro-cyan/20" />
-              )}
+              <VerifiedBadge
+                isVerified={post.user.isVerified}
+                isPro={post.user.isPro}
+                proBadge={post.user.proBadge}
+              />
             </div>
             {post.musicTrack && (
               <div className="flex items-center gap-1 text-[11px] text-slate-400">
@@ -83,7 +109,7 @@ export const PostCard: React.FC<PostCardProps> = ({
               </div>
             )}
           </div>
-        </div>
+        </Link>
 
         {/* Options Menu */}
         <div className="relative">
@@ -96,7 +122,7 @@ export const PostCard: React.FC<PostCardProps> = ({
           </button>
 
           {showMenu && (
-            <div className="absolute right-0 top-8 z-30 w-44 rounded-xl glass-panel border border-vyro-border p-1.5 shadow-2xl space-y-1 animate-scaleUp">
+            <div className="absolute right-0 top-8 z-30 w-48 rounded-xl glass-panel border border-vyro-border p-1.5 shadow-2xl space-y-1">
               <button
                 onClick={() => {
                   if (onNotInterested) onNotInterested();
@@ -112,32 +138,63 @@ export const PostCard: React.FC<PostCardProps> = ({
                 className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2 transition-colors"
               >
                 {copiedLink ? <Check className="w-4 h-4 text-emerald-400" /> : <LinkIcon className="w-4 h-4" />}
-                <span>{copiedLink ? 'Copied!' : 'Copy Link'}</span>
+                <span>{copiedLink ? 'Copied!' : 'Copy Creator Link'}</span>
               </button>
+              {currentUser && (
+                <button
+                  onClick={handleReport}
+                  className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:text-amber-400 hover:bg-amber-500/10 flex items-center gap-2 transition-colors"
+                >
+                  <Flag className="w-4 h-4" />
+                  <span>{reported ? 'Reported!' : 'Report Post'}</span>
+                </button>
+              )}
+              {canDelete && onDeletePost && (
+                <button
+                  onClick={() => {
+                    onDeletePost();
+                    setShowMenu(false);
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-rose-400 hover:bg-rose-500/15 flex items-center gap-2 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Delete Post</span>
+                </button>
+              )}
             </div>
           )}
         </div>
       </header>
 
-      {/* Post Media with Double-tap to Like */}
-      <div
-        className="relative bg-black/60 aspect-square sm:aspect-[4/3] flex items-center justify-center overflow-hidden cursor-pointer select-none"
-        onDoubleClick={handleDoubleTap}
-      >
-        <img
-          src={post.media[0]?.url}
-          alt={post.caption}
-          className="w-full h-full object-cover transition-transform duration-500 hover:scale-[1.01]"
-          loading="lazy"
-        />
+      {/* Post Media */}
+      {mediaItem && (
+        <div
+          className="relative bg-black/60 aspect-square sm:aspect-[4/3] flex items-center justify-center overflow-hidden cursor-pointer select-none"
+          onDoubleClick={handleLike}
+        >
+          {mediaItem.type === 'video' ? (
+            <video
+              src={mediaItem.url}
+              controls
+              playsInline
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <img
+              src={mediaItem.url}
+              alt={post.caption}
+              className="w-full h-full object-cover transition-transform duration-500 hover:scale-[1.01]"
+              loading="lazy"
+            />
+          )}
 
-        {/* Animated Pop Heart */}
-        {showHeartPop && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none animate-ping">
-            <Heart className="w-24 h-24 text-rose-500 fill-rose-500 drop-shadow-lg" />
-          </div>
-        )}
-      </div>
+          {showHeartPop && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none animate-ping">
+              <Heart className="w-24 h-24 text-rose-500 fill-rose-500 drop-shadow-lg" />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Action Bar */}
       <div className="p-3.5 space-y-2.5">
@@ -182,17 +239,21 @@ export const PostCard: React.FC<PostCardProps> = ({
         </div>
 
         {/* Caption */}
-        <div className="text-xs text-slate-200 leading-relaxed">
-          <span className="font-bold mr-1.5 text-white">{post.user.username}</span>
-          <span>{post.caption}</span>
-        </div>
+        {post.caption && (
+          <div className="text-xs text-slate-200 leading-relaxed">
+            <Link to={`/${post.user.username}`} className="font-bold mr-1.5 text-white hover:underline">
+              {post.user.username}
+            </Link>
+            <span>{post.caption}</span>
+          </div>
+        )}
 
         {/* Comment Link */}
         <button
           onClick={() => onOpenComments && onOpenComments(post)}
           className="text-[11px] text-slate-400 hover:text-vyro-primary font-medium"
         >
-          View all {post.commentsCount} comments
+          {post.commentsCount > 0 ? `View all ${post.commentsCount} comments` : 'Be the first to comment'}
         </button>
       </div>
     </article>

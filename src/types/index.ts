@@ -1,5 +1,7 @@
 export type UserRole = 'user' | 'creator' | 'admin';
 
+export type ProfileAccent = 'purple' | 'pink' | 'cyan' | 'gold';
+
 export interface User {
   id: string;
   username: string;
@@ -8,12 +10,17 @@ export interface User {
   avatarUrl: string;
   coverUrl?: string;
   bio?: string;
+  role: UserRole;
   isPrivate: boolean;
   isVerified: boolean;
+  isPro: boolean;
+  proBadge?: string;
   themePreference: 'dark' | 'light' | 'cyberpunk';
+  profileAccent?: ProfileAccent;
   followersCount: number;
   followingCount: number;
   postsCount: number;
+  isFollowing?: boolean;
   createdAt: string;
 }
 
@@ -29,10 +36,21 @@ export interface MediaItem {
   duration?: number;
 }
 
+export interface UserSummary {
+  id: string;
+  username: string;
+  displayName: string;
+  avatarUrl: string;
+  isVerified: boolean;
+  isPro: boolean;
+  proBadge?: string;
+  role?: UserRole;
+}
+
 export interface Post {
   id: string;
   userId: string;
-  user: Pick<User, 'id' | 'username' | 'displayName' | 'avatarUrl' | 'isVerified'>;
+  user: UserSummary;
   caption: string;
   postType: PostType;
   media: MediaItem[];
@@ -45,10 +63,18 @@ export interface Post {
   createdAt: string;
 }
 
+export interface CommentItem {
+  id: string;
+  postId: string;
+  text: string;
+  createdAt: string;
+  user: UserSummary;
+}
+
 export interface Story {
   id: string;
   userId: string;
-  user: Pick<User, 'id' | 'username' | 'displayName' | 'avatarUrl' | 'isVerified'>;
+  user: UserSummary;
   mediaUrl: string;
   mediaType: 'image' | 'video';
   duration: number;
@@ -73,7 +99,7 @@ export interface Message {
   id: string;
   conversationId: string;
   senderId: string;
-  sender?: Pick<User, 'id' | 'username' | 'displayName' | 'avatarUrl'>;
+  receiverId?: string;
   content: string;
   mediaUrl?: string;
   messageType: 'text' | 'image' | 'video' | 'audio' | 'game' | 'shared_post';
@@ -82,34 +108,21 @@ export interface Message {
   createdAt: string;
 }
 
-export interface Conversation {
+export interface DirectConversation {
   id: string;
-  type: 'direct' | 'group';
-  name?: string;
-  avatarUrl?: string;
-  participants: User[];
-  lastMessage?: Message;
+  type: 'direct';
+  partner: User;
+  lastMessage: Message | null;
   unreadCount: number;
   updatedAt: string;
 }
 
-export interface CallSession {
+export interface ReportItem {
   id: string;
-  callerId: string;
-  caller: Pick<User, 'id' | 'username' | 'displayName' | 'avatarUrl'>;
-  receiverId: string;
-  callType: 'voice' | 'video';
-  status: 'idle' | 'calling' | 'connected' | 'ended';
-  startedAt?: string;
-}
-
-export interface GameSession {
-  id: string;
-  gameType: 'tic_tac_toe' | 'chess' | 'trivia';
-  player1: Pick<User, 'id' | 'username' | 'displayName' | 'avatarUrl'>;
-  player2: Pick<User, 'id' | 'username' | 'displayName' | 'avatarUrl'>;
-  currentTurn: string;
-  state: Record<string, unknown>;
-  status: 'waiting' | 'active' | 'completed' | 'draw';
-  winnerId?: string;
+  reporterId: string;
+  targetType: string;
+  targetId: string;
+  reason: string;
+  status: 'open' | 'resolved' | 'dismissed';
+  createdAt: string;
 }
