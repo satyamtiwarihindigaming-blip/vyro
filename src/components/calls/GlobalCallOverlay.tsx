@@ -79,7 +79,7 @@ export const GlobalCallOverlay: React.FC = () => {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.96 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-2xl flex flex-col justify-between p-6"
+          className="fixed inset-0 z-[60] bg-black/95 backdrop-blur-2xl flex flex-col justify-between p-4 sm:p-6 overflow-y-auto"
         >
           {/* Dedicated active audio element so Voice & Video call audio ALWAYS plays reliably */}
           <audio ref={remoteAudioRef} autoPlay playsInline className="sr-only" />
@@ -170,7 +170,7 @@ export const GlobalCallOverlay: React.FC = () => {
           ) : (
             <div className="flex-1 my-4 max-w-4xl mx-auto w-full grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
               {/* Remote Stream */}
-              <div className="relative h-64 sm:h-96 rounded-3xl overflow-hidden bg-slate-900 border border-white/10 flex items-center justify-center">
+              <div className="relative h-48 sm:h-96 rounded-3xl overflow-hidden bg-slate-900 border border-white/10 flex items-center justify-center">
                 <video
                   ref={remoteVideoRef}
                   autoPlay
@@ -203,7 +203,7 @@ export const GlobalCallOverlay: React.FC = () => {
               </div>
 
               {/* Local Stream */}
-              <div className="relative h-64 sm:h-96 rounded-3xl overflow-hidden bg-slate-900 border border-white/10 flex items-center justify-center">
+              <div className="relative h-48 sm:h-96 rounded-3xl overflow-hidden bg-slate-900 border border-white/10 flex items-center justify-center">
                 {isCameraOff || callType === 'voice' || !localStream?.getVideoTracks().length ? (
                   <div className="text-center text-xs text-slate-400 space-y-2 px-4">
                     <VideoOff className="w-8 h-8 mx-auto text-rose-400" />
