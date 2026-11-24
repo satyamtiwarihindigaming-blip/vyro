@@ -177,6 +177,16 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
           activeCallIdRef.current = res.call.id;
           isCallerRef.current = false;
           setCallStatus('ringing');
+
+          if ('Notification' in window && Notification.permission === 'granted') {
+            try {
+              new Notification(`Incoming ${res.call.callType} call on VYRO`, {
+                body: `${res.call.caller.displayName} (@${res.call.caller.username}) is calling you...`,
+              });
+            } catch {
+              // Ignore notification errors in restricted contexts
+            }
+          }
         }
       } catch {
         // Ignore transient poll errors

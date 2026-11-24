@@ -7,6 +7,7 @@ import { AudioProvider } from './context/AudioContext';
 import { CallProvider } from './context/CallContext';
 import { FloatingAudioPlayer } from './components/music/FloatingAudioPlayer';
 import { GlobalCallOverlay } from './components/calls/GlobalCallOverlay';
+import { PermissionPromptModal } from './components/permissions/PermissionPromptModal';
 
 import { Sidebar } from './components/layout/Sidebar';
 import { Navbar } from './components/layout/Navbar';
@@ -49,6 +50,7 @@ const MainLayout: React.FC = () => {
 
       <FloatingAudioPlayer />
       <GlobalCallOverlay />
+      <PermissionPromptModal />
       <MobileNav />
     </div>
   );
