@@ -19,7 +19,10 @@ const PLAYER_CONFIG: Record<PlayerColor, { name: string; hex: string; bgHex: str
 // Safe squares on the 52-cell track
 const SAFE_SQUARES = [0, 8, 13, 21, 26, 34, 39, 47];
 
-export const LudoGame: React.FC<{ inChat?: boolean }> = ({ inChat = false }) => {
+export const LudoGame: React.FC<{ inChat?: boolean; onGameAction?: (text: string) => void }> = ({
+  inChat = false,
+  onGameAction,
+}) => {
   const [playerCount, setPlayerCount] = useState<2 | 4>(2);
   const [playVsBot, setPlayVsBot] = useState(true);
   const [activePlayerIndex, setActivePlayerIndex] = useState(0); // 0: red, 1: green (or yellow/blue)
@@ -207,7 +210,9 @@ export const LudoGame: React.FC<{ inChat?: boolean }> = ({ inChat = false }) => 
 
     if (didCapture) {
       playClickSound('kill');
-      setStatusMsg(`🎯 ${PLAYER_CONFIG[currentColor].name} captured an opponent's token!`);
+      const captureMsg = `🎯 ${PLAYER_CONFIG[currentColor].name} captured an opponent's token in Ludo!`;
+      setStatusMsg(captureMsg);
+      onGameAction?.(captureMsg);
     }
 
     setTokens(updated);
@@ -218,7 +223,9 @@ export const LudoGame: React.FC<{ inChat?: boolean }> = ({ inChat = false }) => 
     if (finishedCount >= 2) {
       setWinner(currentColor);
       playClickSound('win');
-      setStatusMsg(`🏆 ${PLAYER_CONFIG[currentColor].name} Wins the Ludo Match! 🎉`);
+      const winMsg = `🏆 ${PLAYER_CONFIG[currentColor].name} Wins the Ludo Match! 🎉`;
+      setStatusMsg(winMsg);
+      onGameAction?.(winMsg);
       return;
     }
 
@@ -480,13 +487,50 @@ export const LudoGame: React.FC<{ inChat?: boolean }> = ({ inChat = false }) => 
           {isRolling ? (
             <span className="text-2xl animate-spin">🎲</span>
           ) : diceValue !== null ? (
-            <div className="text-2xl font-black text-white flex items-center justify-center">
-              {diceValue === 1 && '⚀'}
-              {diceValue === 2 && '⚁'}
-              {diceValue === 3 && '⚂'}
-              {diceValue === 4 && '⚃'}
-              {diceValue === 5 && '⚄'}
-              {diceValue === 6 && '⚅'}
+            <div className="w-9 h-9 rounded-xl bg-black/60 border border-white/20 p-1 flex items-center justify-center">
+              {diceValue === 1 && (
+                <span className="w-3.5 h-3.5 rounded-full shadow-glow-sm" style={{ backgroundColor: PLAYER_CONFIG[currentColor].hex }} />
+              )}
+              {diceValue === 2 && (
+                <div className="w-full h-full flex justify-between p-0.5">
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PLAYER_CONFIG[currentColor].hex }} />
+                  <span className="w-2.5 h-2.5 rounded-full self-end" style={{ backgroundColor: PLAYER_CONFIG[currentColor].hex }} />
+                </div>
+              )}
+              {diceValue === 3 && (
+                <div className="w-full h-full flex justify-between p-0.5">
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: PLAYER_CONFIG[currentColor].hex }} />
+                  <span className="w-2 h-2 rounded-full self-center" style={{ backgroundColor: PLAYER_CONFIG[currentColor].hex }} />
+                  <span className="w-2 h-2 rounded-full self-end" style={{ backgroundColor: PLAYER_CONFIG[currentColor].hex }} />
+                </div>
+              )}
+              {diceValue === 4 && (
+                <div className="grid grid-cols-2 gap-1.5 p-0.5">
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: PLAYER_CONFIG[currentColor].hex }} />
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: PLAYER_CONFIG[currentColor].hex }} />
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: PLAYER_CONFIG[currentColor].hex }} />
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: PLAYER_CONFIG[currentColor].hex }} />
+                </div>
+              )}
+              {diceValue === 5 && (
+                <div className="relative w-full h-full p-0.5 grid grid-cols-2 gap-1.5">
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: PLAYER_CONFIG[currentColor].hex }} />
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: PLAYER_CONFIG[currentColor].hex }} />
+                  <span className="w-2 h-2 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style={{ backgroundColor: PLAYER_CONFIG[currentColor].hex }} />
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: PLAYER_CONFIG[currentColor].hex }} />
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: PLAYER_CONFIG[currentColor].hex }} />
+                </div>
+              )}
+              {diceValue === 6 && (
+                <div className="grid grid-cols-2 gap-1 p-0.5">
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: PLAYER_CONFIG[currentColor].hex }} />
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: PLAYER_CONFIG[currentColor].hex }} />
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: PLAYER_CONFIG[currentColor].hex }} />
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: PLAYER_CONFIG[currentColor].hex }} />
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: PLAYER_CONFIG[currentColor].hex }} />
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: PLAYER_CONFIG[currentColor].hex }} />
+                </div>
+              )}
             </div>
           ) : (
             <span className="text-xs font-bold text-slate-400">ROLL</span>

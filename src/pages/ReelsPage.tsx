@@ -4,11 +4,13 @@ import { Heart, MessageCircle, Send, Bookmark, Music, Volume2, VolumeX, Film, Ma
 import { Avatar } from '../components/ui/Avatar';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
 import { useSocial } from '../context/SocialContext';
+import { useAudio } from '../context/AudioContext';
 import { formatMetric } from '../lib/musicCatalog';
 import { soundEngine } from '../lib/soundEngine';
 
 export const ReelsPage: React.FC = () => {
   const { posts, toggleLike, toggleSave } = useSocial();
+  const { playTrack } = useAudio();
   const [isMuted, setIsMuted] = useState(false);
 
   const reels = posts.filter((p) => p.postType === 'reel' || p.postType === 'video');
@@ -102,10 +104,14 @@ export const ReelsPage: React.FC = () => {
                 </p>
 
                 {reel.musicTrack && (
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-[11px] text-slate-300">
+                  <button
+                    type="button"
+                    onClick={() => reel.musicTrack && playTrack(reel.musicTrack)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-[11px] text-slate-300 hover:text-white hover:border-vyro-primary transition-all text-left"
+                  >
                     <Music className="w-3 h-3 text-vyro-accent animate-spin" />
                     <span className="truncate max-w-[200px]">{reel.musicTrack.title}</span>
-                  </div>
+                  </button>
                 )}
               </div>
 
@@ -164,7 +170,8 @@ export const ReelsPage: React.FC = () => {
 
                 {/* Rotating Vinyl Audio Disc (Instagram-Exact) */}
                 <div
-                  className="w-8 h-8 rounded-full border-2 border-white/60 overflow-hidden shadow-lg animate-[spin_4s_linear_infinite] mt-1 bg-black flex items-center justify-center cursor-pointer"
+                  onClick={() => reel.musicTrack && playTrack(reel.musicTrack)}
+                  className="w-8 h-8 rounded-full border-2 border-white/60 overflow-hidden shadow-lg animate-[spin_4s_linear_infinite] mt-1 bg-black flex items-center justify-center cursor-pointer hover:scale-110 transition-transform"
                   title={reel.musicTrack?.title || 'Original Audio'}
                 >
                   {reel.musicTrack?.coverUrl ? (

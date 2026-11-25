@@ -12,6 +12,10 @@ import {
   Users,
   Plus,
   Check,
+  ChevronLeft,
+  Smile,
+  Image as ImageIcon,
+  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCall } from '../context/CallContext';
@@ -62,6 +66,65 @@ export const DirectPage: React.FC = () => {
   const [activeGameType, setActiveGameType] = useState<'ludo' | 'tictactoe' | 'chess'>('ludo');
   const [board, setBoard] = useState<(string | null)[]>(Array(9).fill(null));
   const [isXNext, setIsXNext] = useState(true);
+
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showGifPicker, setShowGifPicker] = useState(false);
+
+  const QUICK_EMOJIS = ['🔥', '❤️', '😂', '👏', '🚀', '💯', '🎲', '🎵', '✨', '⚡'];
+  const QUICK_GIFS = [
+    { name: 'Victory Dance', url: 'https://media.giphy.com/media/blSTtZehjAZ8I/giphy.gif' },
+    { name: 'Fire / Hype', url: 'https://media.giphy.com/media/l41YkxvU8c7J7Bba0/giphy.gif' },
+    { name: 'Mind Blown', url: 'https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif' },
+    { name: 'Laughing', url: 'https://media.giphy.com/media/10JhviFuU2gWD6/giphy.gif' },
+    { name: 'Gaming Time', url: 'https://media.giphy.com/media/3o7TKSjRrfIPjeiVyM/giphy.gif' },
+  ];
+
+  const handleSendGameAction = async (text: string) => {
+    if (!activeConv || !currentUser) return;
+    try {
+      const payload =
+        activeConv.type === 'group'
+          ? { conversationId: activeConv.id, content: text }
+          : { receiverId: activeConv.partner.id, content: text };
+
+      const res = await apiRequest<{ message: Message }>('/api/chat/messages', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      if (res.message) {
+        setMessages((prev) => [...prev, res.message]);
+      }
+    } catch {
+      // Ignore background notification failure
+    }
+  };
+
+  const handleSendGif = async (gifUrl: string) => {
+    if (!activeConv || !currentUser) return;
+    setShowGifPicker(false);
+    try {
+      const payload =
+        activeConv.type === 'group'
+          ? { conversationId: activeConv.id, content: gifUrl }
+          : { receiverId: activeConv.partner.id, content: gifUrl };
+
+      const res = await apiRequest<{ message: Message }>('/api/chat/messages', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      if (res.message) {
+        setMessages((prev) => [...prev, res.message]);
+      }
+    } catch (err) {
+      console.warn('Error sending gif:', err);
+    }
+  };
+
+  const handleLaunchLudo = () => {
+    setGameActive(true);
+    setActiveGameType('ludo');
+    handleSendGameAction('🎲 Started a live Ludo Match! Tap the dice to roll and play with me!');
+  };
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -284,7 +347,7 @@ export const DirectPage: React.FC = () => {
   return (
     <div className="h-[calc(100vh-4.5rem)] max-w-6xl mx-auto flex rounded-2xl overflow-hidden glass-panel border border-vyro-border my-2">
       {/* Sidebar: Conversations List & New Group Button */}
-      <div className="w-64 sm:w-80 border-r border-vyro-border/70 flex flex-col bg-vyro-card/50">
+      <div className={`w-full md:w-80 border-r border-vyro-border/70 flex-col bg-vyro-card/50 ${activeConvId ? 'hidden md:flex' : 'flex'}`}>
         <div className="p-3.5 border-b border-vyro-border space-y-2.5">
           <div className="flex items-center justify-between">
             <h2 className="font-bold text-sm text-white">Messages & Calls</h2>
@@ -376,12 +439,20 @@ export const DirectPage: React.FC = () => {
       </div>
 
       {/* Chat Window */}
-      <div className={`flex-1 flex flex-col relative transition-colors ${CHAT_THEMES[chatTheme]}`}>
+      <div className={`flex-1 flex-col relative transition-colors ${CHAT_THEMES[chatTheme]} ${activeConvId ? 'flex' : 'hidden md:flex'}`}>
         {activeConv ? (
           <>
             {/* Header */}
             <div className="p-3.5 border-b border-vyro-border flex items-center justify-between bg-vyro-card/40">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <button
+                  type="button"
+                  onClick={() => setActiveConvId(null)}
+                  className="md:hidden p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/5"
+                  title="Back to conversations"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
                 {activeConv.type === 'group' ? (
                   <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-vyro-primary to-vyro-cyan flex items-center justify-center text-white font-extrabold text-xs shadow-md">
                     <Users className="w-5 h-5" />
@@ -534,7 +605,7 @@ export const DirectPage: React.FC = () => {
                 </div>
 
                 {activeGameType === 'ludo' ? (
-                  <LudoGame inChat />
+                  <LudoGame inChat onGameAction={(text) => handleSendGameAction(text)} />
                 ) : activeGameType === 'tictactoe' ? (
                   <>
                     <div className="grid grid-cols-3 gap-2 w-48 h-48">
@@ -574,6 +645,8 @@ export const DirectPage: React.FC = () => {
                 messages.map((m) => {
                   const isMe = m.senderId === currentUser.id;
                   const senderName = m.sender ? m.sender.displayName : (isMe ? 'You' : 'Member');
+                  const isGif = m.content.startsWith('http') && (m.content.includes('.gif') || m.content.includes('giphy.com'));
+                  const isLudoMsg = m.content.includes('🎲') || m.content.includes('Ludo');
 
                   return (
                     <div key={m.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
@@ -588,9 +661,32 @@ export const DirectPage: React.FC = () => {
                           isMe
                             ? 'bg-gradient-to-r from-vyro-primary to-vyro-primaryHover text-white rounded-br-none shadow-glow-purple/20'
                             : 'bg-vyro-card border border-vyro-border text-slate-100 rounded-bl-none'
-                        }`}
+                        } ${isLudoMsg ? 'border-amber-500/40 shadow-glow-pink' : ''}`}
                       >
-                        {m.content}
+                        {isGif ? (
+                          <img
+                            src={m.content}
+                            alt="Shared GIF"
+                            className="max-w-[220px] max-h-[170px] rounded-xl object-cover shadow-lg my-1"
+                          />
+                        ) : (
+                          <div>
+                            <p>{m.content}</p>
+                            {isLudoMsg && !isMe && !gameActive && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setGameActive(true);
+                                  setActiveGameType('ludo');
+                                }}
+                                className="mt-2 px-3 py-1 rounded-xl bg-gradient-to-r from-vyro-primary to-vyro-accent text-white font-bold text-[10px] flex items-center gap-1.5 shadow-md hover:scale-105 transition-transform"
+                              >
+                                <Gamepad2 className="w-3.5 h-3.5" />
+                                <span>Play Ludo Together 🎲</span>
+                              </button>
+                            )}
+                          </div>
+                        )}
                       </div>
                       <span className="text-[9px] text-slate-500 mt-1 px-1">
                         {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -602,11 +698,95 @@ export const DirectPage: React.FC = () => {
               <div ref={messagesEndRef} />
             </div>
 
+            {/* Quick Emoji Bar (Toggled) */}
+            {showEmojiPicker && (
+              <div className="px-3 py-2 bg-vyro-card border-t border-vyro-border flex items-center gap-2 overflow-x-auto no-scrollbar">
+                {QUICK_EMOJIS.map((emoji) => (
+                  <button
+                    key={emoji}
+                    type="button"
+                    onClick={() => {
+                      setInputText((prev) => prev + emoji);
+                      setShowEmojiPicker(false);
+                    }}
+                    className="text-lg hover:scale-125 transition-transform p-1"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Quick GIF Picker (Toggled) */}
+            {showGifPicker && (
+              <div className="p-3 bg-vyro-card border-t border-vyro-border space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Trending GIFs</span>
+                  <button type="button" onClick={() => setShowGifPicker(false)} className="text-slate-400 hover:text-white">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                  {QUICK_GIFS.map((gif) => (
+                    <button
+                      key={gif.name}
+                      type="button"
+                      onClick={() => handleSendGif(gif.url)}
+                      className="group relative rounded-xl overflow-hidden aspect-video border border-vyro-border hover:border-vyro-primary transition-all"
+                    >
+                      <img src={gif.url} alt={gif.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                      <span className="absolute bottom-0 inset-x-0 bg-black/60 text-[9px] text-white font-bold p-0.5 text-center truncate">
+                        {gif.name}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Input Footer */}
             <form
               onSubmit={handleSendMessage}
-              className="p-3 border-t border-vyro-border bg-vyro-card/40 flex items-center gap-2"
+              className="p-3 border-t border-vyro-border bg-vyro-card/40 flex items-center gap-2 relative"
             >
+              <button
+                type="button"
+                onClick={() => {
+                  setShowEmojiPicker(!showEmojiPicker);
+                  setShowGifPicker(false);
+                }}
+                className={`p-2 rounded-xl transition-colors ${
+                  showEmojiPicker ? 'text-amber-400 bg-white/10' : 'text-slate-400 hover:text-white'
+                }`}
+                title="Insert Emoji"
+              >
+                <Smile className="w-4 h-4" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowGifPicker(!showGifPicker);
+                  setShowEmojiPicker(false);
+                }}
+                className={`p-2 rounded-xl text-xs font-black tracking-wider transition-colors ${
+                  showGifPicker ? 'text-vyro-cyan bg-white/10' : 'text-slate-400 hover:text-white'
+                }`}
+                title="Send Reaction GIF"
+              >
+                GIF
+              </button>
+
+              <button
+                type="button"
+                onClick={handleLaunchLudo}
+                className="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-rose-500/20 hover:from-amber-500/30 hover:to-rose-500/30 text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center gap-1 shadow-sm transition-all"
+                title="Launch Ludo Match"
+              >
+                <Gamepad2 className="w-3.5 h-3.5 text-amber-400" />
+                <span className="hidden sm:inline">Ludo</span>
+              </button>
+
               <input
                 type="text"
                 value={inputText}

@@ -72,12 +72,48 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
   const [pollVoted, setPollVoted] = useState<'A' | 'B' | null>(null);
 
   const holdTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const storyAudioRef = useRef<HTMLAudioElement | null>(null);
   const currentCreatorGroup = groupedStories[creatorIndex] || groupedStories[0];
   const currentStory = currentCreatorGroup?.items[segmentIndex] || currentCreatorGroup?.items[0];
 
   // Story Duration: 5 seconds for image, dynamic for video
   const DURATION_MS = 5000;
   const STEP_INTERVAL_MS = 50;
+
+  // Play Story Background Music if present
+  useEffect(() => {
+    if (!currentStory?.musicTrack?.audioUrl) {
+      if (storyAudioRef.current) {
+        storyAudioRef.current.pause();
+        storyAudioRef.current.src = '';
+      }
+      return;
+    }
+
+    const audio = storyAudioRef.current || new Audio();
+    audio.crossOrigin = 'anonymous';
+    audio.src = currentStory.musicTrack.audioUrl;
+    audio.muted = isMuted;
+    storyAudioRef.current = audio;
+
+    if (!isPaused) {
+      audio.play().catch(() => {});
+    }
+
+    return () => {
+      audio.pause();
+    };
+  }, [currentStory?.id, currentStory?.musicTrack?.audioUrl]);
+
+  useEffect(() => {
+    if (!storyAudioRef.current) return;
+    storyAudioRef.current.muted = isMuted;
+    if (isPaused) {
+      storyAudioRef.current.pause();
+    } else if (currentStory?.musicTrack?.audioUrl) {
+      storyAudioRef.current.play().catch(() => {});
+    }
+  }, [isPaused, isMuted]);
 
   // Progress Timer
   useEffect(() => {
@@ -348,9 +384,16 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
             <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-vyro-primary to-vyro-accent flex items-center justify-center animate-spin">
               <Music className="w-3 h-3 text-white" />
             </div>
-            <span className="text-[11px] font-bold text-white tracking-wide">
-              Trending Beats • VYRO Audio
+            <span className="text-[11px] font-bold text-white tracking-wide truncate max-w-[180px]">
+              {currentStory.musicTrack ? `${currentStory.musicTrack.title} • ${currentStory.musicTrack.artist}` : 'Trending Beats • VYRO Audio'}
             </span>
+            {currentStory.musicTrack && (
+              <div className="flex items-center gap-0.5 ml-1">
+                <span className="w-0.5 h-3 bg-vyro-cyan animate-pulse" />
+                <span className="w-0.5 h-4 bg-vyro-primary animate-bounce" />
+                <span className="w-0.5 h-2 bg-vyro-accent animate-pulse" />
+              </div>
+            )}
           </div>
 
           {/* Interactive Live Poll Sticker */}
