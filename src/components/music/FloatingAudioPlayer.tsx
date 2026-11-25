@@ -51,7 +51,7 @@ export const FloatingAudioPlayer: React.FC = () => {
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider text-vyro-accent flex items-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span>CC0 Legal Audio</span>
+              <span>Full Track 320kbps</span>
             </span>
             <button
               onClick={() => setIsExpanded(false)}
