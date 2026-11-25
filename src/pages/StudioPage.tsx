@@ -69,7 +69,12 @@ export const StudioPage: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<FilterPreset>('normal');
   const [overlayText, setOverlayText] = useState('');
   const [caption, setCaption] = useState('');
-  const [selectedMusicId, setSelectedMusicId] = useState(TRENDING_GLOBAL_TRACKS[0].id);
+  const initialAudioId = searchParams.get('audioId');
+  const [selectedMusicId, setSelectedMusicId] = useState(
+    initialAudioId && TRENDING_GLOBAL_TRACKS.some((t) => t.id === initialAudioId)
+      ? initialAudioId
+      : TRENDING_GLOBAL_TRACKS[0].id
+  );
   const [customTracks, setCustomTracks] = useState<MusicTrack[]>(TRENDING_GLOBAL_TRACKS);
   const [musicSearchQuery, setMusicSearchQuery] = useState('');
   const [externalUrlInput, setExternalUrlInput] = useState('');

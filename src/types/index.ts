@@ -100,6 +100,10 @@ export interface MusicTrack {
   creatorId?: string;
   youtubeVideoId?: string;
   spotifyTrackId?: string;
+  genre?: string;
+  mood?: string;
+  plays?: number | string;
+  trendingRank?: number;
 }
 
 export interface Message {

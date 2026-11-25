@@ -1,5 +1,6 @@
 import { MusicTrack } from '../types';
 import { apiRequest } from './api';
+import { ROYALTY_FREE_TRACKS } from './musicCatalog';
 
 // Extract YouTube Video ID from any standard or shortened YouTube URL
 export function extractYouTubeId(url: string): string | null {
@@ -37,6 +38,8 @@ export function createTrackFromYouTube(
     licenseType: 'YouTube Audio Embed',
     isOriginalAudio: false,
     youtubeVideoId: videoId,
+    genre: 'YouTube Stream',
+    mood: 'Trending',
   };
 }
 
@@ -58,106 +61,45 @@ export function createTrackFromSpotify(
     licenseType: 'Spotify Official Embed',
     isOriginalAudio: false,
     spotifyTrackId: trackId,
+    genre: 'Spotify Hit',
+    mood: 'Vibe',
   };
 }
 
 // Curated Instant Popular & Bollywood Hits for zero-lag instant playback
-export const TRENDING_GLOBAL_TRACKS: MusicTrack[] = [
-  {
-    id: 'trk_apna_bana_le',
-    title: 'Apna Bana Le',
-    artist: 'Amitabh Bhattacharya, Sachin-Jigar, Arijit Singh',
-    audioUrl:
-      '/api/music/proxy?url=' +
-      encodeURIComponent('https://aac.saavncdn.com/228/bed7fe5f8fe04ae6432bcb0717e2b74e_320.mp4'),
-    coverUrl: 'https://c.saavncdn.com/228/Sachin-Jigar-Bollywood-Hits-Hindi-2026-20260630213800-500x500.jpg',
-    duration: 261,
-    licenseType: 'Full Song (320kbps Studio Master)',
-    isOriginalAudio: false,
-  },
-  {
-    id: 'trk_lover_diljit',
-    title: 'Lover',
-    artist: 'Diljit Dosanjh',
-    audioUrl:
-      '/api/music/proxy?url=' +
-      encodeURIComponent('https://aac.saavncdn.com/209/88cd9a1cc0af8768d67272876bb09851_320.mp4'),
-    coverUrl: 'https://c.saavncdn.com/209/MoonChild-Era-Punjabi-2021-20240715073449-500x500.jpg',
-    duration: 190,
-    licenseType: 'Full Song (320kbps Studio Master)',
-    isOriginalAudio: false,
-  },
-  {
-    id: 'trk_starboy',
-    title: 'Starboy',
-    artist: 'The Weeknd',
-    audioUrl:
-      '/api/music/proxy?url=' +
-      encodeURIComponent('https://aac.saavncdn.com/396/b4e570050007b056c662f2a98c9f28ec_320.mp4'),
-    coverUrl: 'https://c.saavncdn.com/396/The-Highlights-English-2021-20240207045714-500x500.jpg',
-    duration: 230,
-    licenseType: 'Full Song (320kbps Studio Master)',
-    isOriginalAudio: false,
-  },
-  {
-    id: 'trk_brown_munde',
-    title: 'Brown Munde',
-    artist: 'AP Dhillon, Gurinder Gill, Shinda Kahlon',
-    audioUrl:
-      '/api/music/proxy?url=' +
-      encodeURIComponent('https://aac.saavncdn.com/973/76216adb3df5ef476f948891b40efb7a_320.mp4'),
-    coverUrl: 'https://c.saavncdn.com/973/Brown-Munde-English-2020-20260520131422-500x500.jpg',
-    duration: 254,
-    licenseType: 'Full Song (320kbps Studio Master)',
-    isOriginalAudio: false,
-  },
-  {
-    id: 'trk_kesariya',
-    title: 'Kesariya',
-    artist: 'Pritam, Arijit Singh, Amitabh Bhattacharya',
-    audioUrl:
-      '/api/music/proxy?url=' +
-      encodeURIComponent('https://aac.saavncdn.com/871/c2febd353f3a076a406fa37510f31f9f_320.mp4'),
-    coverUrl:
-      'https://c.saavncdn.com/871/Brahmastra-Original-Motion-Picture-Soundtrack-Hindi-2022-20221006155213-500x500.jpg',
-    duration: 268,
-    licenseType: 'Full Song (320kbps Studio Master)',
-    isOriginalAudio: false,
-  },
-  {
-    id: 'trk_winning_speech',
-    title: 'Winning Speech',
-    artist: 'Karan Aujla, MXRCI, Seshnolan',
-    audioUrl:
-      '/api/music/proxy?url=' +
-      encodeURIComponent('https://aac.saavncdn.com/089/64beffa430e4c948223ec6bfcc3a13f0_320.mp4'),
-    coverUrl: 'https://c.saavncdn.com/089/Winning-Speech-Punjabi-2024-20260626013220-500x500.jpg',
-    duration: 227,
-    licenseType: 'Full Song (320kbps Studio Master)',
-    isOriginalAudio: false,
-  },
-  {
-    id: 'trk_faded',
-    title: 'Faded',
-    artist: 'Alan Walker',
-    audioUrl:
-      '/api/music/proxy?url=' +
-      encodeURIComponent('https://aac.saavncdn.com/562/b331b68fc5e35ff7d7cd7ce0e25158d7_320.mp4'),
-    coverUrl: 'https://c.saavncdn.com/562/Different-World-English-2018-20181130144209-500x500.jpg',
-    duration: 212,
-    licenseType: 'Full Song (320kbps Studio Master)',
-    isOriginalAudio: false,
-  },
-];
+export const TRENDING_GLOBAL_TRACKS: MusicTrack[] = ROYALTY_FREE_TRACKS;
 
-// Music search service connecting frontend to the real iTunes/Apple Music pipeline
+// Music search service connecting frontend to the real JioSaavn / iTunes pipeline
 export async function searchMusicTracks(query: string, limit = 25): Promise<MusicTrack[]> {
   try {
+    const q = query.trim().toLowerCase();
+    // Check local catalog first for instant hit matching
+    const localMatches = ROYALTY_FREE_TRACKS.filter(
+      (t) =>
+        t.title.toLowerCase().includes(q) ||
+        t.artist.toLowerCase().includes(q) ||
+        (t.genre && t.genre.toLowerCase().includes(q)) ||
+        (t.mood && t.mood.toLowerCase().includes(q))
+    );
+
     const res = await apiRequest<{ tracks: MusicTrack[] }>(
       `/api/music/search?q=${encodeURIComponent(query)}&limit=${limit}`
     );
-    const tracks = res.tracks || [];
-    return tracks.length > 0 ? tracks : TRENDING_GLOBAL_TRACKS;
+    const remoteTracks = res.tracks || [];
+
+    // Merge without duplicates, prioritizing verified local 320kbps matches
+    const seenIds = new Set<string>();
+    const merged: MusicTrack[] = [];
+
+    for (const track of [...localMatches, ...remoteTracks, ...ROYALTY_FREE_TRACKS]) {
+      if (!seenIds.has(track.id) && !seenIds.has(track.title.toLowerCase())) {
+        seenIds.add(track.id);
+        seenIds.add(track.title.toLowerCase());
+        merged.push(track);
+      }
+    }
+
+    return merged.length > 0 ? merged : TRENDING_GLOBAL_TRACKS;
   } catch (err) {
     console.warn('Failed to search tracks:', err);
     return TRENDING_GLOBAL_TRACKS;
