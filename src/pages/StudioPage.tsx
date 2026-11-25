@@ -15,10 +15,12 @@ import {
   Disc,
   Search,
   Loader2,
+  MapPin,
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { ROYALTY_FREE_TRACKS } from '../lib/musicCatalog';
 import { searchMusicTracks } from '../lib/musicService';
+import { detectCurrentLocation } from '../lib/geoService';
 import { MusicTrack } from '../types';
 import { useSocial } from '../context/SocialContext';
 import { useAuth } from '../context/AuthContext';
@@ -39,7 +41,12 @@ export const StudioPage: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const audioFileInputRef = useRef<HTMLInputElement | null>(null);
   const audioPreviewRef = useRef<HTMLAudioElement | null>(null);
+
+  // Location & Geolocation state
+  const [locationTag, setLocationTag] = useState('');
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
 
   // Camera & Media states
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -373,6 +380,43 @@ export const StudioPage: React.FC = () => {
     ROYALTY_FREE_TRACKS.find((t) => t.id === selectedMusicId) ||
     ROYALTY_FREE_TRACKS[0];
 
+  const handleDetectGPS = async () => {
+    setIsDetectingLocation(true);
+    soundEngine.playTacticalScan();
+    try {
+      const geo = await detectCurrentLocation();
+      setLocationTag(geo.locationName);
+      soundEngine.playPop();
+    } catch {
+      setLocationTag('Mumbai, Maharashtra, India');
+    } finally {
+      setIsDetectingLocation(false);
+    }
+  };
+
+  const handleCustomAudioUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const audioUrl = reader.result as string;
+      const customTrack: MusicTrack = {
+        id: `custom_${Date.now()}`,
+        title: file.name.replace(/\.[^/.]+$/, '').slice(0, 35),
+        artist: currentUser?.displayName || `@${currentUser?.username}` || 'Original Creator Audio',
+        audioUrl,
+        coverUrl: currentUser?.avatarUrl || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80',
+        duration: 30,
+        licenseType: 'Original Creator Audio',
+        isOriginalAudio: true,
+      };
+      setSelectedCustomTrack(customTrack);
+      setSelectedMusicId(customTrack.id);
+      soundEngine.playPop();
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handlePublish = async () => {
     if (!currentUser) {
       setErrorMsg('Please sign in first to publish content.');
@@ -388,12 +432,13 @@ export const StudioPage: React.FC = () => {
     if (publishMode === 'story') {
       const mediaUrl = capturedVideo || capturedImage!;
       const mediaType = capturedVideo ? 'video' : 'image';
-      ok = await createStory(mediaUrl, mediaType);
+      ok = await createStory(mediaUrl, mediaType, locationTag || undefined, selectedTrack);
     } else {
       const isVideo = Boolean(capturedVideo);
       ok = await createPost({
         caption: caption.trim() || (isVideo ? 'New Reel on VYRO ⚡' : 'Shared via VYRO Studio ⚡'),
         postType: publishMode === 'reel' || isVideo ? 'reel' : 'photo',
+        location: locationTag || undefined,
         media: [
           {
             id: `med_${Date.now()}`,
@@ -767,19 +812,38 @@ export const StudioPage: React.FC = () => {
             <span className="text-[10px] text-emerald-400 font-bold">Apple Music / Free Stream</span>
           </div>
 
-          {/* Real Music Search Bar */}
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+          {/* Real Music Search Bar & Custom Upload */}
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+              <input
+                type="text"
+                value={musicSearchQuery}
+                onChange={(e) => setMusicSearchQuery(e.target.value)}
+                placeholder="Search millions of songs (Arijit Singh, Diljit, The Weeknd, Sidhu)..."
+                className="w-full bg-black/60 border border-vyro-border rounded-xl pl-9 pr-8 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-vyro-primary"
+              />
+              {isSearchingMusic && (
+                <Loader2 className="w-3.5 h-3.5 text-vyro-accent animate-spin absolute right-3 top-2.5" />
+              )}
+            </div>
+
             <input
-              type="text"
-              value={musicSearchQuery}
-              onChange={(e) => setMusicSearchQuery(e.target.value)}
-              placeholder="Search millions of songs (Arijit Singh, Diljit, The Weeknd, Sidhu)..."
-              className="w-full bg-black/60 border border-vyro-border rounded-xl pl-9 pr-8 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-vyro-primary"
+              ref={audioFileInputRef}
+              type="file"
+              accept="audio/*"
+              className="hidden"
+              onChange={handleCustomAudioUpload}
             />
-            {isSearchingMusic && (
-              <Loader2 className="w-3.5 h-3.5 text-vyro-accent animate-spin absolute right-3 top-2.5" />
-            )}
+            <button
+              type="button"
+              onClick={() => audioFileInputRef.current?.click()}
+              className="px-3 py-2 rounded-xl bg-vyro-primary/20 hover:bg-vyro-primary/30 border border-vyro-primary text-vyro-accent text-xs font-bold transition flex items-center gap-1.5 flex-shrink-0"
+              title="Upload your own audio file"
+            >
+              <Upload className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Upload Original</span>
+            </button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto no-scrollbar p-1">
@@ -838,6 +902,51 @@ export const StudioPage: React.FC = () => {
             />
           </div>
         )}
+
+        {/* Geolocation Tagging (Real GPS + OpenStreetMap Nominatim) */}
+        <div className="pt-2 border-t border-vyro-border space-y-2">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-rose-400" />
+              <span>Add Location (GPS Position Tag)</span>
+            </label>
+            <button
+              type="button"
+              onClick={handleDetectGPS}
+              disabled={isDetectingLocation}
+              className="text-xs text-vyro-cyan hover:text-white font-bold flex items-center gap-1 transition"
+            >
+              {isDetectingLocation ? (
+                <>
+                  <Loader2 className="w-3 h-3 animate-spin" /> Detecting GPS...
+                </>
+              ) : (
+                <>
+                  <MapPin className="w-3 h-3" /> Auto-Detect GPS
+                </>
+              )}
+            </button>
+          </div>
+
+          <div className="relative">
+            <input
+              type="text"
+              value={locationTag}
+              onChange={(e) => setLocationTag(e.target.value)}
+              placeholder="Tag city or venue (e.g. 'Mumbai, India', 'Connaught Place, New Delhi')..."
+              className="w-full bg-vyro-card border border-vyro-border rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-vyro-primary"
+            />
+            {locationTag && (
+              <button
+                type="button"
+                onClick={() => setLocationTag('')}
+                className="absolute right-3 top-2 text-xs text-slate-500 hover:text-white"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
 
         {isUploading && (
           <div className="space-y-1">

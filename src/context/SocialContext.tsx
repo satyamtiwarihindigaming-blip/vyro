@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { Post, Story, User } from '../types';
+import { Post, Story, User, MusicTrack } from '../types';
 import { apiRequest } from '../lib/api';
 import { useAuth } from './AuthContext';
 import {
@@ -25,7 +25,12 @@ interface SocialContextType {
   markNotInterested: (postId: string) => void;
   getFilteredFeed: (tab: 'foryou' | 'following') => Post[];
   resetAlgorithm: () => void;
-  createStory: (mediaUrl: string, mediaType: 'image' | 'video') => Promise<boolean>;
+  createStory: (
+    mediaUrl: string,
+    mediaType: 'image' | 'video',
+    location?: string,
+    musicTrack?: MusicTrack
+  ) => Promise<boolean>;
 }
 
 const SocialContext = createContext<SocialContextType | undefined>(undefined);
@@ -168,12 +173,17 @@ export const SocialProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
-  const createStory = async (mediaUrl: string, mediaType: 'image' | 'video'): Promise<boolean> => {
+  const createStory = async (
+    mediaUrl: string,
+    mediaType: 'image' | 'video',
+    location?: string,
+    musicTrack?: MusicTrack
+  ): Promise<boolean> => {
     if (!currentUser) return false;
     try {
       const res = await apiRequest<{ story: Story }>('/api/stories', {
         method: 'POST',
-        body: JSON.stringify({ mediaUrl, mediaType }),
+        body: JSON.stringify({ mediaUrl, mediaType, location, musicTrack }),
       });
       setStories((prev) => [res.story, ...prev]);
       return true;

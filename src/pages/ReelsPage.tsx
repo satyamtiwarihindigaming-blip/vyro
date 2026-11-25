@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, MessageCircle, Send, Bookmark, Music, Volume2, VolumeX, Film } from 'lucide-react';
+import { Heart, MessageCircle, Send, Bookmark, Music, Volume2, VolumeX, Film, MapPin } from 'lucide-react';
 import { Avatar } from '../components/ui/Avatar';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
 import { useSocial } from '../context/SocialContext';
@@ -79,13 +79,21 @@ export const ReelsPage: React.FC = () => {
               <div className="space-y-3 flex-1">
                 <Link to={`/${reel.user.username}`} className="flex items-center gap-2.5">
                   <Avatar src={reel.user.avatarUrl} alt={reel.user.displayName} size="sm" />
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-white">{reel.user.username}</span>
-                    <VerifiedBadge
-                      isVerified={reel.user.isVerified}
-                      isPro={reel.user.isPro}
-                      proBadge={reel.user.proBadge}
-                    />
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold text-white">{reel.user.username}</span>
+                      <VerifiedBadge
+                        isVerified={reel.user.isVerified}
+                        isPro={reel.user.isPro}
+                        proBadge={reel.user.proBadge}
+                      />
+                    </div>
+                    {reel.location && (
+                      <span className="text-[10px] text-rose-300 flex items-center gap-1 font-medium truncate max-w-[180px]">
+                        <MapPin className="w-2.5 h-2.5 flex-shrink-0" />
+                        {reel.location}
+                      </span>
+                    )}
                   </div>
                 </Link>
 

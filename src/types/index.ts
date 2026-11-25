@@ -21,6 +21,8 @@ export interface User {
   followingCount: number;
   postsCount: number;
   isFollowing?: boolean;
+  lastActiveAt?: string;
+  lastLocation?: string;
   createdAt: string;
 }
 
@@ -54,6 +56,7 @@ export interface Post {
   caption: string;
   postType: PostType;
   media: MediaItem[];
+  location?: string;
   musicTrack?: MusicTrack;
   likesCount: number;
   commentsCount: number;
@@ -78,6 +81,8 @@ export interface Story {
   mediaUrl: string;
   mediaType: 'image' | 'video';
   duration: number;
+  location?: string;
+  musicTrack?: MusicTrack;
   hasViewed?: boolean;
   createdAt: string;
   expiresAt: string;

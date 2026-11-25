@@ -12,6 +12,7 @@ import {
   Check,
   Flag,
   Trash2,
+  MapPin,
 } from 'lucide-react';
 import { Post } from '../../types';
 import { Avatar } from '../ui/Avatar';
@@ -103,6 +104,12 @@ export const PostCard: React.FC<PostCardProps> = ({
                 proBadge={post.user.proBadge}
               />
             </div>
+            {post.location && (
+              <div className="flex items-center gap-1 text-[11px] text-rose-300 font-medium">
+                <MapPin className="w-2.5 h-2.5 flex-shrink-0" />
+                <span className="truncate max-w-[200px]">{post.location}</span>
+              </div>
+            )}
             {post.musicTrack && (
               <div className="flex items-center gap-1 text-[11px] text-slate-400">
                 <Music className="w-3 h-3 text-vyro-accent animate-pulse" />

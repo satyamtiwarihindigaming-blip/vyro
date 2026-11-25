@@ -9,6 +9,7 @@ import {
   MoreVertical,
   Music,
   Share2,
+  MapPin,
 } from 'lucide-react';
 import { Avatar } from '../ui/Avatar';
 import { VerifiedBadge } from '../ui/VerifiedBadge';
@@ -285,12 +286,20 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
                   proBadge={currentCreatorGroup.user.proBadge}
                 />
               </div>
-              <span className="text-[10px] text-slate-300 mt-0.5 block">
-                {new Date(currentStory.createdAt).toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </span>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-[10px] text-slate-300">
+                  {new Date(currentStory.createdAt).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </span>
+                {currentStory.location && (
+                  <span className="text-[10px] text-rose-300 flex items-center gap-0.5 font-medium truncate max-w-[140px]">
+                    <MapPin className="w-2.5 h-2.5" />
+                    {currentStory.location}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 

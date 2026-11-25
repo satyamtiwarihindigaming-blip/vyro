@@ -18,6 +18,7 @@ import {
   Terminal,
 } from 'lucide-react';
 import { FBITacticalTerminal } from '../components/admin/FBITacticalTerminal';
+import { AccountActivityHub } from '../components/admin/AccountActivityHub';
 import { useAuth } from '../context/AuthContext';
 import { useSocial } from '../context/SocialContext';
 import { apiRequest } from '../lib/api';
@@ -59,7 +60,7 @@ export const AdminPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [actionMsg, setActionMsg] = useState('');
-  const [adminViewMode, setAdminViewMode] = useState<'terminal' | 'civilian'>('terminal');
+  const [adminViewMode, setAdminViewMode] = useState<'terminal' | 'activity' | 'civilian'>('terminal');
 
   // Admin Broadcast & Direct Messaging State
   const [broadcastText, setBroadcastText] = useState('');
@@ -252,7 +253,35 @@ export const AdminPage: React.FC = () => {
         reportsList={reportsList}
         onRefresh={loadAdminOverview}
         onToggleStealth={() => setAdminViewMode('civilian')}
+        onOpenActivityHub={() => setAdminViewMode('activity')}
       />
+    );
+  }
+
+  // Developer-Tier Account Activity Hub
+  if (adminViewMode === 'activity') {
+    return (
+      <div className="max-w-6xl mx-auto py-6 px-4 space-y-6">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => setAdminViewMode('terminal')}
+            className="px-3.5 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-slate-300 font-mono text-xs font-bold transition flex items-center gap-1.5"
+          >
+            ← Back to Cyber-Command HUD
+          </button>
+          <button
+            onClick={() => setAdminViewMode('civilian')}
+            className="px-3.5 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-mono text-xs font-bold transition"
+          >
+            Switch to Civilian View
+          </button>
+        </div>
+        <AccountActivityHub
+          usersList={usersList}
+          reportsList={reportsList}
+          currentUser={currentUser}
+        />
+      </div>
     );
   }
 

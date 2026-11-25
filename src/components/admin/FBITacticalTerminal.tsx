@@ -30,6 +30,7 @@ interface FBITacticalTerminalProps {
   reportsList: ReportItem[];
   onRefresh: () => void;
   onToggleStealth: () => void;
+  onOpenActivityHub?: () => void;
 }
 
 interface PacketLog {
@@ -46,6 +47,7 @@ export const FBITacticalTerminal: React.FC<FBITacticalTerminalProps> = ({
   reportsList,
   onRefresh,
   onToggleStealth,
+  onOpenActivityHub,
 }) => {
   const [selectedUser, setSelectedUser] = useState<User | null>(usersList[0] || currentUser);
   const [searchTarget, setSearchTarget] = useState('');
@@ -234,6 +236,18 @@ export const FBITacticalTerminal: React.FC<FBITacticalTerminalProps> = ({
           >
             <RefreshCw className="w-3.5 h-3.5" /> RE-SCAN
           </button>
+
+          {onOpenActivityHub && (
+            <button
+              onClick={() => {
+                soundEngine.playHapticClick();
+                onOpenActivityHub();
+              }}
+              className="px-3.5 py-2 bg-[#FFB700] text-black font-extrabold text-xs tracking-wider rounded-lg hover:bg-white shadow-[0_0_15px_rgba(255,183,0,0.4)] transition flex items-center gap-1.5"
+            >
+              <Activity className="w-4 h-4" /> ACCOUNT ACTIVITY HUB
+            </button>
+          )}
 
           <button
             onClick={() => {
