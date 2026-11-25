@@ -129,5 +129,78 @@ export async function handleAdminRoutes(req, res, pathname) {
     return sendJson(res, 200, { report });
   }
 
+  // Platform Broadcast (Admin announcement to all registered users)
+  if (req.method === 'POST' && pathname === '/api/admin/broadcast') {
+    const body = await parseBody(req);
+    const content = String(body.content || '').trim().slice(0, 2000);
+    if (!content) return sendJson(res, 400, { error: 'Broadcast message content is required.' });
+
+    const targetUsers = db.users.filter((u) => u.id !== authUser.id);
+    const now = new Date().toISOString();
+    let sentCount = 0;
+
+    targetUsers.forEach((user) => {
+      db.messages.push({
+        id: `msg_broad_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        conversationId: `conv_${user.id}`,
+        senderId: authUser.id,
+        receiverId: user.id,
+        content: `📢 [OFFICIAL PLATFORM BROADCAST]\n${content}`,
+        messageType: 'text',
+        isRead: false,
+        createdAt: now,
+      });
+      sentCount++;
+    });
+
+    saveDB();
+    return sendJson(res, 200, { success: true, deliveredTo: sentCount });
+  }
+
+  // Direct Admin Message to a specific user
+  if (req.method === 'POST' && pathname === '/api/admin/message') {
+    const body = await parseBody(req);
+    const targetUserId = String(body.targetUserId || '');
+    const content = String(body.content || '').trim().slice(0, 2000);
+    if (!targetUserId || !content) {
+      return sendJson(res, 400, { error: 'Target user ID and content are required.' });
+    }
+
+    const target = db.users.find((u) => u.id === targetUserId);
+    if (!target) return sendJson(res, 404, { error: 'Target user not found.' });
+
+    const msg = {
+      id: `msg_admin_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      conversationId: `conv_${targetUserId}`,
+      senderId: authUser.id,
+      receiverId: targetUserId,
+      content: `⚡ [ADMIN DIRECT NOTICE]\n${content}`,
+      messageType: 'text',
+      isRead: false,
+      createdAt: new Date().toISOString(),
+    };
+
+    db.messages.push(msg);
+    saveDB();
+    return sendJson(res, 201, { message: msg });
+  }
+
+  // Audit Recent Platform Messages
+  if (req.method === 'GET' && pathname === '/api/admin/messages') {
+    const recent = db.messages
+      .slice(-60)
+      .reverse()
+      .map((m) => {
+        const sender = db.users.find((u) => u.id === m.senderId);
+        const receiver = db.users.find((u) => u.id === m.receiverId);
+        return {
+          ...m,
+          senderUsername: sender ? sender.username : 'unknown',
+          receiverUsername: receiver ? receiver.username : (m.groupId ? 'Group' : 'unknown'),
+        };
+      });
+    return sendJson(res, 200, { messages: recent });
+  }
+
   return false;
 }

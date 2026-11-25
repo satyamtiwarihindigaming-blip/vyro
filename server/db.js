@@ -68,6 +68,7 @@ function createInitialDatabase() {
     saves: [],   // { postId, userId }
     stories: [], // Real 24h stories
     messages: [], // { id, senderId, receiverId, content, messageType, mediaUrl, createdAt, isRead }
+    groups: [],   // { id, name, creatorId, memberIds: [], avatarUrl, createdAt }
     calls: [],    // Real WebRTC signaling sessions
     reports: [], // { id, reporterId, targetType, targetId, reason, status, createdAt }
   };
@@ -86,6 +87,7 @@ export function loadDB() {
       const raw = fs.readFileSync(DB_FILE, 'utf-8');
       dbState = JSON.parse(raw);
       if (!dbState.calls) dbState.calls = [];
+      if (!dbState.groups) dbState.groups = [];
       // Ensure admin exists and creator accounts have 1 Billion followers + full badges
       if (!dbState.users || !dbState.users.some((u) => u.role === 'admin')) {
         const fresh = createInitialDatabase();

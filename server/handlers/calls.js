@@ -15,18 +15,20 @@ export async function handleCallRoutes(req, res, pathname) {
   const db = loadDB();
   cleanOldCalls(db);
 
-  // Initiate a WebRTC call with SDP offer
+  // Initiate a WebRTC call (Direct OR Multi-Participant Group Call)
   if (req.method === 'POST' && pathname === '/api/calls/initiate') {
     const body = await parseBody(req);
     const receiverId = String(body.receiverId || '');
+    const participantIds = Array.isArray(body.participantIds) ? body.participantIds.filter(Boolean) : [];
+    const isGroup = Boolean(body.isGroup || participantIds.length > 1);
+    const groupTitle = String(body.groupTitle || '').trim().slice(0, 60) || 'Group Call';
     const callType = body.callType === 'voice' ? 'voice' : 'video';
     const offer = body.offer;
 
-    if (!receiverId || !offer) {
-      return sendJson(res, 400, { error: 'Receiver ID and WebRTC offer are required.' });
+    const allRecipients = participantIds.length > 0 ? participantIds : (receiverId ? [receiverId] : []);
+    if (allRecipients.length === 0 || !offer) {
+      return sendJson(res, 400, { error: 'Recipient(s) and WebRTC offer are required.' });
     }
-    const receiver = db.users.find((u) => u.id === receiverId);
-    if (!receiver) return sendJson(res, 404, { error: 'Recipient not found.' });
 
     // End any previous active ringing calls by this caller
     db.calls.forEach((c) => {
@@ -38,7 +40,10 @@ export async function handleCallRoutes(req, res, pathname) {
     const call = {
       id: `call_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
       callerId: authUser.id,
-      receiverId,
+      receiverId: allRecipients[0] || receiverId,
+      participantIds: allRecipients,
+      isGroup,
+      groupTitle,
       callType,
       status: 'ringing',
       offer,
@@ -53,12 +58,13 @@ export async function handleCallRoutes(req, res, pathname) {
     return sendJson(res, 201, { call });
   }
 
-  // Poll incoming ringing calls for logged-in user
+  // Poll incoming ringing calls for logged-in user (Direct OR Group)
   if (req.method === 'GET' && pathname === '/api/calls/incoming') {
     const recentCutoff = Date.now() - 60 * 1000;
     const incoming = db.calls.find(
       (c) =>
-        c.receiverId === authUser.id &&
+        (c.receiverId === authUser.id || (c.participantIds && c.participantIds.includes(authUser.id))) &&
+        c.callerId !== authUser.id &&
         c.status === 'ringing' &&
         new Date(c.createdAt).getTime() > recentCutoff
     );
@@ -66,9 +72,22 @@ export async function handleCallRoutes(req, res, pathname) {
     if (!incoming) return sendJson(res, 200, { call: null });
 
     const caller = db.users.find((u) => u.id === incoming.callerId);
+    const participants = (incoming.participantIds || [incoming.receiverId])
+      .map((pid) => db.users.find((u) => u.id === pid))
+      .filter(Boolean)
+      .map((u) => ({
+        id: u.id,
+        username: u.username,
+        displayName: u.displayName,
+        avatarUrl: u.avatarUrl,
+        isVerified: Boolean(u.isVerified),
+        isPro: Boolean(u.isPro),
+      }));
+
     return sendJson(res, 200, {
       call: {
         ...incoming,
+        participants,
         caller: caller
           ? {
               id: caller.id,
@@ -81,6 +100,26 @@ export async function handleCallRoutes(req, res, pathname) {
           : null,
       },
     });
+  }
+
+  // Invite user to ongoing call
+  if (req.method === 'POST' && pathname.endsWith('/invite')) {
+    const callId = pathname.replace('/api/calls/', '').replace('/invite', '');
+    const call = db.calls.find((c) => c.id === callId);
+    if (!call) return sendJson(res, 404, { error: 'Call session not found.' });
+
+    const body = await parseBody(req);
+    const targetUserId = String(body.userId || '');
+    if (!targetUserId) return sendJson(res, 400, { error: 'Target user ID is required.' });
+
+    call.participantIds = call.participantIds || [call.receiverId];
+    if (!call.participantIds.includes(targetUserId)) {
+      call.participantIds.push(targetUserId);
+    }
+    call.isGroup = true;
+    saveDB();
+
+    return sendJson(res, 200, { call });
   }
 
   // Answer incoming call with SDP answer

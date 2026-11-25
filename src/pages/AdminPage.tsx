@@ -10,6 +10,10 @@ import {
   CheckCircle,
   Search,
   RefreshCw,
+  MessageSquare,
+  Send,
+  MessageCircle,
+  X,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSocial } from '../context/SocialContext';
@@ -52,6 +56,13 @@ export const AdminPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [actionMsg, setActionMsg] = useState('');
+
+  // Admin Broadcast & Direct Messaging State
+  const [broadcastText, setBroadcastText] = useState('');
+  const [broadcasting, setBroadcasting] = useState(false);
+  const [directMessageUser, setDirectMessageUser] = useState<User | null>(null);
+  const [directMessageText, setDirectMessageText] = useState('');
+  const [sendingDirectMsg, setSendingDirectMsg] = useState(false);
 
   const loadAdminOverview = async () => {
     if (!isAdmin) {
@@ -165,6 +176,50 @@ export const AdminPage: React.FC = () => {
     }
   };
 
+  const handleBroadcast = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!broadcastText.trim()) return;
+
+    setBroadcasting(true);
+    try {
+      const res = await apiRequest<{ success: boolean; deliveredTo: number }>('/api/admin/broadcast', {
+        method: 'POST',
+        body: JSON.stringify({ content: broadcastText.trim() }),
+      });
+      showNotice(`Official announcement broadcast delivered to ${res.deliveredTo} real users! 📢`);
+      setBroadcastText('');
+      await loadAdminOverview();
+    } catch (err: unknown) {
+      showNotice((err as Error).message || 'Broadcast failed.');
+    } finally {
+      setBroadcasting(false);
+    }
+  };
+
+  const handleSendDirectMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!directMessageUser || !directMessageText.trim()) return;
+
+    setSendingDirectMsg(true);
+    try {
+      await apiRequest('/api/admin/message', {
+        method: 'POST',
+        body: JSON.stringify({
+          targetUserId: directMessageUser.id,
+          content: directMessageText.trim(),
+        }),
+      });
+      showNotice(`Admin Direct Notice sent to @${directMessageUser.username}! ⚡`);
+      setDirectMessageText('');
+      setDirectMessageUser(null);
+      await loadAdminOverview();
+    } catch (err: unknown) {
+      showNotice((err as Error).message || 'Direct message failed.');
+    } finally {
+      setSendingDirectMsg(false);
+    }
+  };
+
   if (!isAdmin) {
     return (
       <div className="max-w-lg mx-auto py-16 px-4 text-center">
@@ -254,6 +309,43 @@ export const AdminPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Platform Broadcast & Admin Messenger */}
+      <div className="glass-panel rounded-2xl p-5 border border-vyro-border space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <MessageSquare className="w-4 h-4 text-vyro-primary" />
+            <h2 className="text-sm font-bold text-white">Platform Broadcast & Direct Messenger</h2>
+          </div>
+          <span className="text-[11px] text-slate-400">Deliver notifications & alerts to users</span>
+        </div>
+
+        <form onSubmit={handleBroadcast} className="space-y-3">
+          <div className="relative">
+            <textarea
+              value={broadcastText}
+              onChange={(e) => setBroadcastText(e.target.value)}
+              placeholder="Write an official platform announcement to broadcast to all registered users..."
+              rows={2}
+              className="w-full bg-vyro-bg border border-vyro-border rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-vyro-primary resize-none"
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] text-slate-500">
+              Delivers directly into every user's chat thread with official Admin badge.
+            </p>
+            <Button
+              variant="gradient"
+              size="sm"
+              type="submit"
+              disabled={!broadcastText.trim() || broadcasting}
+            >
+              <Send className="w-3.5 h-3.5 mr-1" />
+              <span>{broadcasting ? 'Broadcasting...' : 'Broadcast to All Users'}</span>
+            </Button>
+          </div>
+        </form>
+      </div>
 
       {/* Users Management Table */}
       <div className="glass-panel rounded-2xl p-5 border border-vyro-border space-y-4">
@@ -350,6 +442,18 @@ export const AdminPage: React.FC = () => {
 
                     <td className="py-3 pl-3 text-right">
                       <div className="flex items-center justify-end gap-1.5">
+                        {/* Direct Message */}
+                        <button
+                          onClick={() => {
+                            setDirectMessageUser(u);
+                            setDirectMessageText('');
+                          }}
+                          className="p-1.5 rounded-lg text-vyro-cyan hover:bg-vyro-cyan/15 transition-colors"
+                          title={`Message @${u.username}`}
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                        </button>
+
                         {/* 1B Follower Boost for Admin Accounts */}
                         {u.role === 'admin' && (
                           <button
@@ -458,6 +562,58 @@ export const AdminPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Admin Direct Message Modal */}
+      {directMessageUser && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="w-full max-w-md glass-panel border border-vyro-border rounded-3xl p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Avatar src={directMessageUser.avatarUrl} alt={directMessageUser.displayName} size="xs" />
+                <div>
+                  <h3 className="font-bold text-sm text-white">Message @{directMessageUser.username}</h3>
+                  <p className="text-[10px] text-slate-400">Delivered with official VIP Admin badge</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setDirectMessageUser(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSendDirectMessage} className="space-y-4">
+              <div>
+                <label className="text-xs font-semibold text-slate-300 block mb-1">Notice / Message Content</label>
+                <textarea
+                  value={directMessageText}
+                  onChange={(e) => setDirectMessageText(e.target.value)}
+                  placeholder="Type official admin notice or message..."
+                  rows={3}
+                  required
+                  className="w-full bg-vyro-bg border border-vyro-border rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-vyro-primary resize-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-1">
+                <Button variant="ghost" size="sm" type="button" onClick={() => setDirectMessageUser(null)}>
+                  Cancel
+                </Button>
+                <Button
+                  variant="gradient"
+                  size="sm"
+                  type="submit"
+                  disabled={!directMessageText.trim() || sendingDirectMsg}
+                >
+                  <Send className="w-3.5 h-3.5 mr-1" />
+                  {sendingDirectMsg ? 'Sending...' : 'Send Message'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

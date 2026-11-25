@@ -8,6 +8,9 @@ interface ServerCall {
   id: string;
   callerId: string;
   receiverId: string;
+  participantIds?: string[];
+  isGroup?: boolean;
+  groupTitle?: string;
   callType: 'voice' | 'video';
   status: 'ringing' | 'connected' | 'ended' | 'rejected';
   offer: RTCSessionDescriptionInit;
@@ -15,12 +18,16 @@ interface ServerCall {
   callerCandidates: RTCIceCandidateInit[];
   receiverCandidates: RTCIceCandidateInit[];
   caller?: UserSummary | null;
+  participants?: UserSummary[];
 }
 
 interface CallContextType {
   callStatus: 'idle' | 'calling' | 'ringing' | 'connected';
   callType: 'voice' | 'video';
   remotePartner: UserSummary | null;
+  callParticipants: UserSummary[];
+  isGroupCall: boolean;
+  groupTitle: string;
   isMuted: boolean;
   isCameraOff: boolean;
   callDuration: number;
@@ -29,6 +36,8 @@ interface CallContextType {
   localStream: MediaStream | null;
   remoteStream: MediaStream | null;
   startCall: (partner: UserSummary, type: 'voice' | 'video') => Promise<void>;
+  startGroupCall: (participants: UserSummary[], type: 'voice' | 'video', title?: string) => Promise<void>;
+  inviteToCall: (user: UserSummary) => Promise<void>;
   acceptIncomingCall: () => Promise<void>;
   declineOrEndCall: () => Promise<void>;
   toggleMute: () => void;
@@ -110,6 +119,9 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [callStatus, setCallStatus] = useState<'idle' | 'calling' | 'ringing' | 'connected'>('idle');
   const [callType, setCallType] = useState<'voice' | 'video'>('video');
   const [remotePartner, setRemotePartner] = useState<UserSummary | null>(null);
+  const [callParticipants, setCallParticipants] = useState<UserSummary[]>([]);
+  const [isGroupCall, setIsGroupCall] = useState(false);
+  const [groupTitle, setGroupTitle] = useState('');
   const [incomingCallData, setIncomingCallData] = useState<ServerCall | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
@@ -140,6 +152,10 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return null;
     });
     setRemoteStream(null);
+    setRemotePartner(null);
+    setCallParticipants([]);
+    setIsGroupCall(false);
+    setGroupTitle('');
     activeCallIdRef.current = null;
     setIncomingCallData(null);
     addedCandidatesCountRef.current = 0;
@@ -173,6 +189,15 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (res.call && res.call.caller) {
           setIncomingCallData(res.call);
           setRemotePartner(res.call.caller);
+          if (res.call.isGroup) {
+            setIsGroupCall(true);
+            setGroupTitle(res.call.groupTitle || 'Group Call');
+            setCallParticipants(res.call.participants || [res.call.caller]);
+          } else {
+            setIsGroupCall(false);
+            setGroupTitle('');
+            setCallParticipants([res.call.caller]);
+          }
           setCallType(res.call.callType);
           activeCallIdRef.current = res.call.id;
           isCallerRef.current = false;
@@ -315,6 +340,9 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCallError('');
     setMediaWarning('');
     setRemotePartner(partner);
+    setCallParticipants([partner]);
+    setIsGroupCall(false);
+    setGroupTitle('');
     setCallType(type);
     isCallerRef.current = true;
     setCallStatus('calling');
@@ -342,6 +370,63 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCallError((err as Error).message || 'Could not initiate call.');
       setTimeout(() => setCallError(''), 3000);
       cleanupMediaAndPeer(false);
+    }
+  };
+
+  const startGroupCall = async (participants: UserSummary[], type: 'voice' | 'video', title?: string) => {
+    if (!currentUser || participants.length === 0) return;
+    callSoundEngine.unlock();
+    setCallError('');
+    setMediaWarning('');
+    setIsGroupCall(true);
+    const resolvedTitle = title || `${participants.length + 1} People Group Call`;
+    setGroupTitle(resolvedTitle);
+    setCallParticipants(participants);
+    setRemotePartner(participants[0]);
+    setCallType(type);
+    isCallerRef.current = true;
+    setCallStatus('calling');
+
+    const { stream, warning, cameraOff } = await acquireLocalMedia(type);
+    setLocalStream(stream);
+    setMediaWarning(warning);
+    setIsCameraOff(cameraOff);
+
+    try {
+      const pc = setupPeerConnection(stream, type, () => activeCallIdRef.current);
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+
+      const res = await apiRequest<{ call: ServerCall }>('/api/calls/initiate', {
+        method: 'POST',
+        body: JSON.stringify({
+          participantIds: participants.map((p) => p.id),
+          isGroup: true,
+          groupTitle: resolvedTitle,
+          callType: type,
+          offer: pc.localDescription,
+        }),
+      });
+      activeCallIdRef.current = res.call.id;
+    } catch (err: unknown) {
+      setCallError((err as Error).message || 'Could not initiate group call.');
+      setTimeout(() => setCallError(''), 3000);
+      cleanupMediaAndPeer(false);
+    }
+  };
+
+  const inviteToCall = async (user: UserSummary) => {
+    const id = activeCallIdRef.current;
+    if (!id) return;
+    try {
+      await apiRequest(`/api/calls/${id}/invite`, {
+        method: 'POST',
+        body: JSON.stringify({ userId: user.id }),
+      });
+      setCallParticipants((prev) => (prev.some((p) => p.id === user.id) ? prev : [...prev, user]));
+      setIsGroupCall(true);
+    } catch (err) {
+      console.warn('Invite to call failed:', err);
     }
   };
 
@@ -429,6 +514,9 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
         callStatus,
         callType,
         remotePartner,
+        callParticipants,
+        isGroupCall,
+        groupTitle,
         isMuted,
         isCameraOff,
         callDuration,
@@ -437,6 +525,8 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStream,
         remoteStream,
         startCall,
+        startGroupCall,
+        inviteToCall,
         acceptIncomingCall,
         declineOrEndCall,
         toggleMute,

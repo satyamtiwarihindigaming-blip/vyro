@@ -98,8 +98,10 @@ export interface MusicTrack {
 export interface Message {
   id: string;
   conversationId: string;
+  groupId?: string;
   senderId: string;
   receiverId?: string;
+  sender?: UserSummary;
   content: string;
   mediaUrl?: string;
   messageType: 'text' | 'image' | 'video' | 'audio' | 'game' | 'shared_post';
@@ -116,6 +118,21 @@ export interface DirectConversation {
   unreadCount: number;
   updatedAt: string;
 }
+
+export interface GroupConversation {
+  id: string;
+  type: 'group';
+  groupId: string;
+  name: string;
+  avatarUrl?: string;
+  creatorId: string;
+  members: UserSummary[];
+  lastMessage: Message | null;
+  unreadCount: number;
+  updatedAt: string;
+}
+
+export type AnyConversation = DirectConversation | GroupConversation;
 
 export interface ReportItem {
   id: string;

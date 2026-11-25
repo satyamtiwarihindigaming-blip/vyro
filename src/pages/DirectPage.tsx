@@ -9,13 +9,16 @@ import {
   Crown,
   MessageCircle,
   Search,
+  Users,
+  Plus,
+  Check,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCall } from '../context/CallContext';
 import { apiRequest } from '../lib/api';
 import { Avatar } from '../components/ui/Avatar';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
-import { DirectConversation, Message } from '../types';
+import { AnyConversation, GroupConversation, DirectConversation, Message, User } from '../types';
 import { MiniChess } from '../components/games/MiniChess';
 import { LudoGame } from '../components/games/LudoGame';
 import { Button } from '../components/ui/Button';
@@ -32,17 +35,27 @@ const CHAT_THEMES: Record<ChatTheme, string> = {
 
 export const DirectPage: React.FC = () => {
   const { currentUser, isPro } = useAuth();
-  const { startCall } = useCall();
+  const { startCall, startGroupCall } = useCall();
   const navigate = useNavigate();
+  void navigate;
   const [searchParams] = useSearchParams();
 
-  const [conversations, setConversations] = useState<DirectConversation[]>([]);
+  const [conversations, setConversations] = useState<AnyConversation[]>([]);
   const [userFilter, setUserFilter] = useState('');
-  const [activePartnerId, setActivePartnerId] = useState<string | null>(searchParams.get('user'));
+  const [activeConvId, setActiveConvId] = useState<string | null>(
+    searchParams.get('user') ? `conv_${searchParams.get('user')}` : null
+  );
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [chatTheme, setChatTheme] = useState<ChatTheme>('obsidian');
   const [showThemePicker, setShowThemePicker] = useState(false);
+
+  // Group creation modal state
+  const [showCreateGroup, setShowCreateGroup] = useState(false);
+  const [newGroupName, setNewGroupName] = useState('');
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
+  const [creatingGroup, setCreatingGroup] = useState(false);
 
   // In-chat Mini-Game State
   const [gameActive, setGameActive] = useState(false);
@@ -55,21 +68,36 @@ export const DirectPage: React.FC = () => {
   const loadConversations = async () => {
     if (!currentUser) return;
     try {
-      const res = await apiRequest<{ conversations: DirectConversation[] }>('/api/conversations');
-      setConversations(res.conversations || []);
-      if (!activePartnerId && res.conversations?.length > 0) {
-        setActivePartnerId(res.conversations[0].partner.id);
+      const res = await apiRequest<{ conversations: AnyConversation[] }>('/api/conversations');
+      const list = res.conversations || [];
+      setConversations(list);
+      if (!activeConvId && list.length > 0) {
+        setActiveConvId(list[0].id);
       }
     } catch (err) {
       console.warn('Error loading conversations:', err);
     }
   };
 
-  const loadMessages = async (partnerId: string) => {
-    if (!currentUser || !partnerId) return;
+  const loadAllUsers = async () => {
     try {
-      const res = await apiRequest<{ messages: Message[] }>(`/api/messages/${partnerId}`);
-      setMessages(res.messages || []);
+      const res = await apiRequest<{ users: User[] }>('/api/users');
+      setAllUsers((res.users || []).filter((u) => u.id !== currentUser?.id));
+    } catch {
+      setAllUsers([]);
+    }
+  };
+
+  const loadMessages = async (conv: AnyConversation | null) => {
+    if (!currentUser || !conv) return;
+    try {
+      if (conv.type === 'group') {
+        const res = await apiRequest<{ messages: Message[] }>(`/api/messages/group/${conv.groupId}`);
+        setMessages(res.messages || []);
+      } else {
+        const res = await apiRequest<{ messages: Message[] }>(`/api/messages/${conv.partner.id}`);
+        setMessages(res.messages || []);
+      }
     } catch (err) {
       console.warn('Error loading messages:', err);
     }
@@ -79,12 +107,14 @@ export const DirectPage: React.FC = () => {
     loadConversations();
   }, [currentUser?.id]);
 
+  const activeConv = conversations.find((c) => c.id === activeConvId) || null;
+
   useEffect(() => {
-    if (!activePartnerId || !currentUser) return;
-    loadMessages(activePartnerId);
-    const poll = setInterval(() => loadMessages(activePartnerId), 2500);
+    if (!activeConv || !currentUser) return;
+    loadMessages(activeConv);
+    const poll = setInterval(() => loadMessages(activeConv), 2500);
     return () => clearInterval(poll);
-  }, [activePartnerId, currentUser?.id]);
+  }, [activeConvId, currentUser?.id]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -92,20 +122,59 @@ export const DirectPage: React.FC = () => {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputText.trim() || !activePartnerId || !currentUser) return;
+    if (!inputText.trim() || !activeConv || !currentUser) return;
 
     const text = inputText.trim();
     setInputText('');
     try {
+      let body: Record<string, unknown> = { content: text, messageType: 'text' };
+      if (activeConv.type === 'group') {
+        body.groupId = activeConv.groupId;
+      } else {
+        body.receiverId = activeConv.partner.id;
+      }
+
       const res = await apiRequest<{ message: Message }>('/api/messages', {
         method: 'POST',
-        body: JSON.stringify({ receiverId: activePartnerId, content: text, messageType: 'text' }),
+        body: JSON.stringify(body),
       });
       setMessages((prev) => [...prev, res.message]);
       loadConversations();
     } catch (err) {
       console.warn('Send message failed:', err);
     }
+  };
+
+  const handleCreateGroup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newGroupName.trim() || selectedMemberIds.length === 0) return;
+
+    setCreatingGroup(true);
+    try {
+      const res = await apiRequest<{ group: { id: string; name: string } }>('/api/groups', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: newGroupName.trim(),
+          memberIds: selectedMemberIds,
+        }),
+      });
+
+      setShowCreateGroup(false);
+      setNewGroupName('');
+      setSelectedMemberIds([]);
+      await loadConversations();
+      setActiveConvId(`group_${res.group.id}`);
+    } catch (err) {
+      console.warn('Group creation failed:', err);
+    } finally {
+      setCreatingGroup(false);
+    }
+  };
+
+  const toggleSelectMember = (userId: string) => {
+    setSelectedMemberIds((prev) =>
+      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
+    );
   };
 
   const handleCellClick = (index: number) => {
@@ -139,9 +208,6 @@ export const DirectPage: React.FC = () => {
           <p className="text-xs text-slate-400">
             Sign in to message real users and start live WebRTC voice & video calls.
           </p>
-          <Button variant="gradient" size="sm" onClick={() => navigate('/')}>
-            Sign In
-          </Button>
         </div>
       </div>
     );
@@ -150,25 +216,33 @@ export const DirectPage: React.FC = () => {
   const filteredConversations = conversations.filter((c) => {
     const q = userFilter.trim().toLowerCase().replace(/^@/, '');
     if (!q) return true;
+    if (c.type === 'group') {
+      return c.name.toLowerCase().includes(q);
+    }
     return (
       c.partner.username.toLowerCase().includes(q) ||
       c.partner.displayName.toLowerCase().includes(q)
     );
   });
 
-  const activeConv = conversations.find((c) => c.partner.id === activePartnerId);
-  const partner = activeConv?.partner;
-
   return (
     <div className="h-[calc(100vh-4.5rem)] max-w-6xl mx-auto flex rounded-2xl overflow-hidden glass-panel border border-vyro-border my-2">
-      {/* Real Users List + Fast Username Search */}
+      {/* Sidebar: Conversations List & New Group Button */}
       <div className="w-64 sm:w-80 border-r border-vyro-border/70 flex flex-col bg-vyro-card/50">
         <div className="p-3.5 border-b border-vyro-border space-y-2.5">
           <div className="flex items-center justify-between">
             <h2 className="font-bold text-sm text-white">Messages & Calls</h2>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
-              {conversations.length} Active
-            </span>
+            <button
+              onClick={() => {
+                loadAllUsers();
+                setShowCreateGroup(true);
+              }}
+              className="px-2.5 py-1 rounded-xl bg-vyro-primary/20 hover:bg-vyro-primary/30 text-vyro-primary text-xs font-bold flex items-center gap-1 transition-colors"
+              title="Create New Group Chat"
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>+ Group</span>
+            </button>
           </div>
           <div className="relative">
             <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -176,7 +250,7 @@ export const DirectPage: React.FC = () => {
               type="text"
               value={userFilter}
               onChange={(e) => setUserFilter(e.target.value)}
-              placeholder="Fast search @username..."
+              placeholder="Search chats & groups..."
               className="w-full bg-vyro-bg border border-vyro-border rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-vyro-primary"
             />
           </div>
@@ -186,41 +260,56 @@ export const DirectPage: React.FC = () => {
           {filteredConversations.length === 0 ? (
             <div className="p-6 text-center text-xs text-slate-500">
               {conversations.length === 0
-                ? 'No other real users registered yet.'
-                : `No user found matching "${userFilter}"`}
+                ? 'No chats or groups yet. Start one!'
+                : `No result matching "${userFilter}"`}
             </div>
           ) : (
             filteredConversations.map((c) => {
-              const isSelected = c.partner.id === activePartnerId;
+              const isSelected = c.id === activeConvId;
+              const isGroup = c.type === 'group';
+
               return (
                 <button
                   key={c.id}
-                  onClick={() => setActivePartnerId(c.partner.id)}
+                  onClick={() => setActiveConvId(c.id)}
                   className={`w-full p-3.5 flex items-center gap-3 text-left transition-colors ${
                     isSelected ? 'bg-vyro-primary/15' : 'hover:bg-white/5'
                   }`}
                 >
-                  <Avatar src={c.partner.avatarUrl} alt={c.partner.displayName} size="sm" />
+                  {isGroup ? (
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-vyro-primary to-vyro-cyan flex items-center justify-center text-white font-extrabold text-xs shadow-md">
+                      <Users className="w-5 h-5" />
+                    </div>
+                  ) : (
+                    <Avatar src={(c as DirectConversation).partner.avatarUrl} alt={(c as DirectConversation).partner.displayName} size="sm" />
+                  )}
+
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-1">
                       <div className="flex items-center gap-1 min-w-0">
                         <span className="text-xs font-bold text-white truncate">
-                          {c.partner.displayName}
+                          {isGroup ? (c as GroupConversation).name : (c as DirectConversation).partner.displayName}
                         </span>
-                        <VerifiedBadge
-                          isVerified={c.partner.isVerified}
-                          isPro={c.partner.isPro}
-                          proBadge={c.partner.proBadge}
-                        />
+                        {!isGroup && (
+                          <VerifiedBadge
+                            isVerified={(c as DirectConversation).partner.isVerified}
+                            isPro={(c as DirectConversation).partner.isPro}
+                            proBadge={(c as DirectConversation).partner.proBadge}
+                          />
+                        )}
+                        {isGroup && (
+                          <span className="px-1.5 py-0.2 rounded-full bg-white/10 text-[9px] font-bold text-slate-300">
+                            {(c as GroupConversation).members.length}
+                          </span>
+                        )}
                       </div>
-                      {c.unreadCount > 0 && (
-                        <span className="w-4 h-4 rounded-full bg-vyro-accent text-white text-[9px] font-bold flex items-center justify-center">
-                          {c.unreadCount}
-                        </span>
-                      )}
                     </div>
                     <p className="text-[11px] text-slate-400 truncate mt-0.5">
-                      {c.lastMessage ? c.lastMessage.content : `@${c.partner.username}`}
+                      {c.lastMessage
+                        ? c.lastMessage.content
+                        : isGroup
+                        ? `${(c as GroupConversation).members.length} members in group`
+                        : `@${(c as DirectConversation).partner.username}`}
                     </p>
                   </div>
                 </button>
@@ -232,24 +321,49 @@ export const DirectPage: React.FC = () => {
 
       {/* Chat Window */}
       <div className={`flex-1 flex flex-col relative transition-colors ${CHAT_THEMES[chatTheme]}`}>
-        {partner ? (
+        {activeConv ? (
           <>
+            {/* Header */}
             <div className="p-3.5 border-b border-vyro-border flex items-center justify-between bg-vyro-card/40">
               <div className="flex items-center gap-3">
-                <Avatar src={partner.avatarUrl} alt={partner.displayName} size="sm" />
+                {activeConv.type === 'group' ? (
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-vyro-primary to-vyro-cyan flex items-center justify-center text-white font-extrabold text-xs shadow-md">
+                    <Users className="w-5 h-5" />
+                  </div>
+                ) : (
+                  <Avatar
+                    src={activeConv.partner.avatarUrl}
+                    alt={activeConv.partner.displayName}
+                    size="sm"
+                  />
+                )}
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-white">{partner.displayName}</span>
-                    <VerifiedBadge
-                      isVerified={partner.isVerified}
-                      isPro={partner.isPro}
-                      proBadge={partner.proBadge}
-                    />
+                    <span className="text-xs font-bold text-white">
+                      {activeConv.type === 'group' ? activeConv.name : activeConv.partner.displayName}
+                    </span>
+                    {activeConv.type === 'direct' && (
+                      <VerifiedBadge
+                        isVerified={activeConv.partner.isVerified}
+                        isPro={activeConv.partner.isPro}
+                        proBadge={activeConv.partner.proBadge}
+                      />
+                    )}
+                    {activeConv.type === 'group' && (
+                      <span className="px-2 py-0.5 rounded-full bg-vyro-cyan/20 text-vyro-cyan text-[10px] font-bold">
+                        👥 {activeConv.members.length} members
+                      </span>
+                    )}
                   </div>
-                  <span className="text-[10px] text-slate-400">@{partner.username}</span>
+                  <span className="text-[10px] text-slate-400">
+                    {activeConv.type === 'group'
+                      ? activeConv.members.map((m) => `@${m.username}`).join(', ')
+                      : `@${activeConv.partner.username}`}
+                  </span>
                 </div>
               </div>
 
+              {/* Call & Tool Actions */}
               <div className="flex items-center gap-1.5 sm:gap-2">
                 {isPro && (
                   <div className="relative">
@@ -293,23 +407,40 @@ export const DirectPage: React.FC = () => {
                 >
                   <Gamepad2 className="w-4 h-4" />
                 </button>
+
+                {/* Voice Call Button (Direct OR Group) */}
                 <button
-                  onClick={() => startCall(partner, 'voice')}
+                  onClick={() => {
+                    if (activeConv.type === 'group') {
+                      startGroupCall(activeConv.members, 'voice', activeConv.name);
+                    } else {
+                      startCall(activeConv.partner, 'voice');
+                    }
+                  }}
                   className="p-2 rounded-xl bg-vyro-primary/15 text-vyro-primary hover:bg-vyro-primary hover:text-white transition-colors"
-                  title="Start Live Voice Call"
+                  title={activeConv.type === 'group' ? 'Start Group Voice Call' : 'Start Live Voice Call'}
                 >
                   <Phone className="w-4 h-4" />
                 </button>
+
+                {/* Video Call Button (Direct OR Group) */}
                 <button
-                  onClick={() => startCall(partner, 'video')}
+                  onClick={() => {
+                    if (activeConv.type === 'group') {
+                      startGroupCall(activeConv.members, 'video', activeConv.name);
+                    } else {
+                      startCall(activeConv.partner, 'video');
+                    }
+                  }}
                   className="p-2 rounded-xl bg-vyro-cyan/15 text-vyro-cyan hover:bg-vyro-cyan hover:text-white transition-colors"
-                  title="Start Live Video Call"
+                  title={activeConv.type === 'group' ? 'Start Group Video Call' : 'Start Live Video Call'}
                 >
                   <Video className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
+            {/* In-chat Games Drawer */}
             {gameActive && (
               <div className="p-3 bg-vyro-card/95 border-b border-vyro-border flex flex-col items-center max-h-[500px] overflow-y-auto">
                 <div className="flex items-center justify-between w-full max-w-sm mb-2">
@@ -375,13 +506,25 @@ export const DirectPage: React.FC = () => {
             <div className="flex-1 p-4 overflow-y-auto space-y-3">
               {messages.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center text-xs text-slate-500">
-                  <p>Start a real conversation or live call with @{partner.username}!</p>
+                  <p>
+                    {activeConv.type === 'group'
+                      ? `Welcome to ${activeConv.name}! Send the first message or start a group call.`
+                      : `Start a real conversation or live call with @${activeConv.partner.username}!`}
+                  </p>
                 </div>
               ) : (
                 messages.map((m) => {
                   const isMe = m.senderId === currentUser.id;
+                  const senderName = m.sender ? m.sender.displayName : (isMe ? 'You' : 'Member');
+
                   return (
                     <div key={m.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+                      {/* In group chats, display sender's name above message */}
+                      {activeConv.type === 'group' && !isMe && (
+                        <span className="text-[10px] font-bold text-vyro-primary mb-0.5 px-1">
+                          {senderName}
+                        </span>
+                      )}
                       <div
                         className={`max-w-[75%] px-3.5 py-2 rounded-2xl text-xs leading-relaxed ${
                           isMe
@@ -401,6 +544,7 @@ export const DirectPage: React.FC = () => {
               <div ref={messagesEndRef} />
             </div>
 
+            {/* Input Footer */}
             <form
               onSubmit={handleSendMessage}
               className="p-3 border-t border-vyro-border bg-vyro-card/40 flex items-center gap-2"
@@ -409,7 +553,11 @@ export const DirectPage: React.FC = () => {
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                placeholder={`Message ${partner.displayName}...`}
+                placeholder={
+                  activeConv.type === 'group'
+                    ? `Message in ${activeConv.name}...`
+                    : `Message ${activeConv.partner.displayName}...`
+                }
                 className="flex-1 bg-vyro-bg border border-vyro-border rounded-xl px-3.5 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-vyro-primary"
               />
               <button
@@ -424,13 +572,103 @@ export const DirectPage: React.FC = () => {
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-2 text-slate-400">
             <MessageCircle className="w-10 h-10 text-vyro-primary/60" />
-            <p className="text-sm font-bold text-white">Select a User to Chat or Call</p>
+            <p className="text-sm font-bold text-white">Select a Chat or Group Call</p>
             <p className="text-xs max-w-xs">
-              Search any @username in the sidebar to send instant messages or start live voice & video calls.
+              Search any user, chat in groups, or start live voice & video calls.
             </p>
           </div>
         )}
       </div>
+
+      {/* Create Group Modal */}
+      {showCreateGroup && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="w-full max-w-md glass-panel border border-vyro-border rounded-3xl p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-vyro-primary" />
+                <h3 className="font-bold text-base text-white">Create Group Chat & Call</h3>
+              </div>
+              <button
+                onClick={() => setShowCreateGroup(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateGroup} className="space-y-4">
+              <div>
+                <label className="text-xs font-semibold text-slate-300 block mb-1">Group Name</label>
+                <input
+                  type="text"
+                  value={newGroupName}
+                  onChange={(e) => setNewGroupName(e.target.value)}
+                  placeholder="e.g. Creators VIP Arena"
+                  required
+                  className="w-full bg-vyro-bg border border-vyro-border rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-vyro-primary"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-300 block mb-1">
+                  Select Members ({selectedMemberIds.length} chosen)
+                </label>
+                <div className="max-h-52 overflow-y-auto space-y-2 border border-vyro-border/60 rounded-xl p-2 bg-vyro-bg/50">
+                  {allUsers.length === 0 ? (
+                    <p className="text-xs text-slate-400 text-center py-4">No other users found.</p>
+                  ) : (
+                    allUsers.map((u) => {
+                      const isSelected = selectedMemberIds.includes(u.id);
+                      return (
+                        <div
+                          key={u.id}
+                          onClick={() => toggleSelectMember(u.id)}
+                          className={`flex items-center justify-between p-2 rounded-xl cursor-pointer transition-colors ${
+                            isSelected ? 'bg-vyro-primary/20 border border-vyro-primary/40' : 'hover:bg-white/5'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <Avatar src={u.avatarUrl} alt={u.displayName} size="xs" />
+                            <div>
+                              <p className="text-xs font-bold text-white">{u.displayName}</p>
+                              <p className="text-[10px] text-slate-400">@{u.username}</p>
+                            </div>
+                          </div>
+                          <div
+                            className={`w-5 h-5 rounded-lg flex items-center justify-center border ${
+                              isSelected
+                                ? 'bg-vyro-primary border-vyro-primary text-white'
+                                : 'border-slate-600'
+                            }`}
+                          >
+                            {isSelected && <Check className="w-3.5 h-3.5" />}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <Button variant="ghost" size="sm" type="button" onClick={() => setShowCreateGroup(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  variant="gradient"
+                  size="sm"
+                  type="submit"
+                  disabled={!newGroupName.trim() || selectedMemberIds.length === 0 || creatingGroup}
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  {creatingGroup ? 'Creating...' : 'Create Group'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

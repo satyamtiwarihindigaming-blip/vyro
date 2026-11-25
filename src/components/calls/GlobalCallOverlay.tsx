@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Mic,
@@ -10,16 +10,25 @@ import {
   AlertTriangle,
   RefreshCw,
   Volume2,
+  UserPlus,
+  Users,
+  X,
 } from 'lucide-react';
 import { useCall } from '../../context/CallContext';
+import { useAuth } from '../../context/AuthContext';
 import { Avatar } from '../ui/Avatar';
 import { VerifiedBadge } from '../ui/VerifiedBadge';
+import { apiRequest } from '../../lib/api';
+import { User, UserSummary } from '../../types';
 
 export const GlobalCallOverlay: React.FC = () => {
   const {
     callStatus,
     callType,
     remotePartner,
+    callParticipants,
+    isGroupCall,
+    groupTitle,
     isMuted,
     isCameraOff,
     callDuration,
@@ -32,11 +41,32 @@ export const GlobalCallOverlay: React.FC = () => {
     toggleMute,
     toggleCamera,
     retryMediaAccess,
+    inviteToCall,
   } = useCall();
+  const { currentUser } = useAuth();
+
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [availableUsers, setAvailableUsers] = useState<User[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
 
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    if (showInviteModal) {
+      setLoadingUsers(true);
+      apiRequest<{ users: User[] }>('/api/users')
+        .then((res) => {
+          const others = (res.users || []).filter(
+            (u) => u.id !== currentUser?.id && !callParticipants.some((p) => p.id === u.id)
+          );
+          setAvailableUsers(others);
+        })
+        .catch(() => setAvailableUsers([]))
+        .finally(() => setLoadingUsers(false));
+    }
+  }, [showInviteModal, currentUser?.id, callParticipants]);
 
   useEffect(() => {
     if (localVideoRef.current && localStream) {
@@ -85,33 +115,58 @@ export const GlobalCallOverlay: React.FC = () => {
           <audio ref={remoteAudioRef} autoPlay playsInline className="sr-only" />
 
           {/* Header */}
-          <div className="flex items-center justify-between text-white max-w-4xl mx-auto w-full">
+          <div className="flex items-center justify-between text-white max-w-5xl mx-auto w-full">
             <div className="flex items-center gap-3">
-              <Avatar src={remotePartner.avatarUrl} alt={remotePartner.displayName} size="sm" hasStory />
+              <Avatar
+                src={isGroupCall ? '' : remotePartner.avatarUrl}
+                alt={isGroupCall ? groupTitle : remotePartner.displayName}
+                size="sm"
+                hasStory
+              />
               <div>
                 <div className="flex items-center gap-1.5">
-                  <h3 className="font-bold text-sm">{remotePartner.displayName}</h3>
-                  <VerifiedBadge
-                    isVerified={remotePartner.isVerified}
-                    isPro={remotePartner.isPro}
-                    proBadge={remotePartner.proBadge}
-                  />
+                  <h3 className="font-bold text-sm">
+                    {isGroupCall ? (groupTitle || 'Group Call') : remotePartner.displayName}
+                  </h3>
+                  {!isGroupCall && (
+                    <VerifiedBadge
+                      isVerified={remotePartner.isVerified}
+                      isPro={remotePartner.isPro}
+                      proBadge={remotePartner.proBadge}
+                    />
+                  )}
+                  {isGroupCall && (
+                    <span className="px-2 py-0.5 rounded-full bg-vyro-primary/20 text-vyro-primary text-[10px] font-bold flex items-center gap-1">
+                      <Users className="w-3 h-3" />
+                      {callParticipants.length + 1} People
+                    </span>
+                  )}
                 </div>
                 <p className="text-xs text-emerald-400 flex items-center gap-1.5 capitalize">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                   {callStatus === 'ringing'
-                    ? `Incoming ${callType} call...`
+                    ? `Incoming ${isGroupCall ? 'Group' : ''} ${callType} call...`
                     : callStatus === 'calling'
-                    ? `Calling @${remotePartner.username}... (Dial tone & vibrate active)`
-                    : `Live WebRTC ${callType} (${formatTime(callDuration)})`}
+                    ? `Calling ${isGroupCall ? groupTitle : `@${remotePartner.username}`}...`
+                    : `Live WebRTC ${isGroupCall ? 'Group ' : ''}${callType} (${formatTime(callDuration)})`}
                 </p>
               </div>
             </div>
 
-            <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-[11px] font-semibold text-slate-300">
-              <Volume2 className="w-3.5 h-3.5 text-vyro-cyan" />
-              <span>P2P Encrypted • STUN</span>
-            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowInviteModal(true)}
+                className="px-3 py-1.5 rounded-full bg-vyro-cyan/20 hover:bg-vyro-cyan/30 text-vyro-cyan text-xs font-bold flex items-center gap-1.5 transition-colors"
+                title="Add More People to Call"
+              >
+                <UserPlus className="w-3.5 h-3.5" />
+                <span>+ Add User</span>
+              </button>
+              <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-[11px] font-semibold text-slate-300">
+                <Volume2 className="w-3.5 h-3.5 text-vyro-cyan" />
+                <span>P2P Group Mesh</span>
+              </span>
+            </div>
           </div>
 
           {/* Non-blocking System Permission Warning + Retry Button */}
@@ -168,65 +223,101 @@ export const GlobalCallOverlay: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div className="flex-1 my-4 max-w-4xl mx-auto w-full grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
-              {/* Remote Stream */}
-              <div className="relative h-48 sm:h-96 rounded-3xl overflow-hidden bg-slate-900 border border-white/10 flex items-center justify-center">
-                <video
-                  ref={remoteVideoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className={`w-full h-full object-cover ${
-                    callType === 'voice' || !remoteStream?.getVideoTracks().length ? 'hidden' : ''
-                  }`}
-                />
-                {(callType === 'voice' || !remoteStream?.getVideoTracks().length) && (
-                  <div className="flex flex-col items-center gap-3">
-                    <motion.div
-                      animate={
-                        callStatus === 'calling'
-                          ? { scale: [1, 1.07, 1], opacity: [0.8, 1, 0.8] }
-                          : {}
-                      }
-                      transition={{ repeat: Infinity, duration: 1.5 }}
-                    >
-                      <Avatar src={remotePartner.avatarUrl} alt={remotePartner.displayName} size="xl" hasStory />
-                    </motion.div>
-                    <span className="text-xs text-slate-300">
-                      {callStatus === 'calling' ? 'Ringing...' : 'Audio Connected'}
-                    </span>
-                  </div>
-                )}
-                <span className="absolute bottom-3 left-3 text-xs font-bold text-white bg-black/60 px-2.5 py-1 rounded-lg">
-                  @{remotePartner.username}
-                </span>
-              </div>
+            <div className="flex-1 my-4 max-w-5xl mx-auto w-full flex flex-col justify-center">
+              <div
+                className={`grid gap-4 items-center w-full ${
+                  callParticipants.length > 1
+                    ? 'grid-cols-2 sm:grid-cols-3'
+                    : 'grid-cols-1 sm:grid-cols-2'
+                }`}
+              >
+                {/* Local User Tile */}
+                <div className="relative h-44 sm:h-72 rounded-3xl overflow-hidden bg-slate-900 border border-white/10 flex items-center justify-center shadow-lg">
+                  {isCameraOff || callType === 'voice' || !localStream?.getVideoTracks().length ? (
+                    <div className="text-center text-xs text-slate-400 space-y-2 px-4">
+                      <Avatar
+                        src={currentUser?.avatarUrl}
+                        alt={currentUser?.displayName || 'You'}
+                        size="lg"
+                        className="mx-auto"
+                      />
+                      <p className="font-semibold text-white">You (Local)</p>
+                      <span className="text-[11px] text-slate-400">
+                        {callType === 'voice' ? 'Voice Active' : 'Camera Off'}
+                      </span>
+                    </div>
+                  ) : (
+                    <video
+                      ref={localVideoRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="w-full h-full object-cover scale-x-[-1]"
+                    />
+                  )}
+                  <span className="absolute bottom-3 left-3 text-xs font-bold text-white bg-black/60 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                    You
+                  </span>
+                </div>
 
-              {/* Local Stream */}
-              <div className="relative h-48 sm:h-96 rounded-3xl overflow-hidden bg-slate-900 border border-white/10 flex items-center justify-center">
-                {isCameraOff || callType === 'voice' || !localStream?.getVideoTracks().length ? (
-                  <div className="text-center text-xs text-slate-400 space-y-2 px-4">
-                    <VideoOff className="w-8 h-8 mx-auto text-rose-400" />
-                    <p>
-                      {!localStream
-                        ? 'Listen-only mode (Mic/Cam blocked by OS)'
-                        : callType === 'voice'
-                        ? 'Voice Microphone Active'
-                        : 'Camera turned off'}
-                    </p>
-                  </div>
-                ) : (
+                {/* Primary Remote Stream */}
+                <div className="relative h-44 sm:h-72 rounded-3xl overflow-hidden bg-slate-900 border border-white/10 flex items-center justify-center shadow-lg">
                   <video
-                    ref={localVideoRef}
+                    ref={remoteVideoRef}
                     autoPlay
                     playsInline
                     muted
-                    className="w-full h-full object-cover scale-x-[-1]"
+                    className={`w-full h-full object-cover ${
+                      callType === 'voice' || !remoteStream?.getVideoTracks().length ? 'hidden' : ''
+                    }`}
                   />
-                )}
-                <span className="absolute bottom-3 left-3 text-xs font-bold text-white bg-black/60 px-2.5 py-1 rounded-lg">
-                  You (Local)
-                </span>
+                  {(callType === 'voice' || !remoteStream?.getVideoTracks().length) && (
+                    <div className="flex flex-col items-center gap-3">
+                      <motion.div
+                        animate={
+                          callStatus === 'calling'
+                            ? { scale: [1, 1.07, 1], opacity: [0.8, 1, 0.8] }
+                            : {}
+                        }
+                        transition={{ repeat: Infinity, duration: 1.5 }}
+                      >
+                        <Avatar
+                          src={remotePartner.avatarUrl}
+                          alt={remotePartner.displayName}
+                          size="lg"
+                          hasStory
+                        />
+                      </motion.div>
+                      <span className="text-xs text-slate-300 font-semibold">
+                        {callStatus === 'calling' ? 'Calling...' : remotePartner.displayName}
+                      </span>
+                    </div>
+                  )}
+                  <span className="absolute bottom-3 left-3 text-xs font-bold text-white bg-black/60 px-2.5 py-1 rounded-lg">
+                    @{remotePartner.username}
+                  </span>
+                </div>
+
+                {/* Additional Group Participants Tiles */}
+                {callParticipants.slice(1).map((p) => (
+                  <div
+                    key={p.id}
+                    className="relative h-44 sm:h-72 rounded-3xl overflow-hidden bg-slate-900 border border-white/10 flex flex-col items-center justify-center shadow-lg p-4"
+                  >
+                    <motion.div
+                      animate={{ scale: [1, 1.05, 1] }}
+                      transition={{ repeat: Infinity, duration: 2 }}
+                    >
+                      <Avatar src={p.avatarUrl} alt={p.displayName} size="lg" hasStory />
+                    </motion.div>
+                    <h4 className="text-xs font-bold text-white mt-2">{p.displayName}</h4>
+                    <p className="text-[11px] text-slate-400">@{p.username}</p>
+                    <span className="absolute bottom-3 left-3 text-xs font-bold text-white bg-black/60 px-2.5 py-1 rounded-lg">
+                      @{p.username}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -265,6 +356,65 @@ export const GlobalCallOverlay: React.FC = () => {
               >
                 <PhoneOff className="w-5 h-5" />
               </button>
+            </div>
+          )}
+
+          {/* Add User to Call Modal */}
+          {showInviteModal && (
+            <div className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+              <div className="w-full max-w-sm glass-panel border border-vyro-border rounded-3xl p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <UserPlus className="w-4 h-4 text-vyro-cyan" />
+                    <h3 className="font-bold text-sm text-white">Add User to Call</h3>
+                  </div>
+                  <button
+                    onClick={() => setShowInviteModal(false)}
+                    className="p-1 rounded-lg text-slate-400 hover:text-white"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="max-h-60 overflow-y-auto space-y-2">
+                  {loadingUsers ? (
+                    <p className="text-xs text-slate-400 text-center py-4">Finding users...</p>
+                  ) : availableUsers.length === 0 ? (
+                    <p className="text-xs text-slate-400 text-center py-4">No other users available to add.</p>
+                  ) : (
+                    availableUsers.map((u) => (
+                      <div
+                        key={u.id}
+                        className="flex items-center justify-between p-2 rounded-2xl bg-slate-900/50 border border-white/5"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <Avatar src={u.avatarUrl} alt={u.displayName} size="xs" />
+                          <div>
+                            <p className="text-xs font-bold text-white">{u.displayName}</p>
+                            <p className="text-[10px] text-slate-400">@{u.username}</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={async () => {
+                            await inviteToCall({
+                              id: u.id,
+                              username: u.username,
+                              displayName: u.displayName,
+                              avatarUrl: u.avatarUrl,
+                              isVerified: u.isVerified,
+                              isPro: u.isPro,
+                            });
+                            setShowInviteModal(false);
+                          }}
+                          className="px-3 py-1 rounded-xl bg-vyro-primary text-white text-xs font-bold hover:brightness-110 active:scale-95"
+                        >
+                          Invite
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
             </div>
           )}
         </motion.div>
