@@ -30,6 +30,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   useEffect(() => {
     const audio = new Audio();
+    audio.crossOrigin = 'anonymous';
     audioRef.current = audio;
 
     audio.onloadedmetadata = () => {
@@ -41,6 +42,10 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setCurrentTime(audio.currentTime);
         setProgress((audio.currentTime / audio.duration) * 100);
       }
+    };
+
+    audio.onerror = () => {
+      setIsPlaying(false);
     };
 
     audio.onended = () => {
@@ -93,8 +98,14 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       audioRef.current.pause();
       setIsPlaying(false);
     } else {
-      if (!audioRef.current.src && currentTrack) {
-        audioRef.current.src = currentTrack.audioUrl;
+      if ((!audioRef.current.src || audioRef.current.src === window.location.href) && currentTrack) {
+        const streamUrl =
+          currentTrack.audioUrl.startsWith('http') &&
+          !currentTrack.audioUrl.includes('/api/music/proxy') &&
+          !currentTrack.youtubeVideoId
+            ? `/api/music/proxy?url=${encodeURIComponent(currentTrack.audioUrl)}`
+            : currentTrack.audioUrl;
+        audioRef.current.src = streamUrl;
       }
       audioRef.current
         .play()

@@ -28,7 +28,12 @@ export const AudioTrimmerModal: React.FC<AudioTrimmerModalProps> = ({
   // Initialize Audio
   useEffect(() => {
     if (!isOpen) return;
-    const audio = new Audio(track.audioUrl);
+    const streamUrl =
+      track.audioUrl.startsWith('http') && !track.audioUrl.includes('/api/music/proxy')
+        ? `/api/music/proxy?url=${encodeURIComponent(track.audioUrl)}`
+        : track.audioUrl;
+    const audio = new Audio(streamUrl);
+    audio.crossOrigin = 'anonymous';
     audioRef.current = audio;
 
     audio.ontimeupdate = () => {

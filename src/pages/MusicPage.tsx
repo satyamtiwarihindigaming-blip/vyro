@@ -56,6 +56,19 @@ export const MusicPage: React.FC = () => {
     alert('Please enter a valid YouTube or Spotify link.');
   };
 
+  const handlePlayToggle = (track: MusicTrack) => {
+    soundEngine.playPop();
+    if (track.youtubeVideoId || track.spotifyTrackId) {
+      setActiveExternalTrack(activeExternalTrack?.id === track.id ? null : track);
+    } else {
+      if (currentTrack?.id === track.id) {
+        togglePlay();
+      } else {
+        playTrack(track);
+      }
+    }
+  };
+
   const handleUseAudio = (track?: MusicTrack) => {
     soundEngine.playHapticClick();
     void track;
@@ -179,44 +192,82 @@ export const MusicPage: React.FC = () => {
 
         {tracks.map((track) => {
           const isThisTrackPlaying = isPlaying && currentTrack?.id === track.id;
+          const isExternalActive = activeExternalTrack?.id === track.id;
           return (
             <div
               key={track.id}
-              className="p-3 rounded-xl hover:bg-white/5 transition-colors flex items-center justify-between gap-4 border border-transparent hover:border-vyro-border"
+              className="p-3 rounded-xl hover:bg-white/5 transition-colors border border-transparent hover:border-vyro-border flex flex-col gap-2"
             >
-              <div className="flex items-center gap-3 min-w-0">
-                <button
-                  onClick={() => {
-                    if (currentTrack?.id === track.id) togglePlay();
-                    else playTrack(track);
-                  }}
-                  className="w-10 h-10 rounded-xl bg-gradient-to-tr from-vyro-primary to-vyro-accent text-white flex items-center justify-center shrink-0 shadow-glow-purple hover:scale-105 transition-transform"
-                >
-                  {isThisTrackPlaying ? (
-                    <Pause className="w-4 h-4 text-white" />
-                  ) : (
-                    <Play className="w-4 h-4 ml-0.5 text-white" />
-                  )}
-                </button>
-                <img
-                  src={track.coverUrl}
-                  alt={track.title}
-                  className="w-10 h-10 rounded-lg object-cover border border-white/10 shrink-0"
-                />
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-white truncate leading-tight">{track.title}</p>
-                  <p className="text-[11px] text-slate-400 truncate">
-                    {track.artist} • {track.licenseType}
-                  </p>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3 min-w-0">
+                  <button
+                    type="button"
+                    onClick={() => handlePlayToggle(track)}
+                    className="w-10 h-10 rounded-xl bg-gradient-to-tr from-vyro-primary to-vyro-accent text-white flex items-center justify-center shrink-0 shadow-glow-purple hover:scale-105 transition-transform"
+                  >
+                    {isThisTrackPlaying || isExternalActive ? (
+                      <Pause className="w-4 h-4 text-white" />
+                    ) : (
+                      <Play className="w-4 h-4 ml-0.5 text-white" />
+                    )}
+                  </button>
+                  <img
+                    src={track.coverUrl}
+                    alt={track.title}
+                    className="w-10 h-10 rounded-lg object-cover border border-white/10 shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-white truncate leading-tight flex items-center gap-1.5">
+                      <span>{track.title}</span>
+                      {track.youtubeVideoId && (
+                        <span className="text-[9px] bg-rose-600 text-white px-1 rounded font-bold">YT</span>
+                      )}
+                      {track.spotifyTrackId && (
+                        <span className="text-[9px] bg-emerald-600 text-white px-1 rounded font-bold">Spotify</span>
+                      )}
+                    </p>
+                    <p className="text-[11px] text-slate-400 truncate">
+                      {track.artist} • {track.licenseType}
+                    </p>
+                  </div>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleUseAudio(track)}
+                  className="text-xs px-3 py-1.5 rounded-xl bg-vyro-primary/20 hover:bg-vyro-primary text-vyro-primary hover:text-white font-bold transition whitespace-nowrap"
+                >
+                  Use Sound
+                </button>
               </div>
 
-              <button
-                onClick={() => handleUseAudio(track)}
-                className="text-xs px-3 py-1.5 rounded-xl bg-vyro-primary/20 hover:bg-vyro-primary text-vyro-primary hover:text-white font-bold transition whitespace-nowrap"
-              >
-                Use Sound
-              </button>
+              {/* In-place interactive player for YouTube/Spotify tracks */}
+              {isExternalActive && (
+                <div className="w-full pt-2 border-t border-white/10">
+                  {track.youtubeVideoId ? (
+                    <div className="w-full aspect-video rounded-xl overflow-hidden bg-black shadow-lg">
+                      <iframe
+                        src={`https://www.youtube.com/embed/${track.youtubeVideoId}?autoplay=1&enablejsapi=1`}
+                        title={track.title}
+                        className="w-full h-full border-0"
+                        allow="autoplay; encrypted-media"
+                        allowFullScreen
+                      />
+                    </div>
+                  ) : track.spotifyTrackId ? (
+                    <div className="w-full rounded-xl overflow-hidden bg-black shadow-lg">
+                      <iframe
+                        src={`https://open.spotify.com/embed/track/${track.spotifyTrackId}?utm_source=generator&theme=0`}
+                        width="100%"
+                        height="152"
+                        frameBorder="0"
+                        allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                        loading="lazy"
+                      />
+                    </div>
+                  ) : null}
+                </div>
+              )}
             </div>
           );
         })}

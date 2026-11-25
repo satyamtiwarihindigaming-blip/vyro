@@ -19,75 +19,122 @@ export function formatMetric(num: number | undefined | null): string {
 
 export const ROYALTY_FREE_TRACKS: (MusicTrack & { genre?: string; mood?: string })[] = [
   {
-    id: 'trk_cc0_1',
-    title: 'Neon Horizon (Ambient Synth)',
-    artist: 'VYRO Sound Collective',
-    audioUrl: 'https://assets.mixkit.co/music/preview/mixkit-tech-house-vibes-130.mp3',
-    coverUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&auto=format&fit=crop&q=80',
-    duration: 154,
-    licenseType: 'Creative Commons CC0',
+    id: 'trk_apna_bana_le',
+    title: 'Apna Bana Le',
+    artist: 'Arijit Singh, Sachin-Jigar',
+    audioUrl:
+      '/api/music/proxy?url=' +
+      encodeURIComponent(
+        'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/eb/27/61/eb2761c7-d606-0912-dff0-2dc6b69974bd/mzaf_2023722930851223219.plus.aac.p.m4a'
+      ),
+    coverUrl:
+      'https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/2e/0b/c0/2e0bc070-112f-a827-6ad8-6bc64f7caaff/840214460180.png/600x600bb.jpg',
+    duration: 30,
+    licenseType: 'Official Preview Audio',
     isOriginalAudio: false,
-    genre: 'Synthwave',
+    genre: 'Bollywood Romance',
+    mood: 'Romantic',
+  },
+  {
+    id: 'trk_lover_diljit',
+    title: 'Lover',
+    artist: 'Diljit Dosanjh',
+    audioUrl:
+      '/api/music/proxy?url=' +
+      encodeURIComponent(
+        'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/38/d5/7a/38d57a99-39fc-e901-7c45-fa6260ec83c1/mzaf_8083696285926392389.plus.aac.p.m4a'
+      ),
+    coverUrl:
+      'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/8a/89/e4/8a89e445-d2c6-f8ac-a828-27818b0c1afe/859749638209_cover.jpg/600x600bb.jpg',
+    duration: 30,
+    licenseType: 'Official Preview Audio',
+    isOriginalAudio: false,
+    genre: 'Punjabi Pop',
     mood: 'Energetic',
   },
   {
-    id: 'trk_cc0_2',
-    title: 'Serene View (Chill Beat)',
-    artist: 'Mixkit Open Library',
-    audioUrl: 'https://assets.mixkit.co/music/preview/mixkit-serene-view-443.mp3',
-    coverUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=200&auto=format&fit=crop&q=80',
-    duration: 180,
-    licenseType: 'Royalty-Free Open Audio',
+    id: 'trk_starboy',
+    title: 'Starboy (feat. Daft Punk)',
+    artist: 'The Weeknd',
+    audioUrl:
+      '/api/music/proxy?url=' +
+      encodeURIComponent(
+        'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/11/71/d6/1171d6ad-3c96-e027-2af6-58028426588c/mzaf_15137631797407745471.plus.aac.p.m4a'
+      ),
+    coverUrl:
+      'https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/b5/92/bb/b592bb72-52e3-e756-9b26-9f56d08f47ab/16UMGIM67864.rgb.jpg/600x600bb.jpg',
+    duration: 30,
+    licenseType: 'Official Preview Audio',
     isOriginalAudio: false,
-    genre: 'Lo-Fi',
-    mood: 'Chill',
+    genre: 'Pop / Synthwave',
+    mood: 'Cyber',
   },
   {
-    id: 'trk_cc0_3',
-    title: 'Deep Urban Pulse (Trap Beat)',
-    artist: 'Mixkit Open Library',
-    audioUrl: 'https://assets.mixkit.co/music/preview/mixkit-deep-urban-623.mp3',
-    coverUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=200&auto=format&fit=crop&q=80',
-    duration: 128,
-    licenseType: 'CC0 Public Domain',
+    id: 'trk_brown_munde',
+    title: 'Brown Munde',
+    artist: 'AP Dhillon, Gurinder Gill',
+    audioUrl:
+      '/api/music/proxy?url=' +
+      encodeURIComponent(
+        'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/97/74/69/977469be-a9d5-35a7-80ad-ebe12a799ccc/mzaf_804867738726203367.plus.aac.p.m4a'
+      ),
+    coverUrl:
+      'https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/26/a3/ac/26a3ac64-69e4-95ec-80ab-1f5a477537d2/859742042973_cover.jpg/600x600bb.jpg',
+    duration: 30,
+    licenseType: 'Official Preview Audio',
     isOriginalAudio: false,
-    genre: 'Hip Hop',
+    genre: 'Hip Hop / Punjabi',
+    mood: 'Trap',
+  },
+  {
+    id: 'trk_kesariya',
+    title: 'Kesariya (Brahmastra)',
+    artist: 'Arijit Singh, Pritam',
+    audioUrl:
+      '/api/music/proxy?url=' +
+      encodeURIComponent(
+        'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/38/4c/5c/384c5c8f-3ff8-e457-b2f7-3158ce108649/mzaf_12389299033886433185.plus.aac.p.m4a'
+      ),
+    coverUrl:
+      'https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/9f/13/ca/9f13ca3b-e533-03e0-f19a-f0aaa774581d/196589311191.jpg/600x600bb.jpg',
+    duration: 30,
+    licenseType: 'Official Preview Audio',
+    isOriginalAudio: false,
+    genre: 'Bollywood Romance',
+    mood: 'Soulful',
+  },
+  {
+    id: 'trk_winning_speech',
+    title: 'Winning Speech',
+    artist: 'Karan Aujla, MXRCI',
+    audioUrl:
+      '/api/music/proxy?url=' +
+      encodeURIComponent(
+        'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/e3/ae/b6/e3aeb64f-cadd-5830-c39f-6af51cd91670/mzaf_6001527501800958065.plus.aac.p.m4a'
+      ),
+    coverUrl:
+      'https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/48/7c/36/487c3668-f7a4-4b1a-e09e-c74dae124dd9/5063483578089_cover.jpg/600x600bb.jpg',
+    duration: 30,
+    licenseType: 'Official Preview Audio',
+    isOriginalAudio: false,
+    genre: 'Punjabi Rap',
     mood: 'Hype',
   },
   {
-    id: 'trk_cc0_4',
-    title: 'Desi Dhol Energy (Club Mix)',
-    artist: 'VYRO Beats Studio',
-    audioUrl: 'https://assets.mixkit.co/music/preview/mixkit-raising-me-higher-34.mp3',
-    coverUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=200&auto=format&fit=crop&q=80',
-    duration: 165,
-    licenseType: 'Royalty-Free Commercial',
+    id: 'trk_faded',
+    title: 'Faded',
+    artist: 'Alan Walker',
+    audioUrl:
+      '/api/music/proxy?url=' +
+      encodeURIComponent(
+        'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/ab/18/d9/ab18d9e9-01f0-27ea-3a51-6e08585a0072/mzaf_14299744081264843911.plus.aac.p.m4a'
+      ),
+    coverUrl:
+      'https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/0d/a3/1a/0da31af7-d0ff-9bee-c427-1b6d0336f6fc/886446321981.jpg/600x600bb.jpg',
+    duration: 30,
+    licenseType: 'Official Preview Audio',
     isOriginalAudio: false,
-    genre: 'Desi / Bollywood',
-    mood: 'Dance',
-  },
-  {
-    id: 'trk_cc0_5',
-    title: 'Drift Phonk Hyper (Slowed + Reverb)',
-    artist: 'Nightcore collective',
-    audioUrl: 'https://assets.mixkit.co/music/preview/mixkit-game-level-music-689.mp3',
-    coverUrl: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=200&auto=format&fit=crop&q=80',
-    duration: 140,
-    licenseType: 'CC0 Open Beat',
-    isOriginalAudio: false,
-    genre: 'Phonk',
-    mood: 'Dark Drift',
-  },
-  {
-    id: 'trk_cc0_6',
-    title: 'Midnight Tokyo Sunset',
-    artist: 'Lofi Records',
-    audioUrl: 'https://assets.mixkit.co/music/preview/mixkit-hazy-after-hours-141.mp3',
-    coverUrl: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=200&auto=format&fit=crop&q=80',
-    duration: 195,
-    licenseType: 'CC0 Public License',
-    isOriginalAudio: false,
-    genre: 'Lo-Fi',
-    mood: 'Study / Chill',
+    genre: 'Electronic / Dance',
+    mood: 'Festival',
   },
 ];

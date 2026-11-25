@@ -368,7 +368,12 @@ export const StudioPage: React.FC = () => {
     } else {
       setPreviewingMusicId(track.id);
       if (!track.youtubeVideoId && audioPreviewRef.current) {
-        audioPreviewRef.current.src = track.audioUrl;
+        const streamUrl =
+          track.audioUrl.startsWith('http') && !track.audioUrl.includes('/api/music/proxy')
+            ? `/api/music/proxy?url=${encodeURIComponent(track.audioUrl)}`
+            : track.audioUrl;
+        audioPreviewRef.current.crossOrigin = 'anonymous';
+        audioPreviewRef.current.src = streamUrl;
         audioPreviewRef.current.play().catch((err) => {
           console.warn('Audio play error:', err);
         });
