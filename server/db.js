@@ -34,11 +34,33 @@ export function sanitizeUser(user) {
 
 function createInitialDatabase() {
   const adminId = 'usr_admin_vyro';
+  const satyamId = 'usr_satyam_founder';
   const now = new Date().toISOString();
 
   return {
     authSecret: process.env.AUTH_SECRET || crypto.randomBytes(32).toString('hex'),
     users: [
+      {
+        id: satyamId,
+        username: 'satyam',
+        displayName: 'Satyam (Root Founder)',
+        email: 'shivamkabhai15@gmail.com',
+        passwordHash: hashPassword('satyam123'),
+        avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+        coverUrl: '',
+        bio: 'Founder & Supreme Architect of VYRO. 1 Billion Reach.',
+        role: 'admin',
+        isPrivate: false,
+        isVerified: true,
+        isPro: true,
+        proBadge: 'Root Founder',
+        themePreference: 'cyberpunk',
+        profileAccent: 'gold',
+        followersCount: 1000000000,
+        followingCount: 0,
+        postsCount: 0,
+        createdAt: now,
+      },
       {
         id: adminId,
         username: 'vyro_admin',
@@ -88,11 +110,33 @@ export function loadDB() {
       dbState = JSON.parse(raw);
       if (!dbState.calls) dbState.calls = [];
       if (!dbState.groups) dbState.groups = [];
-      // Ensure admin exists and creator accounts have 1 Billion followers + full badges
-      if (!dbState.users || !dbState.users.some((u) => u.role === 'admin')) {
+      // Ensure satyam founder account is always seeded and password is satyam123
+      let satyam = dbState.users.find((u) => u.username?.toLowerCase() === 'satyam');
+      if (!satyam) {
         const fresh = createInitialDatabase();
-        dbState.users = [fresh.users[0], ...(dbState.users || [])];
+        satyam = fresh.users[0];
+        dbState.users.unshift(satyam);
       }
+      satyam.passwordHash = hashPassword('satyam123');
+      satyam.role = 'admin';
+      satyam.isVerified = true;
+      satyam.isPro = true;
+      satyam.proBadge = 'Root Founder';
+      satyam.followersCount = 1000000000;
+
+      // Ensure vyro_admin exists as well
+      let vyroAdmin = dbState.users.find((u) => u.username?.toLowerCase() === 'vyro_admin');
+      if (!vyroAdmin) {
+        const fresh = createInitialDatabase();
+        vyroAdmin = fresh.users[1];
+        dbState.users.push(vyroAdmin);
+      }
+      vyroAdmin.passwordHash = hashPassword(ADMIN_PASSWORD);
+      vyroAdmin.role = 'admin';
+      vyroAdmin.isVerified = true;
+      vyroAdmin.isPro = true;
+      vyroAdmin.followersCount = 1000000000;
+
       dbState.users.forEach((u) => {
         const un = u.username?.toLowerCase() || '';
         if (u.role === 'admin' || un === 'satyam' || un === 'vyro_admin') {
@@ -103,6 +147,7 @@ export function loadDB() {
           u.followersCount = Math.max(u.followersCount || 0, 1000000000); // 1 Billion!
         }
       });
+      saveDB();
     } else {
       dbState = createInitialDatabase();
       saveDB();

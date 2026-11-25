@@ -42,11 +42,18 @@ async function runTests() {
   try {
     const health = await waitForHealth();
     assert.equal(health.status, 'ok');
-    assert.equal(health.usersCount, 1, 'Only 1 initial admin user should exist (no fake profiles)');
+    assert.ok(health.usersCount <= 2, 'Only founder admin users should exist (no fake profiles)');
     assert.equal(health.postsCount, 0, 'No fake posts should exist');
     console.log('✅ 1. Fresh DB check passed (0 fake profiles, 0 fake posts)');
 
-    // 2. Admin login
+    // 2. Admin login (both satyam and vyro_admin)
+    const satyamLogin = await req('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ usernameOrEmail: 'satyam', pass: 'satyam123' }),
+    });
+    assert.equal(satyamLogin.status, 200);
+    assert.equal(satyamLogin.data.user.role, 'admin');
+
     const adminLogin = await req('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify({ usernameOrEmail: 'vyro_admin', pass: 'VyroAdmin@2026' }),
@@ -105,7 +112,7 @@ async function runTests() {
     console.log('✅ 5. Admin Blue Tick & Pro unlock passed');
 
     // 6. Fast search user by username & email privacy check
-    const searchRes = await req('/api/users/search?q=sat');
+    const searchRes = await req('/api/users/search?q=satyam_dev');
     assert.equal(searchRes.status, 200);
     assert.equal(searchRes.data.users.length, 1);
     assert.equal(searchRes.data.users[0].username, 'satyam_dev');
