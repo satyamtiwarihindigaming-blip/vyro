@@ -144,7 +144,7 @@ export async function handleChatRoutes(req, res, pathname) {
   }
 
   // Send message (Direct OR Group)
-  if (req.method === 'POST' && pathname === '/api/messages') {
+  if (req.method === 'POST' && (pathname === '/api/messages' || pathname === '/api/chat/messages')) {
     if (!authUser) return sendJson(res, 401, { error: 'Unauthorized' });
     const body = await parseBody(req);
     const content = String(body.content || '').trim().slice(0, 2000);
@@ -156,17 +156,19 @@ export async function handleChatRoutes(req, res, pathname) {
       return sendJson(res, 400, { error: 'Message content or media is required.' });
     }
 
+    const effectiveGroupId = body.groupId || (body.conversationId?.startsWith('group_') ? body.conversationId.replace('group_', '') : undefined);
+
     // Handle Group message
-    if (body.groupId) {
-      const group = (db.groups || []).find((g) => g.id === body.groupId);
+    if (effectiveGroupId) {
+      const group = (db.groups || []).find((g) => g.id === effectiveGroupId);
       if (!group || !group.memberIds.includes(authUser.id)) {
         return sendJson(res, 403, { error: 'Not a member of this group.' });
       }
 
       const msg = {
         id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-        conversationId: `group_${body.groupId}`,
-        groupId: body.groupId,
+        conversationId: `group_${effectiveGroupId}`,
+        groupId: effectiveGroupId,
         senderId: authUser.id,
         content,
         mediaUrl: body.mediaUrl || undefined,
@@ -177,17 +179,11 @@ export async function handleChatRoutes(req, res, pathname) {
 
       db.messages.push(msg);
       saveDB();
-
-      return sendJson(res, 201, {
-        message: {
-          ...msg,
-          sender: sanitizeUser(authUser),
-        },
-      });
+      return sendJson(res, 201, { message: { ...msg, sender: sanitizeUser(authUser) } });
     }
 
     // Handle Direct 1-to-1 message
-    const receiverId = String(body.receiverId || '');
+    const receiverId = String(body.receiverId || (body.conversationId?.startsWith('conv_') ? body.conversationId.replace('conv_', '') : ''));
     if (!receiverId) {
       return sendJson(res, 400, { error: 'Receiver ID is required.' });
     }
