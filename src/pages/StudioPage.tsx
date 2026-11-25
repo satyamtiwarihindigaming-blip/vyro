@@ -16,6 +16,7 @@ import {
   Search,
   Loader2,
   MapPin,
+  Scissors,
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { ROYALTY_FREE_TRACKS } from '../lib/musicCatalog';
@@ -26,6 +27,7 @@ import { useSocial } from '../context/SocialContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AIImageStudio } from '../components/studio/AIImageStudio';
+import { AudioTrimmerModal } from '../components/music/AudioTrimmerModal';
 import { soundEngine } from '../lib/soundEngine';
 
 type FilterPreset = 'normal' | 'cyber' | 'noir' | 'warm' | 'prism' | 'gold';
@@ -47,6 +49,7 @@ export const StudioPage: React.FC = () => {
   // Location & Geolocation state
   const [locationTag, setLocationTag] = useState('');
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+  const [isTrimmerOpen, setIsTrimmerOpen] = useState(false);
 
   // Camera & Media states
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -417,6 +420,23 @@ export const StudioPage: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
+  const handleExtractVideoAudio = () => {
+    if (!capturedVideo) return;
+    soundEngine.playPop();
+    const customTrack: MusicTrack = {
+      id: `extracted_${Date.now()}`,
+      title: `Original Audio by ${currentUser?.displayName || `@${currentUser?.username}` || 'Creator'}`,
+      artist: currentUser?.displayName || `@${currentUser?.username}` || 'Creator',
+      audioUrl: capturedVideo,
+      coverUrl: currentUser?.avatarUrl || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80',
+      duration: recordingSeconds || 15,
+      licenseType: 'Original Reel Audio',
+      isOriginalAudio: true,
+    };
+    setSelectedCustomTrack(customTrack);
+    setSelectedMusicId(customTrack.id);
+  };
+
   const handlePublish = async () => {
     if (!currentUser) {
       setErrorMsg('Please sign in first to publish content.');
@@ -720,6 +740,14 @@ export const StudioPage: React.FC = () => {
                 <span>Reel Video Preview</span>
               </div>
               <button
+                type="button"
+                onClick={handleExtractVideoAudio}
+                className="absolute bottom-4 left-4 z-20 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-vyro-primary to-vyro-accent text-white text-xs font-bold shadow-glow-pink flex items-center gap-1.5 backdrop-blur-md"
+              >
+                <Music className="w-3.5 h-3.5" />
+                <span>Extract as Original Audio</span>
+              </button>
+              <button
                 onClick={handleRetake}
                 className="absolute top-4 right-4 px-3 py-1.5 rounded-full bg-black/70 backdrop-blur-md text-white text-xs font-semibold hover:bg-black/90"
               >
@@ -844,6 +872,21 @@ export const StudioPage: React.FC = () => {
               <Upload className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Upload Original</span>
             </button>
+
+            {selectedTrack && (
+              <button
+                type="button"
+                onClick={() => {
+                  soundEngine.playHapticClick();
+                  setIsTrimmerOpen(true);
+                }}
+                className="px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-slate-200 text-xs font-bold transition flex items-center gap-1.5 flex-shrink-0 border border-white/10"
+                title="Trim Hook (15s/30s/60s)"
+              >
+                <Scissors className="w-3.5 h-3.5 text-vyro-cyan" />
+                <span className="hidden sm:inline">Trim Hook</span>
+              </button>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto no-scrollbar p-1">
@@ -981,6 +1024,16 @@ export const StudioPage: React.FC = () => {
         </Button>
       </div>
       </>
+      )}
+
+      {/* Audio Waveform Trimmer Modal */}
+      {selectedTrack && (
+        <AudioTrimmerModal
+          isOpen={isTrimmerOpen}
+          track={selectedTrack}
+          onClose={() => setIsTrimmerOpen(false)}
+          onConfirmTrim={(trimmed) => setSelectedCustomTrack(trimmed)}
+        />
       )}
     </div>
   );
