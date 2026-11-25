@@ -357,15 +357,21 @@ export const StudioPage: React.FC = () => {
     setRecordingSeconds(0);
   };
 
-  const toggleMusicPreview = (trackId: string, url: string) => {
-    if (previewingMusicId === trackId) {
-      audioPreviewRef.current?.pause();
+  const toggleMusicPreview = (track: MusicTrack) => {
+    soundEngine.playPop();
+    if (previewingMusicId === track.id) {
+      if (audioPreviewRef.current) {
+        audioPreviewRef.current.pause();
+        audioPreviewRef.current.src = '';
+      }
       setPreviewingMusicId(null);
     } else {
-      if (audioPreviewRef.current) {
-        audioPreviewRef.current.src = url;
-        audioPreviewRef.current.play().catch(() => {});
-        setPreviewingMusicId(trackId);
+      setPreviewingMusicId(track.id);
+      if (!track.youtubeVideoId && audioPreviewRef.current) {
+        audioPreviewRef.current.src = track.audioUrl;
+        audioPreviewRef.current.play().catch((err) => {
+          console.warn('Audio play error:', err);
+        });
       }
     }
   };
@@ -526,6 +532,22 @@ export const StudioPage: React.FC = () => {
     <div className="max-w-2xl mx-auto py-6 px-4">
       {/* Hidden audio element for preview */}
       <audio ref={audioPreviewRef} onEnded={() => setPreviewingMusicId(null)} className="hidden" />
+
+      {/* Floating YouTube sound preview player if previewing YouTube track */}
+      {previewingMusicId && (() => {
+        const pt = customTracks.find(t => t.id === previewingMusicId) || (selectedTrack?.id === previewingMusicId ? selectedTrack : null);
+        if (!pt?.youtubeVideoId) return null;
+        return (
+          <div className="fixed bottom-4 right-4 z-50 w-72 aspect-video rounded-2xl overflow-hidden shadow-2xl bg-black border border-vyro-primary/50">
+            <iframe
+              src={`https://www.youtube.com/embed/${pt.youtubeVideoId}?autoplay=1&enablejsapi=1`}
+              title="YouTube Sound Preview"
+              className="w-full h-full border-0"
+              allow="autoplay; encrypted-media"
+            />
+          </div>
+        );
+      })()}
 
       <div className="flex items-center justify-between mb-4">
         <button
@@ -963,7 +985,7 @@ export const StudioPage: React.FC = () => {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => toggleMusicPreview(selectedTrack.id, selectedTrack.audioUrl)}
+                  onClick={() => toggleMusicPreview(selectedTrack)}
                   className="w-7 h-7 rounded-lg bg-vyro-primary hover:bg-vyro-primaryHover text-white flex items-center justify-center transition"
                 >
                   {previewingMusicId === selectedTrack.id ? (
@@ -999,7 +1021,7 @@ export const StudioPage: React.FC = () => {
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        toggleMusicPreview(track.id, track.audioUrl);
+                        toggleMusicPreview(track);
                       }}
                       className="w-8 h-8 rounded-lg bg-black/60 flex items-center justify-center text-vyro-accent hover:scale-110 transition-transform flex-shrink-0"
                     >

@@ -63,12 +63,28 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
 
     setCurrentTrack(track);
-    audioRef.current.src = track.audioUrl;
+    const streamUrl =
+      track.audioUrl.startsWith('http') &&
+      !track.audioUrl.includes('/api/music/proxy') &&
+      !track.youtubeVideoId
+        ? `/api/music/proxy?url=${encodeURIComponent(track.audioUrl)}`
+        : track.audioUrl;
+
+    audioRef.current.src = streamUrl;
     audioRef.current.volume = volume;
     audioRef.current
       .play()
       .then(() => setIsPlaying(true))
-      .catch((err) => console.warn('Audio autoplay restriction:', err));
+      .catch((err) => {
+        console.warn('Audio play error with proxy, retrying direct:', err);
+        if (audioRef.current) {
+          audioRef.current.src = track.audioUrl;
+          audioRef.current
+            .play()
+            .then(() => setIsPlaying(true))
+            .catch(() => {});
+        }
+      });
   };
 
   const togglePlay = () => {

@@ -177,6 +177,13 @@ async function runTests() {
     assert.equal(endRes.data.call.status, 'ended');
     console.log('✅ 8. WebRTC Voice/Video signaling flow passed');
 
+    // 9. Music search & Audio proxy stream
+    const musicSearch = await req('/api/music/search?q=arijit');
+    assert.equal(musicSearch.status, 200);
+    assert.ok(musicSearch.data.tracks.length > 0);
+    assert.ok(musicSearch.data.tracks[0].audioUrl.includes('/api/music/proxy'));
+    console.log('✅ 9. Music search and audio proxy stream passed');
+
     console.log('\n🎉 ALL INTEGRATION TESTS PASSED!');
   } finally {
     serverProc.kill();
