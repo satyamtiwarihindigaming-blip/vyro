@@ -13,11 +13,14 @@ import {
   Flag,
   Trash2,
   MapPin,
+  Play,
+  Pause,
 } from 'lucide-react';
 import { Post } from '../../types';
 import { Avatar } from '../ui/Avatar';
 import { VerifiedBadge } from '../ui/VerifiedBadge';
 import { useAuth } from '../../context/AuthContext';
+import { useAudio } from '../../context/AudioContext';
 import { apiRequest } from '../../lib/api';
 import { formatMetric } from '../../lib/musicCatalog';
 
@@ -39,10 +42,16 @@ export const PostCard: React.FC<PostCardProps> = ({
   onDeletePost,
 }) => {
   const { currentUser, isAdmin } = useAuth();
+  const { currentTrack, isPlaying, playTrack } = useAudio();
   const [showHeartPop, setShowHeartPop] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [showExternalEmbed, setShowExternalEmbed] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [reported, setReported] = useState(false);
+
+  const isThisTrackPlaying = Boolean(
+    post.musicTrack && isPlaying && currentTrack?.id === post.musicTrack.id
+  );
 
   const canDelete = currentUser && (currentUser.id === post.userId || isAdmin);
 
@@ -111,10 +120,33 @@ export const PostCard: React.FC<PostCardProps> = ({
               </div>
             )}
             {post.musicTrack && (
-              <div className="flex items-center gap-1 text-[11px] text-slate-400">
-                <Music className="w-3 h-3 text-vyro-accent animate-pulse" />
-                <span className="truncate max-w-[180px]">{post.musicTrack.title}</span>
-              </div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (post.musicTrack?.youtubeVideoId || post.musicTrack?.spotifyTrackId) {
+                    setShowExternalEmbed(!showExternalEmbed);
+                  } else if (post.musicTrack) {
+                    playTrack(post.musicTrack);
+                  }
+                }}
+                className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-pink-500/15 hover:bg-pink-500/25 border border-pink-500/30 text-[11px] text-pink-300 font-semibold transition mt-0.5"
+                title="Click to play music"
+              >
+                {isThisTrackPlaying ? (
+                  <Pause className="w-3 h-3 text-pink-400 shrink-0" />
+                ) : (
+                  <Play className="w-3 h-3 text-pink-400 ml-0.5 shrink-0" />
+                )}
+                <span className="truncate max-w-[130px]">{post.musicTrack.title}</span>
+                {post.musicTrack.youtubeVideoId && (
+                  <span className="text-[9px] bg-rose-600 text-white px-1 rounded font-bold">YT</span>
+                )}
+                {post.musicTrack.spotifyTrackId && (
+                  <span className="text-[9px] bg-emerald-600 text-white px-1 rounded font-bold">Spotify</span>
+                )}
+              </button>
             )}
           </div>
         </Link>
@@ -201,6 +233,47 @@ export const PostCard: React.FC<PostCardProps> = ({
               <Heart className="w-24 h-24 text-rose-500 fill-rose-500 drop-shadow-lg" />
             </div>
           )}
+        </div>
+      )}
+
+      {/* YouTube or Spotify Interactive Embed Player */}
+      {showExternalEmbed && post.musicTrack && (
+        <div className="w-full bg-black/95 p-3 border-y border-vyro-border space-y-2">
+          <div className="flex items-center justify-between text-xs text-slate-300">
+            <span className="font-bold flex items-center gap-1.5 text-white">
+              <Music className="w-3.5 h-3.5 text-vyro-accent" />
+              <span>Playing: {post.musicTrack.title}</span>
+            </span>
+            <button
+              onClick={() => setShowExternalEmbed(false)}
+              className="text-slate-400 hover:text-white px-1.5"
+            >
+              ✕
+            </button>
+          </div>
+          {post.musicTrack.youtubeVideoId ? (
+            <div className="w-full aspect-video rounded-xl overflow-hidden shadow-2xl bg-black">
+              <iframe
+                src={`https://www.youtube.com/embed/${post.musicTrack.youtubeVideoId}?autoplay=1&enablejsapi=1`}
+                title={post.musicTrack.title}
+                className="w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          ) : post.musicTrack.spotifyTrackId ? (
+            <div className="w-full rounded-xl overflow-hidden shadow-2xl bg-black">
+              <iframe
+                src={`https://open.spotify.com/embed/track/${post.musicTrack.spotifyTrackId}?utm_source=generator&theme=0`}
+                width="100%"
+                height="152"
+                frameBorder="0"
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                loading="lazy"
+                className="rounded-xl"
+              />
+            </div>
+          ) : null}
         </div>
       )}
 

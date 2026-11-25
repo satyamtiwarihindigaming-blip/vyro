@@ -82,7 +82,63 @@ export const DirectPage: React.FC = () => {
   const loadAllUsers = async () => {
     try {
       const res = await apiRequest<{ users: User[] }>('/api/users');
-      setAllUsers((res.users || []).filter((u) => u.id !== currentUser?.id));
+      const filtered = (res.users || []).filter((u) => u.id !== currentUser?.id);
+      if (filtered.length >= 2) {
+        setAllUsers(filtered);
+      } else {
+        // Fallback test creator accounts so user can test group chats immediately
+        const mockOthers: User[] = [
+          {
+            id: 'mock_1',
+            username: 'arijit_music',
+            displayName: 'Arijit Singh Official',
+            email: 'arijit@vyro.internal',
+            avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+            role: 'creator',
+            isPrivate: false,
+            isVerified: true,
+            isPro: true,
+            themePreference: 'dark',
+            followersCount: 42000000,
+            followingCount: 15,
+            postsCount: 88,
+            createdAt: new Date().toISOString(),
+          },
+          {
+            id: 'mock_2',
+            username: 'diljit_crew',
+            displayName: 'Diljit Dosanjh',
+            email: 'diljit@vyro.internal',
+            avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
+            role: 'creator',
+            isPrivate: false,
+            isVerified: true,
+            isPro: true,
+            themePreference: 'dark',
+            followersCount: 35000000,
+            followingCount: 40,
+            postsCount: 120,
+            createdAt: new Date().toISOString(),
+          },
+          {
+            id: 'mock_3',
+            username: 'vyro_hq',
+            displayName: 'VYRO Global VIPs',
+            email: 'hq@vyro.internal',
+            avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+            role: 'admin',
+            isPrivate: false,
+            isVerified: true,
+            isPro: true,
+            themePreference: 'dark',
+            followersCount: 1000000000,
+            followingCount: 1,
+            postsCount: 10,
+            createdAt: new Date().toISOString(),
+          },
+        ];
+        setAllUsers([...filtered, ...mockOthers]);
+      }
     } catch {
       setAllUsers([]);
     }
@@ -417,10 +473,11 @@ export const DirectPage: React.FC = () => {
                       startCall(activeConv.partner, 'voice');
                     }
                   }}
-                  className="p-2 rounded-xl bg-vyro-primary/15 text-vyro-primary hover:bg-vyro-primary hover:text-white transition-colors"
+                  className="px-3 py-1.5 rounded-xl bg-vyro-primary/15 hover:bg-vyro-primary text-vyro-primary hover:text-white transition-all flex items-center gap-1.5 text-xs font-bold"
                   title={activeConv.type === 'group' ? 'Start Group Voice Call' : 'Start Live Voice Call'}
                 >
                   <Phone className="w-4 h-4" />
+                  <span className="hidden sm:inline">{activeConv.type === 'group' ? 'Group Audio' : 'Voice'}</span>
                 </button>
 
                 {/* Video Call Button (Direct OR Group) */}
@@ -432,10 +489,11 @@ export const DirectPage: React.FC = () => {
                       startCall(activeConv.partner, 'video');
                     }
                   }}
-                  className="p-2 rounded-xl bg-vyro-cyan/15 text-vyro-cyan hover:bg-vyro-cyan hover:text-white transition-colors"
+                  className="px-3 py-1.5 rounded-xl bg-vyro-cyan/20 hover:bg-vyro-cyan text-vyro-cyan hover:text-black border border-vyro-cyan/30 transition-all flex items-center gap-1.5 text-xs font-bold shadow-[0_0_12px_rgba(6,182,212,0.25)]"
                   title={activeConv.type === 'group' ? 'Start Group Video Call' : 'Start Live Video Call'}
                 >
                   <Video className="w-4 h-4" />
+                  <span className="hidden sm:inline">{activeConv.type === 'group' ? 'Group Video ⚡' : 'Video'}</span>
                 </button>
               </div>
             </div>

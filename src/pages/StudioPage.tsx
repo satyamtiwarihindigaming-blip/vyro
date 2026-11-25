@@ -17,10 +17,16 @@ import {
   Loader2,
   MapPin,
   Scissors,
+  Link as LinkIcon,
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { ROYALTY_FREE_TRACKS } from '../lib/musicCatalog';
-import { searchMusicTracks } from '../lib/musicService';
+import {
+  searchMusicTracks,
+  createTrackFromYouTube,
+  createTrackFromSpotify,
+  TRENDING_GLOBAL_TRACKS,
+} from '../lib/musicService';
 import { detectCurrentLocation } from '../lib/geoService';
 import { MusicTrack } from '../types';
 import { useSocial } from '../context/SocialContext';
@@ -63,9 +69,10 @@ export const StudioPage: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<FilterPreset>('normal');
   const [overlayText, setOverlayText] = useState('');
   const [caption, setCaption] = useState('');
-  const [selectedMusicId, setSelectedMusicId] = useState(ROYALTY_FREE_TRACKS[0].id);
-  const [customTracks, setCustomTracks] = useState<MusicTrack[]>([]);
+  const [selectedMusicId, setSelectedMusicId] = useState(TRENDING_GLOBAL_TRACKS[0].id);
+  const [customTracks, setCustomTracks] = useState<MusicTrack[]>(TRENDING_GLOBAL_TRACKS);
   const [musicSearchQuery, setMusicSearchQuery] = useState('');
+  const [externalUrlInput, setExternalUrlInput] = useState('');
   const [selectedCustomTrack, setSelectedCustomTrack] = useState<MusicTrack | null>(null);
   const [isSearchingMusic, setIsSearchingMusic] = useState(false);
   const [isMusicPickerOpen, setIsMusicPickerOpen] = useState(false);
@@ -366,22 +373,45 @@ export const StudioPage: React.FC = () => {
   // Live iTunes/Apple Music Search Debounce
   useEffect(() => {
     if (!musicSearchQuery.trim()) {
-      setCustomTracks([]);
+      setCustomTracks(TRENDING_GLOBAL_TRACKS);
       return;
     }
     const timer = setTimeout(async () => {
       setIsSearchingMusic(true);
       const results = await searchMusicTracks(musicSearchQuery.trim());
-      setCustomTracks(results);
+      setCustomTracks(results.length > 0 ? results : TRENDING_GLOBAL_TRACKS);
       setIsSearchingMusic(false);
     }, 280);
     return () => clearTimeout(timer);
   }, [musicSearchQuery]);
 
+  const handleAttachExternalMusic = () => {
+    const url = externalUrlInput.trim();
+    if (!url) return;
+    const ytTrack = createTrackFromYouTube(url);
+    if (ytTrack) {
+      setSelectedCustomTrack(ytTrack);
+      setSelectedMusicId(ytTrack.id);
+      soundEngine.playPop();
+      setExternalUrlInput('');
+      return;
+    }
+    const spotifyTrack = createTrackFromSpotify(url);
+    if (spotifyTrack) {
+      setSelectedCustomTrack(spotifyTrack);
+      setSelectedMusicId(spotifyTrack.id);
+      soundEngine.playPop();
+      setExternalUrlInput('');
+      return;
+    }
+    alert('Please paste a valid YouTube (e.g. youtu.be/... or youtube.com/watch?v=...) or Spotify link.');
+  };
+
   const selectedTrack =
     selectedCustomTrack ||
+    customTracks.find((t) => t.id === selectedMusicId) ||
     ROYALTY_FREE_TRACKS.find((t) => t.id === selectedMusicId) ||
-    ROYALTY_FREE_TRACKS[0];
+    TRENDING_GLOBAL_TRACKS[0];
 
   const handleDetectGPS = async () => {
     setIsDetectingLocation(true);
@@ -888,6 +918,63 @@ export const StudioPage: React.FC = () => {
               </button>
             )}
           </div>
+
+          {/* YouTube & Spotify Direct Link Paste */}
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <LinkIcon className="w-3.5 h-3.5 text-rose-400 absolute left-3 top-2.5" />
+              <input
+                type="url"
+                value={externalUrlInput}
+                onChange={(e) => setExternalUrlInput(e.target.value)}
+                placeholder="Paste YouTube or Spotify song link (e.g. youtu.be/... or open.spotify.com)..."
+                className="w-full bg-black/60 border border-vyro-border rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-rose-500 transition"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={handleAttachExternalMusic}
+              disabled={!externalUrlInput.trim()}
+              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white text-xs font-bold transition disabled:opacity-40 flex items-center gap-1.5 flex-shrink-0 shadow-glow-pink"
+            >
+              <span>Link Sound</span>
+            </button>
+          </div>
+
+          {/* Active Attached Music Indicator */}
+          {selectedTrack && (
+            <div className="flex items-center justify-between p-2.5 rounded-xl bg-black/50 border border-vyro-primary/40 shadow-glow-purple/20">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <img
+                  src={selectedTrack.coverUrl}
+                  alt={selectedTrack.title}
+                  className="w-8 h-8 rounded-lg object-cover border border-white/10"
+                />
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-white truncate flex items-center gap-1">
+                    <Music className="w-3 h-3 text-vyro-accent shrink-0" />
+                    <span>{selectedTrack.title}</span>
+                  </p>
+                  <p className="text-[10px] text-slate-400 truncate">
+                    {selectedTrack.artist} • {selectedTrack.licenseType}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => toggleMusicPreview(selectedTrack.id, selectedTrack.audioUrl)}
+                  className="w-7 h-7 rounded-lg bg-vyro-primary hover:bg-vyro-primaryHover text-white flex items-center justify-center transition"
+                >
+                  {previewingMusicId === selectedTrack.id ? (
+                    <Pause className="w-3.5 h-3.5" />
+                  ) : (
+                    <Play className="w-3.5 h-3.5 ml-0.5" />
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto no-scrollbar p-1">
             {(customTracks.length > 0 ? customTracks : ROYALTY_FREE_TRACKS).map((track) => {

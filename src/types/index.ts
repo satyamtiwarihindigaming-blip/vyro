@@ -98,6 +98,8 @@ export interface MusicTrack {
   licenseType: string;
   isOriginalAudio: boolean;
   creatorId?: string;
+  youtubeVideoId?: string;
+  spotifyTrackId?: string;
 }
 
 export interface Message {
