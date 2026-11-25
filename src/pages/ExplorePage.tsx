@@ -145,6 +145,32 @@ export const ExplorePage: React.FC = () => {
         </div>
       </div>
 
+      {/* Cyber Ludo Arena Spotlight Banner */}
+      <div className="glass-card rounded-2xl p-4 border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-pink-500/10 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-[0_0_20px_rgba(245,158,11,0.15)]">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-400 flex items-center justify-center text-slate-950 font-black text-xl shadow-glow-gold flex-shrink-0">
+            🎲
+          </div>
+          <div>
+            <h4 className="text-sm font-extrabold text-white flex items-center gap-2">
+              <span>Cyber Ludo King Arena</span>
+              <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                Live 15x15
+              </span>
+            </h4>
+            <p className="text-xs text-slate-300">
+              3D pawns, procedural audio, smart bot, and in-chat challenges!
+            </p>
+          </div>
+        </div>
+        <Link
+          to="/games"
+          className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 text-xs font-extrabold hover:brightness-110 transition-all flex items-center gap-1.5 shadow-[0_0_15px_rgba(245,158,11,0.4)] whitespace-nowrap"
+        >
+          <span>Play Now 🏆</span>
+        </Link>
+      </div>
+
       {/* Geolocation Filter Bar */}
       <div className="glass-card rounded-2xl p-3 border border-vyro-border flex items-center gap-2 overflow-x-auto no-scrollbar">
         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 px-2 py-1 shrink-0">

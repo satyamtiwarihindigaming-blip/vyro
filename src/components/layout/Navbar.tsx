@@ -156,45 +156,50 @@ export const Navbar: React.FC = () => {
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
-          {/* Quick Theme Selector Button */}
+        <div className="flex items-center gap-1.5 sm:gap-2.5 flex-shrink-0">
+          {/* Cyber Ludo & Arcade */}
+          <Link
+            to="/games"
+            className="p-2 rounded-xl text-slate-300 hover:text-amber-300 hover:bg-white/10 transition-colors flex items-center gap-1.5 touch-spring"
+            title="Play Cyber Ludo Arena"
+          >
+            <Gamepad2 className="w-5 h-5 text-amber-400" />
+            <span className="hidden xl:inline text-xs font-bold text-slate-200">Ludo</span>
+          </Link>
+
+          {/* 320kbps Music Hub */}
+          <Link
+            to="/music"
+            className="p-2 rounded-xl text-slate-300 hover:text-pink-300 hover:bg-white/10 transition-colors flex items-center gap-1.5 touch-spring"
+            title="Full Master Music Studio"
+          >
+            <Music className="w-5 h-5 text-pink-400" />
+            <span className="hidden xl:inline text-xs font-bold text-slate-200">Music</span>
+          </Link>
+
+          {/* Luxury Theme Selector */}
           <button
             onClick={openThemePicker}
-            className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition-colors flex items-center gap-1.5"
+            className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition-colors flex items-center gap-1.5 touch-spring"
             title="Switch Luxury Theme"
           >
             <Palette className="w-5 h-5 text-vyro-accent" />
             <span className="hidden lg:inline text-xs font-bold text-slate-200">Themes</span>
           </button>
 
-          <Link
-            to="/music"
-            className="md:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
-            title="Music"
-          >
-            <Music className="w-5 h-5" />
-          </Link>
-          <Link
-            to="/games"
-            className="md:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
-            title="Games"
-          >
-            <Gamepad2 className="w-5 h-5" />
-          </Link>
-
           {isAdmin && (
             <Link
               to="/admin"
-              className="p-2 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 hover:bg-amber-500/25 transition-colors flex items-center gap-1.5 text-xs font-bold"
-              title="Admin Console"
+              className="p-2 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/40 text-amber-300 hover:border-amber-400 transition-all flex items-center gap-1.5 text-xs font-bold shadow-[0_0_15px_rgba(245,158,11,0.25)] touch-spring"
+              title="Founder / Admin Console"
             >
-              <ShieldAlert className="w-4 h-4" />
+              <ShieldAlert className="w-4 h-4 text-amber-400" />
               <span className="hidden sm:inline">Admin</span>
             </Link>
           )}
 
           {currentUser ? (
-            <Link to={`/${currentUser.username}`} className="flex items-center gap-2">
+            <Link to={`/${currentUser.username}`} className="flex items-center gap-2 touch-spring">
               <div className="hidden lg:flex items-center gap-1 text-xs font-bold text-slate-200">
                 <span>@{currentUser.username}</span>
                 <VerifiedBadge
@@ -213,7 +218,7 @@ export const Navbar: React.FC = () => {
           ) : (
             <button
               onClick={() => setAuthOpen(true)}
-              className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-vyro-primary to-vyro-accent text-white text-xs font-bold flex items-center gap-1.5 shadow-glow-purple/30"
+              className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-vyro-primary to-vyro-accent text-white text-xs font-bold flex items-center gap-1.5 shadow-glow-purple/30 touch-spring"
             >
               <LogIn className="w-3.5 h-3.5" />
               <span>Sign In</span>

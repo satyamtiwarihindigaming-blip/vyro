@@ -78,7 +78,7 @@ export const StoryBar: React.FC = () => {
                 <div
                   className={`relative p-[2.5px] rounded-full transition-transform duration-300 group-hover:scale-105 ${
                     isVip
-                      ? 'bg-gradient-to-tr from-[#10B981] via-[#F59E0B] to-[#10B981] shadow-[0_0_12px_rgba(16,185,129,0.4)]'
+                      ? 'animate-conic-vip shadow-[0_0_16px_rgba(16,185,129,0.5)]'
                       : story.hasViewed
                       ? 'bg-slate-700/80'
                       : 'bg-gradient-to-tr from-vyro-primary via-vyro-accent to-vyro-cyan animate-[spin_8s_linear_infinite]'

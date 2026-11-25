@@ -12,6 +12,14 @@ export const ReelsPage: React.FC = () => {
   const { posts, toggleLike, toggleSave } = useSocial();
   const { playTrack } = useAudio();
   const [isMuted, setIsMuted] = useState(false);
+  const [heartSplashId, setHeartSplashId] = useState<string | null>(null);
+
+  const handleDoubleTap = (reelId: string) => {
+    soundEngine.playPop();
+    toggleLike(reelId);
+    setHeartSplashId(reelId);
+    setTimeout(() => setHeartSplashId(null), 850);
+  };
 
   const reels = posts.filter((p) => p.postType === 'reel' || p.postType === 'video');
 
@@ -45,7 +53,8 @@ export const ReelsPage: React.FC = () => {
         return (
           <div
             key={reel.id}
-            className="relative h-[calc(100vh-4.5rem)] snap-start rounded-3xl overflow-hidden glass-panel border border-vyro-border my-2 flex flex-col justify-between"
+            onDoubleClick={() => handleDoubleTap(reel.id)}
+            className="relative h-[calc(100vh-4.5rem)] snap-start rounded-3xl overflow-hidden glass-panel border border-vyro-border my-2 flex flex-col justify-between select-none"
           >
             {media?.type === 'video' ? (
               <video
@@ -63,7 +72,18 @@ export const ReelsPage: React.FC = () => {
                 className="absolute inset-0 w-full h-full object-cover"
               />
             )}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/80" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/80 pointer-events-none" />
+
+            {/* Heart Particle Splash on Double Tap */}
+            {heartSplashId === reel.id && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
+                <div className="relative animate-heart-splash flex items-center justify-center">
+                  <Heart className="w-28 h-28 text-rose-500 fill-rose-500 filter drop-shadow-[0_0_25px_rgba(244,63,94,0.9)]" />
+                  <span className="absolute -top-3 -right-3 text-amber-300 text-xl animate-ping">✨</span>
+                  <span className="absolute -bottom-2 -left-2 text-pink-300 text-base animate-ping">✨</span>
+                </div>
+              </div>
+            )}
 
             <div className="relative z-10 p-4 flex items-center justify-between">
               <span className="text-xs font-bold tracking-wider uppercase text-white/80">

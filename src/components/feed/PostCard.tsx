@@ -131,14 +131,32 @@ export const PostCard: React.FC<PostCardProps> = ({
                     playTrack(post.musicTrack);
                   }
                 }}
-                className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-pink-500/15 hover:bg-pink-500/25 border border-pink-500/30 text-[11px] text-pink-300 font-semibold transition mt-0.5"
-                title="Click to play music"
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-semibold transition mt-1 touch-spring ${
+                  isThisTrackPlaying
+                    ? 'bg-gradient-to-r from-pink-500/25 to-purple-500/25 border-pink-500/50 text-pink-200 shadow-[0_0_12px_rgba(236,72,153,0.3)]'
+                    : 'bg-black/50 hover:bg-white/10 border-white/15 text-slate-300'
+                }`}
+                title="Click to play studio master audio"
               >
+                {/* Rotating Vinyl Disc or Equalizer */}
+                <div className="relative w-4 h-4 flex items-center justify-center flex-shrink-0">
+                  <div className={`w-3.5 h-3.5 rounded-full border border-pink-400 bg-gradient-to-tr from-slate-900 via-pink-900 to-slate-900 flex items-center justify-center ${
+                    isThisTrackPlaying ? 'animate-vinyl' : ''
+                  }`}>
+                    <div className="w-1 h-1 rounded-full bg-pink-400" />
+                  </div>
+                </div>
+
                 {isThisTrackPlaying ? (
-                  <Pause className="w-3 h-3 text-pink-400 shrink-0" />
+                  <div className="flex items-end gap-0.5 h-3">
+                    <span className="w-0.5 bg-pink-400 rounded-full animate-eq-1" />
+                    <span className="w-0.5 bg-pink-400 rounded-full animate-eq-2" />
+                    <span className="w-0.5 bg-pink-400 rounded-full animate-eq-3" />
+                  </div>
                 ) : (
-                  <Play className="w-3 h-3 text-pink-400 ml-0.5 shrink-0" />
+                  <Play className="w-2.5 h-2.5 text-pink-400 ml-0.5 shrink-0" />
                 )}
+
                 <span className="truncate max-w-[130px]">{post.musicTrack.title}</span>
                 {post.musicTrack.youtubeVideoId && (
                   <span className="text-[9px] bg-rose-600 text-white px-1 rounded font-bold">YT</span>
@@ -229,8 +247,12 @@ export const PostCard: React.FC<PostCardProps> = ({
           )}
 
           {showHeartPop && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none animate-ping">
-              <Heart className="w-24 h-24 text-rose-500 fill-rose-500 drop-shadow-lg" />
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+              <div className="relative animate-heart-splash flex items-center justify-center">
+                <Heart className="w-28 h-28 text-rose-500 fill-rose-500 filter drop-shadow-[0_0_25px_rgba(244,63,94,0.85)]" />
+                <span className="absolute -top-3 -right-3 text-amber-300 text-xl animate-ping">✨</span>
+                <span className="absolute -bottom-2 -left-2 text-pink-300 text-base animate-ping">✨</span>
+              </div>
             </div>
           )}
         </div>

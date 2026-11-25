@@ -258,6 +258,26 @@ export const ProfilePage: React.FC = () => {
             {profileUser.bio || 'No bio added yet.'}
           </p>
 
+          {/* Founder VIP Banner for Root Admin / satyam */}
+          {(profileUser.username === 'satyam' || profileUser.username === 'vyro_admin') && (
+            <div className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-500/15 via-amber-500/15 to-purple-500/15 border border-emerald-500/30 flex items-center justify-between gap-3 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
+              <div className="flex items-center gap-2.5">
+                <span className="text-lg">👑</span>
+                <div>
+                  <p className="text-xs font-black text-emerald-300">
+                    {profileUser.username === 'satyam' ? 'Root Founder & Chief Architect' : 'VYRO Pro Security & Admin'}
+                  </p>
+                  <p className="text-[10px] text-slate-300">
+                    Global Network Reach: <span className="font-bold text-amber-300">1,000,000,000+ Reach 🚀</span>
+                  </p>
+                </div>
+              </div>
+              <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-black uppercase tracking-wider">
+                VIP Verified
+              </span>
+            </div>
+          )}
+
           <div className="flex items-center gap-6 text-xs text-slate-300">
             <div>
               <span className="font-extrabold text-white mr-1.5">{userPosts.length}</span>
