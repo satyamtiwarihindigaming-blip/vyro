@@ -65,12 +65,14 @@ export async function handleAdminRoutes(req, res, pathname) {
   }
 
   // Update Followers Count Advantage (e.g. 1 Billion)
-  if (req.method === 'POST' && pathname.startsWith('/api/admin/users/') && pathname.endsWith('/followers')) {
-    const targetId = pathname.replace('/api/admin/users/', '').replace('/followers', '');
+  if (req.method === 'POST' && (pathname === '/api/admin/set-followers' || (pathname.startsWith('/api/admin/users/') && pathname.endsWith('/followers')))) {
+    const body = await parseBody(req).catch(() => ({}));
+    const targetId = pathname === '/api/admin/set-followers'
+      ? body.userId
+      : pathname.replace('/api/admin/users/', '').replace('/followers', '');
     const target = db.users.find((u) => u.id === targetId);
     if (!target) return sendJson(res, 404, { error: 'User not found.' });
 
-    const body = await parseBody(req).catch(() => ({}));
     const count = parseInt(body.followersCount, 10);
     target.followersCount = isNaN(count) ? 1000000000 : count;
     saveDB();

@@ -14,7 +14,10 @@ import {
   Send,
   MessageCircle,
   X,
+  Eye,
+  Terminal,
 } from 'lucide-react';
+import { FBITacticalTerminal } from '../components/admin/FBITacticalTerminal';
 import { useAuth } from '../context/AuthContext';
 import { useSocial } from '../context/SocialContext';
 import { apiRequest } from '../lib/api';
@@ -56,6 +59,7 @@ export const AdminPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [actionMsg, setActionMsg] = useState('');
+  const [adminViewMode, setAdminViewMode] = useState<'terminal' | 'civilian'>('terminal');
 
   // Admin Broadcast & Direct Messaging State
   const [broadcastText, setBroadcastText] = useState('');
@@ -239,6 +243,19 @@ export const AdminPage: React.FC = () => {
     );
   }
 
+  // Active FBI / US-CYBERCOM Level 5 Tactical Terminal
+  if (adminViewMode === 'terminal') {
+    return (
+      <FBITacticalTerminal
+        currentUser={currentUser}
+        usersList={usersList}
+        reportsList={reportsList}
+        onRefresh={loadAdminOverview}
+        onToggleStealth={() => setAdminViewMode('civilian')}
+      />
+    );
+  }
+
   const filteredUsers = usersList.filter(
     (u) =>
       !searchQuery.trim() ||
@@ -248,6 +265,19 @@ export const AdminPage: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto py-6 px-4 space-y-6">
+      {/* FBI Cyber-Command HUD Switcher Banner */}
+      <div className="p-3 bg-[#00FF66]/10 border border-[#00FF66]/40 rounded-2xl flex items-center justify-between shadow-[0_0_15px_rgba(0,255,102,0.15)]">
+        <div className="flex items-center gap-2 text-xs font-mono text-[#00FF66]">
+          <span className="w-2 h-2 rounded-full bg-[#00FF66] animate-ping" />
+          <span className="font-bold">SECURITY CLEARANCE: LEVEL 5 // ACTIVE IN STEALTH CIVILIAN VIEW</span>
+        </div>
+        <button
+          onClick={() => setAdminViewMode('terminal')}
+          className="px-3.5 py-1.5 bg-[#00FF66] hover:bg-white text-black font-extrabold text-xs rounded-xl shadow-[0_0_12px_rgba(0,255,102,0.4)] transition flex items-center gap-1.5"
+        >
+          <Terminal className="w-3.5 h-3.5" /> ENTER CYBER-COMMAND HUD
+        </button>
+      </div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-extrabold text-white flex items-center gap-2">

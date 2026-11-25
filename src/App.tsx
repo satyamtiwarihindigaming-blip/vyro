@@ -8,6 +8,9 @@ import { CallProvider } from './context/CallContext';
 import { FloatingAudioPlayer } from './components/music/FloatingAudioPlayer';
 import { GlobalCallOverlay } from './components/calls/GlobalCallOverlay';
 import { PermissionPromptModal } from './components/permissions/PermissionPromptModal';
+import { AppBootSplash } from './components/common/AppBootSplash';
+import { ThemeProvider } from './context/ThemeContext';
+import { ThemeSelectorModal } from './components/theme/ThemeSelectorModal';
 
 import { Sidebar } from './components/layout/Sidebar';
 import { Navbar } from './components/layout/Navbar';
@@ -58,11 +61,14 @@ const MainLayout: React.FC = () => {
 
 export const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <SocialProvider>
-        <AudioProvider>
-          <CallProvider>
-            <BrowserRouter>
+    <ThemeProvider>
+      <AuthProvider>
+        <SocialProvider>
+          <AudioProvider>
+            <CallProvider>
+              <AppBootSplash />
+              <ThemeSelectorModal />
+              <BrowserRouter>
               <Routes>
                 {/* Public Instagram-style Login / Signup & Legal */}
                 <Route path="/" element={<LandingPage defaultMode="login" />} />
@@ -90,6 +96,7 @@ export const App: React.FC = () => {
         </AudioProvider>
       </SocialProvider>
     </AuthProvider>
+    </ThemeProvider>
   );
 };
 

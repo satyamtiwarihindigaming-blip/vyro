@@ -1,142 +1,120 @@
 import React, { useState } from 'react';
 import { Avatar } from '../ui/Avatar';
-import { VerifiedBadge } from '../ui/VerifiedBadge';
 import { useAuth } from '../../context/AuthContext';
 import { useSocial } from '../../context/SocialContext';
 import { Story } from '../../types';
-import { Plus, X, Volume2, VolumeX } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { StoryViewerModal } from '../story/StoryViewerModal';
+import { soundEngine } from '../../lib/soundEngine';
 
 export const StoryBar: React.FC = () => {
   const { currentUser } = useAuth();
   const { stories } = useSocial();
   const navigate = useNavigate();
   const [activeStory, setActiveStory] = useState<Story | null>(null);
-  const [isMuted, setIsMuted] = useState(false);
+
+  // Group stories by user so only one avatar bubble per creator appears
+  const uniqueCreatorsWithStories: { story: Story; count: number }[] = [];
+  stories.forEach((story) => {
+    const existing = uniqueCreatorsWithStories.find((item) => item.story.userId === story.userId);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      uniqueCreatorsWithStories.push({ story, count: 1 });
+    }
+  });
 
   return (
     <>
-      <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-2 px-1">
+      <div className="flex items-center gap-3.5 overflow-x-auto no-scrollbar py-2 px-1 select-none">
         {/* Create Your Story Bubble */}
         <div
-          onClick={() => navigate('/create?mode=story')}
+          onClick={() => {
+            soundEngine.playHapticClick();
+            navigate('/create?mode=story');
+          }}
           className="flex flex-col items-center gap-1.5 flex-shrink-0 cursor-pointer group"
+          title="Post to your 24h Story"
         >
           <div className="relative">
-            <Avatar
-              src={currentUser?.avatarUrl}
-              alt={currentUser?.displayName || 'Your Story'}
-              size="md"
-            />
-            <div className="absolute -bottom-1 -right-1 p-1 bg-gradient-to-r from-vyro-primary to-vyro-accent rounded-full text-white shadow-glow-pink">
+            <div className="p-[2.5px] rounded-full bg-gradient-to-tr from-slate-700 to-slate-800 group-hover:from-vyro-primary group-hover:to-vyro-accent transition duration-300">
+              <Avatar
+                src={currentUser?.avatarUrl}
+                alt={currentUser?.displayName || 'Your Story'}
+                size="md"
+              />
+            </div>
+            <div className="absolute -bottom-0.5 -right-0.5 p-1 bg-gradient-to-r from-vyro-primary via-vyro-accent to-vyro-cyan rounded-full text-white shadow-glow-pink group-hover:scale-110 transition-transform">
               <Plus className="w-3 h-3 stroke-[3]" />
             </div>
           </div>
-          <span className="text-[11px] text-slate-300 font-medium group-hover:text-white">
-            Add Story
+          <span className="text-[11px] text-slate-300 font-semibold group-hover:text-white transition">
+            Your Story
           </span>
         </div>
 
-        {stories.length === 0 ? (
+        {uniqueCreatorsWithStories.length === 0 ? (
           <div className="text-[11px] text-slate-500 pl-2">
-            No active 24h stories yet — tap Add Story to post one!
+            No active 24h stories yet — tap Your Story to post the first!
           </div>
         ) : (
-          stories.map((story) => (
-            <button
-              key={story.id}
-              onClick={() => setActiveStory(story)}
-              className="flex flex-col items-center gap-1.5 flex-shrink-0 group focus:outline-none"
-            >
-              <Avatar
-                src={story.user.avatarUrl}
-                alt={story.user.displayName}
-                size="md"
-                hasStory
-                isViewed={story.hasViewed}
-              />
-              <span className="text-[11px] text-slate-300 font-medium max-w-[70px] truncate group-hover:text-white">
-                {story.user.username}
-              </span>
-            </button>
-          ))
+          uniqueCreatorsWithStories.map(({ story, count }) => {
+            const isVip =
+              story.user.username === 'satyam' ||
+              story.user.username === 'vyro_admin' ||
+              story.user.isPro;
+
+            return (
+              <button
+                key={story.id}
+                onClick={() => {
+                  soundEngine.playHapticClick();
+                  setActiveStory(story);
+                }}
+                className="flex flex-col items-center gap-1.5 flex-shrink-0 group focus:outline-none"
+              >
+                {/* Conic Gradient Animated Ring */}
+                <div
+                  className={`relative p-[2.5px] rounded-full transition-transform duration-300 group-hover:scale-105 ${
+                    isVip
+                      ? 'bg-gradient-to-tr from-[#10B981] via-[#F59E0B] to-[#10B981] shadow-[0_0_12px_rgba(16,185,129,0.4)]'
+                      : story.hasViewed
+                      ? 'bg-slate-700/80'
+                      : 'bg-gradient-to-tr from-vyro-primary via-vyro-accent to-vyro-cyan animate-[spin_8s_linear_infinite]'
+                  }`}
+                >
+                  <div className="p-[2px] bg-vyro-bg rounded-full">
+                    <Avatar
+                      src={story.user.avatarUrl}
+                      alt={story.user.displayName}
+                      size="md"
+                    />
+                  </div>
+
+                  {count > 1 && (
+                    <span className="absolute -top-1 -right-1 px-1.5 py-0.2 bg-black/90 border border-white/30 text-[9px] font-black text-white rounded-full">
+                      {count}
+                    </span>
+                  )}
+                </div>
+
+                <span className="text-[11px] text-slate-300 font-medium max-w-[72px] truncate group-hover:text-white transition">
+                  {story.user.username}
+                </span>
+              </button>
+            );
+          })
         )}
       </div>
 
-      {/* Full-Screen Immersive Story Viewer Modal */}
+      {/* Full-Screen Instagram-Exact 1:1 Story Viewer Modal */}
       {activeStory && (
-        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-lg flex items-center justify-center p-4">
-          <div className="relative w-full max-w-sm h-[85vh] rounded-3xl overflow-hidden glass-panel border border-vyro-border flex flex-col justify-between">
-            <div className="absolute top-3 left-3 right-3 z-20 flex gap-1">
-              <div className="h-1 flex-1 bg-white/40 rounded-full overflow-hidden">
-                <div className="h-full bg-white rounded-full animate-[progress_5s_linear_forwards]" />
-              </div>
-            </div>
-
-            <div className="relative z-20 p-4 pt-6 flex items-center justify-between bg-gradient-to-b from-black/70 to-transparent">
-              <div className="flex items-center gap-2.5">
-                <Avatar src={activeStory.user.avatarUrl} alt={activeStory.user.displayName} size="xs" />
-                <div>
-                  <div className="flex items-center gap-1">
-                    <p className="text-xs font-bold text-white leading-none">{activeStory.user.username}</p>
-                    <VerifiedBadge
-                      isVerified={activeStory.user.isVerified}
-                      isPro={activeStory.user.isPro}
-                      proBadge={activeStory.user.proBadge}
-                    />
-                  </div>
-                  <p className="text-[10px] text-slate-300 mt-0.5">
-                    {new Date(activeStory.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setIsMuted(!isMuted)}
-                  className="p-1.5 rounded-full bg-black/40 text-white hover:bg-black/60"
-                  aria-label="Toggle mute"
-                >
-                  {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                </button>
-                <button
-                  onClick={() => setActiveStory(null)}
-                  className="p-1.5 rounded-full bg-black/40 text-white hover:bg-black/60"
-                  aria-label="Close story"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            {activeStory.mediaType === 'video' ? (
-              <video
-                src={activeStory.mediaUrl}
-                autoPlay
-                playsInline
-                muted={isMuted}
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-            ) : (
-              <img
-                src={activeStory.mediaUrl}
-                alt="Story media"
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-            )}
-
-            <div className="relative z-20 p-4 bg-gradient-to-t from-black/80 to-transparent text-center">
-              <button
-                onClick={() => {
-                  setActiveStory(null);
-                  navigate('/direct');
-                }}
-                className="px-5 py-2 text-xs font-bold text-white bg-vyro-primary rounded-full hover:bg-vyro-primaryHover"
-              >
-                Message @{activeStory.user.username}
-              </button>
-            </div>
-          </div>
-        </div>
+        <StoryViewerModal
+          stories={stories}
+          initialStoryId={activeStory.id}
+          onClose={() => setActiveStory(null)}
+        />
       )}
     </>
   );

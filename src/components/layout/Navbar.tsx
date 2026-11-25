@@ -1,17 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Music, Gamepad2, ShieldAlert, LogIn, X } from 'lucide-react';
+import { Search, Music, Gamepad2, ShieldAlert, LogIn, X, Palette } from 'lucide-react';
 import { Logo } from './Logo';
 import { Avatar } from '../ui/Avatar';
 import { VerifiedBadge } from '../ui/VerifiedBadge';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { apiRequest } from '../../lib/api';
 import { User } from '../../types';
 import { AuthModal } from '../auth/AuthModal';
 
 export const Navbar: React.FC = () => {
   const { currentUser, isAdmin } = useAuth();
+  const { openThemePicker } = useTheme();
   const navigate = useNavigate();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -155,6 +157,16 @@ export const Navbar: React.FC = () => {
 
         {/* Actions */}
         <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+          {/* Quick Theme Selector Button */}
+          <button
+            onClick={openThemePicker}
+            className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition-colors flex items-center gap-1.5"
+            title="Switch Luxury Theme"
+          >
+            <Palette className="w-5 h-5 text-vyro-accent" />
+            <span className="hidden lg:inline text-xs font-bold text-slate-200">Themes</span>
+          </button>
+
           <Link
             to="/music"
             className="md:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors"

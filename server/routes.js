@@ -5,6 +5,8 @@ import { handleSocialRoutes } from './handlers/social.js';
 import { handleChatRoutes } from './handlers/chat.js';
 import { handleAdminRoutes } from './handlers/admin.js';
 import { handleCallRoutes } from './handlers/calls.js';
+import { handleMusicRoutes } from './handlers/music.js';
+import { handleGifRoutes } from './handlers/gifs.js';
 
 export async function handleApiRequest(req, res) {
   const urlObj = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
@@ -30,6 +32,8 @@ export async function handleApiRequest(req, res) {
     if ((await handleAdminRoutes(req, res, pathname)) !== false) return true;
     if ((await handleCallRoutes(req, res, pathname)) !== false) return true;
     if ((await handleChatRoutes(req, res, pathname)) !== false) return true;
+    if ((await handleMusicRoutes(req, res, pathname, urlObj)) !== false) return true;
+    if ((await handleGifRoutes(req, res, pathname, urlObj)) !== false) return true;
     if ((await handleSocialRoutes(req, res, pathname, urlObj)) !== false) return true;
 
     sendJson(res, 404, { error: 'API route not found' });

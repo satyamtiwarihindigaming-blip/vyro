@@ -5,6 +5,7 @@ import { Avatar } from '../components/ui/Avatar';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
 import { useSocial } from '../context/SocialContext';
 import { formatMetric } from '../lib/musicCatalog';
+import { soundEngine } from '../lib/soundEngine';
 
 export const ReelsPage: React.FC = () => {
   const { posts, toggleLike, toggleSave } = useSocial();
@@ -102,7 +103,10 @@ export const ReelsPage: React.FC = () => {
 
               <div className="flex flex-col items-center gap-4 text-white">
                 <button
-                  onClick={() => toggleLike(reel.id)}
+                  onClick={() => {
+                    soundEngine.playPop();
+                    toggleLike(reel.id);
+                  }}
                   className="flex flex-col items-center gap-1 active:scale-125 transition-transform"
                 >
                   <div
@@ -149,6 +153,24 @@ export const ReelsPage: React.FC = () => {
                   </div>
                   <span className="text-[10px] font-bold">Save</span>
                 </button>
+
+                {/* Rotating Vinyl Audio Disc (Instagram-Exact) */}
+                <div
+                  className="w-8 h-8 rounded-full border-2 border-white/60 overflow-hidden shadow-lg animate-[spin_4s_linear_infinite] mt-1 bg-black flex items-center justify-center cursor-pointer"
+                  title={reel.musicTrack?.title || 'Original Audio'}
+                >
+                  {reel.musicTrack?.coverUrl ? (
+                    <img
+                      src={reel.musicTrack.coverUrl}
+                      alt={reel.musicTrack.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-tr from-vyro-primary to-vyro-accent flex items-center justify-center">
+                      <Music className="w-3.5 h-3.5 text-white" />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
