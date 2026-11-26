@@ -252,7 +252,7 @@ export const Navbar: React.FC = () => {
             className="p-2 sm:px-3 sm:py-1.5 rounded-full text-white/75 hover:text-white hover:bg-white/10 transition-colors flex items-center gap-1.5 group"
             title="Cyber Ludo Arena"
           >
-            <Gamepad2 className="w-4 h-4 text-amber-400 icon-pop-amber" />
+            <Gamepad2 className="w-4 h-4 text-cyan-400 icon-pop-cyan" />
             <span className="hidden xl:inline text-xs font-semibold">Ludo</span>
           </Link>
 
@@ -279,10 +279,10 @@ export const Navbar: React.FC = () => {
           {isAdmin && (
             <Link
               to="/admin"
-              className="p-2 sm:px-3 sm:py-1.5 rounded-full bg-amber-500/15 border border-amber-400/30 text-amber-300 hover:bg-amber-500/25 transition-all flex items-center gap-1.5 text-xs font-semibold shadow-sm group"
+              className="p-2 sm:px-3 sm:py-1.5 rounded-full bg-violet-500/15 border border-violet-400/30 text-violet-300 hover:bg-violet-500/25 transition-all flex items-center gap-1.5 text-xs font-semibold shadow-sm group"
               title="Admin Panel"
             >
-              <ShieldAlert className="w-3.5 h-3.5 text-amber-400 icon-pop-amber" />
+              <ShieldAlert className="w-3.5 h-3.5 text-violet-400 icon-pop-violet" />
               <span className="hidden sm:inline">Admin</span>
             </Link>
           )}

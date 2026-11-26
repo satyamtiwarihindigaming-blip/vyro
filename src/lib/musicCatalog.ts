@@ -256,7 +256,7 @@ export const ROYALTY_FREE_TRACKS: MusicTrack[] = [
     audioUrl:
       '/api/music/proxy?url=' +
       encodeURIComponent('https://aac.saavncdn.com/264/354784a3c1032cf2b17b629009951be4_320.mp4'),
-    coverUrl: 'https://c.saavncdn.com/264/Moosetape-Punjabi-2021-20210514193524-500x500.jpg',
+    coverUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&auto=format&fit=crop&q=80',
     duration: 270,
     licenseType: 'Full Song (320kbps Studio Master)',
     isOriginalAudio: false,
@@ -272,7 +272,7 @@ export const ROYALTY_FREE_TRACKS: MusicTrack[] = [
     audioUrl:
       '/api/music/proxy?url=' +
       encodeURIComponent('https://aac.saavncdn.com/078/2c16f2c733f39a4441586716aeb7f9fc_320.mp4'),
-    coverUrl: 'https://c.saavncdn.com/078/Still-Rollin-Punjabi-2023-20230519124449-500x500.jpg',
+    coverUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&auto=format&fit=crop&q=80',
     duration: 183,
     licenseType: 'Full Song (320kbps Studio Master)',
     isOriginalAudio: false,
@@ -288,7 +288,7 @@ export const ROYALTY_FREE_TRACKS: MusicTrack[] = [
     audioUrl:
       '/api/music/proxy?url=' +
       encodeURIComponent('https://aac.saavncdn.com/514/b429d47ec548324bf8364d1f274642fe_320.mp4'),
-    coverUrl: 'https://c.saavncdn.com/514/Baller-Punjabi-2022-20220909054707-500x500.jpg',
+    coverUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&auto=format&fit=crop&q=80',
     duration: 148,
     licenseType: 'Full Song (320kbps Studio Master)',
     isOriginalAudio: false,
@@ -304,7 +304,7 @@ export const ROYALTY_FREE_TRACKS: MusicTrack[] = [
     audioUrl:
       '/api/music/proxy?url=' +
       encodeURIComponent('https://aac.saavncdn.com/393/c0f8ca7c0303ba7a840e6988894273df_320.mp4'),
-    coverUrl: 'https://c.saavncdn.com/393/Badnam-Gabru-Haryanvi-2023-20230911075641-500x500.jpg',
+    coverUrl: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&auto=format&fit=crop&q=80',
     duration: 195,
     licenseType: 'Full Song (320kbps Studio Master)',
     isOriginalAudio: false,
@@ -320,7 +320,7 @@ export const ROYALTY_FREE_TRACKS: MusicTrack[] = [
     audioUrl:
       '/api/music/proxy?url=' +
       encodeURIComponent('https://aac.saavncdn.com/495/36e6fe43a164b18f0293d0bb69d4be2a_320.mp4'),
-    coverUrl: 'https://c.saavncdn.com/495/Kothi-Haryanvi-2021-20210729051838-500x500.jpg',
+    coverUrl: 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=500&auto=format&fit=crop&q=80',
     duration: 210,
     licenseType: 'Full Song (320kbps Studio Master)',
     isOriginalAudio: false,
@@ -336,7 +336,7 @@ export const ROYALTY_FREE_TRACKS: MusicTrack[] = [
     audioUrl:
       '/api/music/proxy?url=' +
       encodeURIComponent('https://aac.saavncdn.com/012/6fe0718d0954b4231b528a478b274e44_320.mp4'),
-    coverUrl: 'https://c.saavncdn.com/012/Moto-Haryanvi-2020-20200109153022-500x500.jpg',
+    coverUrl: 'https://images.unsplash.com/photo-1487180144351-b8472da7d491?w=500&auto=format&fit=crop&q=80',
     duration: 180,
     licenseType: 'Full Song (320kbps Studio Master)',
     isOriginalAudio: false,
@@ -352,7 +352,7 @@ export const ROYALTY_FREE_TRACKS: MusicTrack[] = [
     audioUrl:
       '/api/music/proxy?url=' +
       encodeURIComponent('https://aac.saavncdn.com/284/d4808383f5cb6cb0c3ee64c391741699_320.mp4'),
-    coverUrl: 'https://c.saavncdn.com/284/ANIMAL-Hindi-2023-20260724191152-500x500.jpg',
+    coverUrl: 'https://images.unsplash.com/photo-1520523839898-50712825e617?w=500&auto=format&fit=crop&q=80',
     duration: 271,
     licenseType: 'Full Song (320kbps Studio Master)',
     isOriginalAudio: false,
@@ -368,7 +368,7 @@ export const ROYALTY_FREE_TRACKS: MusicTrack[] = [
     audioUrl:
       '/api/music/proxy?url=' +
       encodeURIComponent('https://aac.saavncdn.com/022/b77f98b25114798e984f483c6ea62a6b_320.mp4'),
-    coverUrl: 'https://c.saavncdn.com/022/Heeriye-feat-Arijit-Singh-Hindi-2023-20230928050405-500x500.jpg',
+    coverUrl: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=500&auto=format&fit=crop&q=80',
     duration: 194,
     licenseType: 'Full Song (320kbps Studio Master)',
     isOriginalAudio: false,
@@ -384,7 +384,7 @@ export const ROYALTY_FREE_TRACKS: MusicTrack[] = [
     audioUrl:
       '/api/music/proxy?url=' +
       encodeURIComponent('https://aac.saavncdn.com/045/63eb21258679eeff133d1b82cfeb5e3f_320.mp4'),
-    coverUrl: 'https://c.saavncdn.com/045/Dunki-Drop-5-O-Maahi-Hindi-2023-20231211111004-500x500.jpg',
+    coverUrl: 'https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=500&auto=format&fit=crop&q=80',
     duration: 233,
     licenseType: 'Full Song (320kbps Studio Master)',
     isOriginalAudio: false,
@@ -400,7 +400,7 @@ export const ROYALTY_FREE_TRACKS: MusicTrack[] = [
     audioUrl:
       '/api/music/proxy?url=' +
       encodeURIComponent('https://aac.saavncdn.com/264/3dfa538a7c2936718ab60b9c3f41ea8d_320.mp4'),
-    coverUrl: 'https://c.saavncdn.com/264/Jab-We-Met-Hindi-2007-20190629141029-500x500.jpg',
+    coverUrl: 'https://images.unsplash.com/photo-1518895949257-7621c3c786d7?w=500&auto=format&fit=crop&q=80',
     duration: 323,
     licenseType: 'Full Song (320kbps Studio Master)',
     isOriginalAudio: false,
@@ -416,7 +416,7 @@ export const ROYALTY_FREE_TRACKS: MusicTrack[] = [
     audioUrl:
       '/api/music/proxy?url=' +
       encodeURIComponent('https://aac.saavncdn.com/714/233c16260a4f5b55e378f45a0b77cbf9_320.mp4'),
-    coverUrl: 'https://c.saavncdn.com/714/After-Hours-English-2020-20200320000540-500x500.jpg',
+    coverUrl: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=500&auto=format&fit=crop&q=80',
     duration: 200,
     licenseType: 'Full Song (320kbps Studio Master)',
     isOriginalAudio: false,
@@ -432,7 +432,7 @@ export const ROYALTY_FREE_TRACKS: MusicTrack[] = [
     audioUrl:
       '/api/music/proxy?url=' +
       encodeURIComponent('https://aac.saavncdn.com/958/0cb9ef7190f7a602c8c4e4787a748259_320.mp4'),
-    coverUrl: 'https://c.saavncdn.com/958/Spider-Man-Into-the-Spider-Verse-Soundtrack-From-Inspired-by-the-Motion-Picture-English-2018-20181213071836-500x500.jpg',
+    coverUrl: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=500&auto=format&fit=crop&q=80',
     duration: 158,
     licenseType: 'Full Song (320kbps Studio Master)',
     isOriginalAudio: false,
@@ -448,7 +448,7 @@ export const ROYALTY_FREE_TRACKS: MusicTrack[] = [
     audioUrl:
       '/api/music/proxy?url=' +
       encodeURIComponent('https://aac.saavncdn.com/935/9ffb01bc06579f195feee6c13ab690ea_320.mp4'),
-    coverUrl: 'https://c.saavncdn.com/935/Future-Nostalgia-English-2020-20200326083030-500x500.jpg',
+    coverUrl: 'https://images.unsplash.com/photo-1445985543470-41fdd5c31447?w=500&auto=format&fit=crop&q=80',
     duration: 203,
     licenseType: 'Full Song (320kbps Studio Master)',
     isOriginalAudio: false,
@@ -464,7 +464,7 @@ export const ROYALTY_FREE_TRACKS: MusicTrack[] = [
     audioUrl:
       '/api/music/proxy?url=' +
       encodeURIComponent('https://aac.saavncdn.com/492/c03565fcf1c5d95e7ad7845fefba35d4_320.mp4'),
-    coverUrl: 'https://c.saavncdn.com/492/Baarishein-Hindi-2018-20220624053641-500x500.jpg',
+    coverUrl: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=500&auto=format&fit=crop&q=80',
     duration: 208,
     licenseType: 'Full Song (320kbps Studio Master)',
     isOriginalAudio: false,
@@ -480,7 +480,7 @@ export const ROYALTY_FREE_TRACKS: MusicTrack[] = [
     audioUrl:
       '/api/music/proxy?url=' +
       encodeURIComponent('https://aac.saavncdn.com/839/ad3331b67f1b4a0558197171d18f509e_320.mp4'),
-    coverUrl: 'https://c.saavncdn.com/839/Kasoor-Hindi-2020-20200729111005-500x500.jpg',
+    coverUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&auto=format&fit=crop&q=80',
     duration: 198,
     licenseType: 'Full Song (320kbps Studio Master)',
     isOriginalAudio: false,
@@ -496,7 +496,7 @@ export const ROYALTY_FREE_TRACKS: MusicTrack[] = [
     audioUrl:
       '/api/music/proxy?url=' +
       encodeURIComponent('https://aac.saavncdn.com/712/937eeb178b61c9b68a4e3fa3bb4b8407_320.mp4'),
-    coverUrl: 'https://c.saavncdn.com/712/Alag-Aasmaan-Hindi-2020-20220624053640-500x500.jpg',
+    coverUrl: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&auto=format&fit=crop&q=80',
     duration: 212,
     licenseType: 'Full Song (320kbps Studio Master)',
     isOriginalAudio: false,
@@ -512,7 +512,7 @@ export const ROYALTY_FREE_TRACKS: MusicTrack[] = [
     audioUrl:
       '/api/music/proxy?url=' +
       encodeURIComponent('https://aac.saavncdn.com/750/9e00eb231849a6060c41031c2c2f6d20_320.mp4'),
-    coverUrl: 'https://c.saavncdn.com/750/DEV-Hindi-2019-20191220054323-500x500.jpg',
+    coverUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&auto=format&fit=crop&q=80',
     duration: 181,
     licenseType: 'Full Song (320kbps Studio Master)',
     isOriginalAudio: false,

@@ -36,7 +36,7 @@ export const Avatar: React.FC<AvatarProps> = ({
   const initials = alt ? alt.trim().slice(0, 2).toUpperCase() : 'VY';
 
   return (
-    <div className={`relative inline-block ${ringStyles} ${className}`}>
+    <div className={`relative inline-block rounded-full ${ringStyles} ${className}`}>
       {src && !imgError ? (
         <img
           src={src}

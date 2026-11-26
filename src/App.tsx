@@ -32,13 +32,15 @@ import { SettingsPage } from './pages/SettingsPage';
 import { LegalPage } from './pages/LegalPage';
 import { AdminPage } from './pages/AdminPage';
 import { PAGE_TRANSITION } from './lib/motion';
+import { getMaterialForRoute } from './lib/tabMaterials';
 
 const MainLayout: React.FC = () => {
   const location = useLocation();
+  const material = getMaterialForRoute(location.pathname);
   const isStudioOrReel = location.pathname === '/create' || location.pathname === '/reels';
 
   return (
-    <div className="relative flex min-h-screen text-slate-100 selection:bg-white/20 selection:text-white">
+    <div className={`relative flex min-h-screen text-slate-100 selection:bg-white/20 selection:text-white transition-colors duration-500 ${material.canvasBg}`}>
       {/* Living Silk Mesh Canvas (Apple visionOS Spatial Background) */}
       <div className="living-silk-mesh" aria-hidden="true">
         <div className="silk-orb-indigo" />

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAudio } from '../../context/AudioContext';
+import { SmartCover } from './SmartCover';
 import {
   Play,
   Pause,
@@ -40,9 +42,13 @@ export const FloatingAudioPlayer: React.FC = () => {
     toggleShuffle,
   } = useAudio();
 
+  const location = useLocation();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showTopIsland, setShowTopIsland] = useState(false);
   const autoHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Strictly hide audio floating player on Reels to prevent overlapping video UI
+  const isHiddenRoute = location.pathname === '/reels';
 
   // iPhone-Style Top Dynamic Island Animation on Play / Track Change
   useEffect(() => {
@@ -58,7 +64,7 @@ export const FloatingAudioPlayer: React.FC = () => {
     };
   }, [currentTrack?.id, isPlaying]);
 
-  if (!currentTrack) return null;
+  if (!currentTrack || isHiddenRoute) return null;
 
   const seekRelative = (deltaSecs: number) => {
     soundEngine.playHapticClick();
@@ -95,10 +101,12 @@ export const FloatingAudioPlayer: React.FC = () => {
               }}
               className="px-3.5 py-2 rounded-full liquid-glass-elevated border border-white/25 shadow-2xl flex items-center gap-3 cursor-pointer hover:scale-105 active:scale-95 transition-transform backdrop-blur-2xl"
             >
-              <img
+              <SmartCover
                 src={currentTrack.coverUrl}
-                alt={currentTrack.title}
-                className="w-7 h-7 rounded-full object-cover ring-1 ring-white/30 shrink-0"
+                title={currentTrack.title}
+                artist={currentTrack.artist}
+                className="w-7 h-7 rounded-full ring-1 ring-white/30 shrink-0"
+                showVinylGrooves={false}
               />
               <div className="max-w-[130px] sm:max-w-[200px] text-left min-w-0">
                 <p className="text-xs font-semibold text-white truncate leading-tight">
@@ -149,7 +157,7 @@ export const FloatingAudioPlayer: React.FC = () => {
                   soundEngine.playPop();
                   togglePlay();
                 }}
-                className="w-10 h-10 rounded-full liquid-pill-cta flex items-center justify-center shrink-0 shadow-md active:scale-90 transition-transform"
+                className="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 text-white flex items-center justify-center shrink-0 shadow-md active:scale-90 transition-transform border border-white/20"
                 aria-label={isPlaying ? 'Pause' : 'Play'}
               >
                 {isPlaying ? (

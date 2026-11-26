@@ -24,6 +24,7 @@ import { useNavigate } from 'react-router-dom';
 import { MusicTrack } from '../types';
 import { soundEngine } from '../lib/soundEngine';
 import { SPRING_SNAPPY } from '../lib/motion';
+import { SmartCover } from '../components/music/SmartCover';
 
 export const MusicPage: React.FC = () => {
   const { currentTrack, isPlaying, playTrack, togglePlay } = useAudio();
@@ -135,17 +136,18 @@ export const MusicPage: React.FC = () => {
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-4">
               <div className="relative group">
-                <img
+                <SmartCover
                   src={topSpotlight.coverUrl}
-                  alt={topSpotlight.title}
-                  className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover shadow-2xl border border-white/20 group-hover:scale-105 transition-transform"
+                  title={topSpotlight.title}
+                  artist={topSpotlight.artist}
+                  className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl group-hover:scale-105 transition-transform"
                 />
                 <button
                   onClick={() => handlePlayToggle(topSpotlight)}
                   className={`absolute inset-0 m-auto w-12 h-12 rounded-full flex items-center justify-center transition-all ${
                     isPlaying && currentTrack?.id === topSpotlight.id
                       ? 'bg-gradient-to-tr from-cyan-500/50 to-blue-600/50 border border-cyan-400 text-cyan-200 shadow-[0_0_24px_rgba(6,182,212,0.5)] scale-105'
-                      : 'bg-black/60 backdrop-blur-md border border-white/25 text-white hover:bg-white/20 hover:scale-105 active:scale-95 shadow-xl'
+                      : 'bg-black/70 backdrop-blur-md border border-white/25 text-white hover:bg-white/20 hover:scale-105 active:scale-95 shadow-xl'
                   }`}
                   aria-label="Play spotlight track"
                 >
@@ -181,9 +183,9 @@ export const MusicPage: React.FC = () => {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => handleUseAudio(topSpotlight)}
-                className="px-5 py-2.5 rounded-full liquid-pill-cta text-white text-xs font-semibold shadow-xl active:scale-95 transition-all flex items-center gap-2"
+                className="px-5 py-2.5 rounded-full bg-gradient-to-r from-violet-600/40 via-indigo-600/40 to-cyan-600/40 border border-white/25 hover:border-cyan-400/60 text-white text-xs font-semibold shadow-xl active:scale-95 transition-all flex items-center gap-2 backdrop-blur-xl"
               >
-                <Plus className="w-4 h-4 stroke-[3]" />
+                <Plus className="w-4 h-4 stroke-[3] text-cyan-300" />
                 <span>Sync in Reel Studio</span>
               </button>
             </div>
@@ -370,7 +372,7 @@ export const MusicPage: React.FC = () => {
                     className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 transition-all ${
                       isThisTrackPlaying || isExternalActive
                         ? 'bg-gradient-to-tr from-cyan-500/40 to-blue-600/40 border border-cyan-400/80 text-cyan-200 shadow-[0_0_20px_rgba(6,182,212,0.4)] scale-105'
-                        : 'bg-white/10 hover:bg-white/20 border border-white/20 text-white shadow-md hover:scale-105 active:scale-95'
+                        : 'bg-black/60 hover:bg-white/15 border border-white/20 text-white shadow-md hover:scale-105 active:scale-95 backdrop-blur-md'
                     }`}
                     aria-label={isThisTrackPlaying ? 'Pause track' : 'Play track'}
                   >
@@ -381,10 +383,11 @@ export const MusicPage: React.FC = () => {
                     )}
                   </button>
 
-                  <img
+                  <SmartCover
                     src={track.coverUrl}
-                    alt={track.title}
-                    className="w-11 h-11 rounded-2xl object-cover border border-white/10 shrink-0 shadow-md"
+                    title={track.title}
+                    artist={track.artist}
+                    className="w-11 h-11 rounded-2xl shrink-0"
                   />
 
                   <div className="min-w-0">

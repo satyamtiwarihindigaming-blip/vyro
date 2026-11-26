@@ -45,17 +45,19 @@ import { SPRING_SNAPPY, SPRING_SMOOTH } from '../lib/motion';
 
 type ChatTheme = 'ios_midnight' | 'ios_saffron' | 'ios_rose' | 'ios_emerald' | 'ios_cyber' | 'nano_banana' | 'nano_banana_dark';
 
-const CHAT_THEMES: Record<ChatTheme, { name: string; bg: string; badge: string; bubbleClass: string; accent: string }> = {
+const CHAT_THEMES: Record<ChatTheme, { name: string; bg: string; bgImage?: string; badge: string; bubbleClass: string; accent: string }> = {
   nano_banana: {
-    name: 'Nano Banana Glass 🍌',
-    bg: 'bg-gradient-to-b from-amber-950/25 via-[#0A0702]/85 to-black/90',
+    name: 'Nano Banana Silk 🍌',
+    bg: 'bg-black/40',
+    bgImage: "url('/themes/nano_banana_ambient.svg')",
     badge: 'from-amber-400 to-amber-600',
     bubbleClass: 'from-amber-400/90 via-amber-500/90 to-yellow-600/90 text-black font-semibold border-amber-300/60 shadow-[0_4px_24px_rgba(245,158,11,0.25)]',
     accent: 'text-amber-300',
   },
   nano_banana_dark: {
     name: 'Nano Banana Obsidian 🍌',
-    bg: 'bg-gradient-to-b from-yellow-950/20 via-black/85 to-[#060812]',
+    bg: 'bg-black/60',
+    bgImage: "url('/themes/nano_banana_ambient.svg')",
     badge: 'from-amber-500 to-yellow-700',
     bubbleClass: 'from-neutral-900/95 via-amber-950/50 to-neutral-900/95 text-amber-200 border-amber-500/35 shadow-[0_4px_20px_rgba(245,158,11,0.15)]',
     accent: 'text-amber-400',
@@ -192,7 +194,7 @@ export const DirectPage: React.FC = () => {
   );
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
-  const [chatTheme, setChatTheme] = useState<ChatTheme>('ios_saffron');
+  const [chatTheme, setChatTheme] = useState<ChatTheme>('nano_banana');
   const [showThemePicker, setShowThemePicker] = useState(false);
 
   // Group creation modal state
@@ -603,7 +605,14 @@ export const DirectPage: React.FC = () => {
   const currentThemeConfig = CHAT_THEMES[chatTheme] || CHAT_THEMES.ios_saffron;
 
   return (
-    <div className={`h-[calc(100vh-6rem)] max-w-6xl mx-auto flex rounded-[32px] overflow-hidden liquid-glass my-2 shadow-2xl relative ${currentThemeConfig.bg}`}>
+    <div
+      className={`h-[calc(100vh-6rem)] max-w-6xl mx-auto flex rounded-[32px] overflow-hidden liquid-glass my-2 shadow-2xl relative ${currentThemeConfig.bg}`}
+      style={{
+        backgroundImage: currentThemeConfig.bgImage,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
       {/* Hidden File Input for Image Attachments */}
       <input
         type="file"
