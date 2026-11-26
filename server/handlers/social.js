@@ -1,6 +1,28 @@
 import { loadDB, saveDB, sanitizeUser } from '../db.js';
 import { sendJson, parseBody, getAuthUser } from '../utils.js';
 
+function sanitizeHtmlText(text) {
+  if (!text) return '';
+  return String(text)
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/javascript:/gi, '')
+    .replace(/<[^>]*>/g, '') // Strip HTML tags to prevent XSS
+    .trim();
+}
+
+function isValidMediaItem(item) {
+  if (!item || typeof item !== 'string') return false;
+  const str = item.trim();
+  if (str.startsWith('http://') || str.startsWith('https://')) {
+    return true;
+  }
+  if (str.startsWith('data:image/') || str.startsWith('data:video/')) {
+    // Max 15MB base64 per media item (~20MB text)
+    return str.length <= 20 * 1024 * 1024;
+  }
+  return false;
+}
+
 function isCreatorAdvantage(user) {
   if (!user) return false;
   const u = user.username?.toLowerCase() || '';
@@ -179,12 +201,13 @@ export async function handleSocialRoutes(req, res, pathname, urlObj) {
   if (req.method === 'POST' && pathname === '/api/posts') {
     if (!authUser) return sendJson(res, 401, { error: 'Please sign in to publish posts.' });
     const body = await parseBody(req);
-    const caption = String(body.caption || '').trim().slice(0, 2000);
+    const caption = sanitizeHtmlText(body.caption || '').slice(0, 2000);
     const postType = ['photo', 'video', 'reel', 'carousel'].includes(body.postType) ? body.postType : 'photo';
-    const media = Array.isArray(body.media) ? body.media : [];
+    const rawMedia = Array.isArray(body.media) ? body.media.slice(0, 10) : [];
+    const media = rawMedia.filter(isValidMediaItem);
 
     if (media.length === 0 && !caption) {
-      return sendJson(res, 400, { error: 'Post requires media or caption.' });
+      return sendJson(res, 400, { error: 'Post requires valid media or caption.' });
     }
 
     const newPost = {
@@ -193,7 +216,7 @@ export async function handleSocialRoutes(req, res, pathname, urlObj) {
       caption,
       postType,
       media,
-      location: body.location ? String(body.location).slice(0, 100) : undefined,
+      location: body.location ? sanitizeHtmlText(body.location).slice(0, 100) : undefined,
       musicTrack: body.musicTrack || undefined,
       sharesCount: 0,
       createdAt: new Date().toISOString(),
@@ -311,7 +334,7 @@ export async function handleSocialRoutes(req, res, pathname, urlObj) {
     if (req.method === 'POST') {
       if (!authUser) return sendJson(res, 401, { error: 'Please sign in to comment.' });
       const body = await parseBody(req);
-      const text = String(body.text || '').trim().slice(0, 500);
+      const text = sanitizeHtmlText(body.text || '').slice(0, 500);
       if (!text) return sendJson(res, 400, { error: 'Comment text is required.' });
 
       const comment = {
@@ -336,6 +359,28 @@ export async function handleSocialRoutes(req, res, pathname, urlObj) {
         },
         commentsCount,
       });
+    }
+  }
+
+  // Delete comment endpoint: DELETE /api/posts/:postId/comments/:commentId
+  if (req.method === 'DELETE' && pathname.includes('/comments/')) {
+    if (!authUser) return sendJson(res, 401, { error: 'Unauthorized' });
+    const match = pathname.match(/^\/api\/posts\/([^/]+)\/comments\/([^/]+)$/);
+    if (match) {
+      const [, postId, commentId] = match;
+      const post = db.posts.find((p) => p.id === postId);
+      const commentIdx = db.comments.findIndex((c) => c.id === commentId && c.postId === postId);
+      if (commentIdx < 0) return sendJson(res, 404, { error: 'Comment not found.' });
+
+      const comment = db.comments[commentIdx];
+      // Only comment author, post owner, or admin can delete a comment
+      if (comment.userId !== authUser.id && post?.userId !== authUser.id && authUser.role !== 'admin') {
+        return sendJson(res, 403, { error: 'Forbidden' });
+      }
+
+      db.comments.splice(commentIdx, 1);
+      saveDB();
+      return sendJson(res, 200, { success: true, commentId });
     }
   }
 
@@ -384,14 +429,16 @@ export async function handleSocialRoutes(req, res, pathname, urlObj) {
     if (req.method === 'POST') {
       if (!authUser) return sendJson(res, 401, { error: 'Please sign in to add a story.' });
       const body = await parseBody(req);
-      if (!body.mediaUrl) return sendJson(res, 400, { error: 'Media is required for a story.' });
+      if (!body.mediaUrl || !isValidMediaItem(body.mediaUrl)) {
+        return sendJson(res, 400, { error: 'Valid media URL or image data is required for a story.' });
+      }
 
       const story = {
         id: `st_${Date.now()}_${Math.random().toString(36).slice(2, 5)}`,
         userId: authUser.id,
         mediaUrl: String(body.mediaUrl),
         mediaType: body.mediaType === 'video' ? 'video' : 'image',
-        location: body.location ? String(body.location).slice(0, 100) : undefined,
+        location: body.location ? sanitizeHtmlText(body.location).slice(0, 100) : undefined,
         musicTrack: body.musicTrack || undefined,
         duration: 5,
         createdAt: new Date().toISOString(),

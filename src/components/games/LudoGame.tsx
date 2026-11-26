@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import confetti from 'canvas-confetti';
 import {
   RotateCcw,
   Trophy,
@@ -616,6 +617,14 @@ export const LudoGame: React.FC<LudoGameProps> = ({ inChat = false, onGameAction
       setWinner(currentColor);
       setRankings((prev) => (prev.includes(currentColor) ? prev : [...prev, currentColor]));
       playSfx('victory');
+      try {
+        confetti({
+          particleCount: 120,
+          spread: 80,
+          origin: { y: 0.6 },
+          colors: ['#FACC15', '#DC2626', '#059669', '#2563EB', '#F59E0B'],
+        });
+      } catch {}
       const winMsg = `👑 ${PLAYER_CONFIG[currentColor].name} is the Supreme Ludo King! 🏆`;
       setStatusMsg(winMsg);
       onGameAction?.(winMsg);

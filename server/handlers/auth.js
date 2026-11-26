@@ -192,6 +192,11 @@ export async function handleAuthRoutes(req, res, pathname, urlObj) {
     const authUser = getAuthUser(req);
     if (!authUser) return sendJson(res, 401, { error: 'Unauthorized' });
 
+    const uname = authUser.username?.toLowerCase() || '';
+    if (uname === 'satyam' || uname === 'vyro_admin') {
+      return sendJson(res, 403, { error: 'Root Founder and System Administrator accounts are permanent and cannot be deleted.' });
+    }
+
     if (authUser.role === 'admin' && db.users.filter((u) => u.role === 'admin').length <= 1) {
       return sendJson(res, 400, { error: 'Cannot delete the sole platform administrator account.' });
     }

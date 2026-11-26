@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCall } from '../context/CallContext';
+import { useWebSocket } from '../context/WebSocketContext';
 import { apiRequest } from '../lib/api';
 import { Avatar } from '../components/ui/Avatar';
 import { VerifiedBadge } from '../components/ui/VerifiedBadge';
@@ -134,6 +135,7 @@ const AudioMessageBubble: React.FC<{ url: string; isMe: boolean }> = ({ url, isM
 export const DirectPage: React.FC = () => {
   const { currentUser, isPro } = useAuth();
   const { startCall, startGroupCall } = useCall();
+  const { subscribe } = useWebSocket();
   const navigate = useNavigate();
   void navigate;
   const [searchParams] = useSearchParams();
@@ -429,10 +431,33 @@ export const DirectPage: React.FC = () => {
 
   const activeConv = conversations.find((c) => c.id === activeConvId) || null;
 
+  // Real-time WebSocket listener for immediate instant message delivery
+  useEffect(() => {
+    const unsub = subscribe('new_message', (newMsg: Message) => {
+      if (!newMsg) return;
+      const isForActive =
+        (activeConv?.type === 'group' && newMsg.groupId === activeConv.groupId) ||
+        (activeConv?.type === 'direct' &&
+          (newMsg.senderId === activeConv.partner.id ||
+            newMsg.receiverId === activeConv.partner.id));
+
+      if (isForActive) {
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === newMsg.id)) return prev;
+          soundEngine.playPop();
+          return [...prev, newMsg];
+        });
+      }
+      loadConversations();
+    });
+
+    return () => unsub();
+  }, [subscribe, activeConv?.id]);
+
   useEffect(() => {
     if (!activeConv || !currentUser) return;
     loadMessages(activeConv);
-    const poll = setInterval(() => loadMessages(activeConv), 2500);
+    const poll = setInterval(() => loadMessages(activeConv), 5000);
     return () => clearInterval(poll);
   }, [activeConvId, currentUser?.id]);
 

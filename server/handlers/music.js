@@ -405,8 +405,62 @@ const CURATED_FALLBACK_TRACKS = [
   },
 ];
 
+const ALLOWED_AUDIO_DOMAINS = [
+  'saavncdn.com',
+  'aac.saavncdn.com',
+  'c.saavncdn.com',
+  'apple.com',
+  'audio-ssl.itunes.apple.com',
+  'itunes.apple.com',
+  'scdn.co',
+  'p.scdn.co',
+  'jiosaavn.com',
+  'images.unsplash.com',
+  'unsplash.com',
+  'archive.org',
+  'freesound.org',
+  'cdn.freesound.org',
+];
+
+export function isAllowedAudioUrl(rawUrl) {
+  try {
+    const parsed = new URL(rawUrl);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return false;
+    const hostname = parsed.hostname.toLowerCase();
+
+    // Reject localhost, local domain names
+    if (
+      hostname === 'localhost' ||
+      hostname.endsWith('.localhost') ||
+      hostname.endsWith('.local') ||
+      hostname.endsWith('.internal')
+    ) {
+      return false;
+    }
+
+    // Reject direct IPv4 addresses (including private, loopback, link-local metadata)
+    const ipv4Match = hostname.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+    if (ipv4Match) {
+      return false; // Direct raw IP access blocked
+    }
+
+    // Reject IPv6 addresses
+    if (hostname === '::1' || hostname.startsWith('[') || hostname.includes(':')) {
+      return false;
+    }
+
+    // Check against allowed domains whitelist
+    const isAllowed = ALLOWED_AUDIO_DOMAINS.some(
+      (domain) => hostname === domain || hostname.endsWith(`.${domain}`)
+    );
+    return isAllowed;
+  } catch {
+    return false;
+  }
+}
+
 export async function handleMusicRoutes(req, res, pathname, urlObj) {
-  // High-performance streaming proxy with Byte-Range support (HTTP 206) and pipe streaming
+  // High-performance streaming proxy with SSRF protection, redirect validation, Byte-Range support (HTTP 206) and pipe streaming
   if (pathname === '/api/music/proxy' && req.method === 'GET') {
     const targetUrl = urlObj.searchParams.get('url');
     if (!targetUrl) return sendJson(res, 400, { error: 'url parameter is required' });
@@ -421,10 +475,31 @@ export async function handleMusicRoutes(req, res, pathname, urlObj) {
         upstreamHeaders['Range'] = req.headers.range;
       }
 
-      const audioRes = await fetch(targetUrl, {
-        headers: upstreamHeaders,
-        signal: AbortSignal.timeout(15000),
-      });
+      let currentUrl = targetUrl;
+      let audioRes = null;
+      const MAX_REDIRECTS = 3;
+
+      for (let redirectCount = 0; redirectCount <= MAX_REDIRECTS; redirectCount++) {
+        if (!isAllowedAudioUrl(currentUrl)) {
+          return sendJson(res, 403, { error: 'Target URL or redirect destination is not allowed' });
+        }
+
+        audioRes = await fetch(currentUrl, {
+          headers: upstreamHeaders,
+          redirect: 'manual',
+          signal: AbortSignal.timeout(15000),
+        });
+
+        if ([301, 302, 303, 307, 308].includes(audioRes.status)) {
+          const location = audioRes.headers.get('location');
+          if (!location) {
+            return sendJson(res, 502, { error: 'Redirect location header missing' });
+          }
+          currentUrl = new URL(location, currentUrl).toString();
+          continue;
+        }
+        break;
+      }
 
       if (!audioRes.ok && audioRes.status !== 206) {
         return sendJson(res, audioRes.status, { error: `Remote audio returned status ${audioRes.status}` });

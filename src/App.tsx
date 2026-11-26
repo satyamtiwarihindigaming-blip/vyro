@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { AuthProvider } from './context/AuthContext';
+import { WebSocketProvider } from './context/WebSocketContext';
 import { SocialProvider } from './context/SocialContext';
 import { AudioProvider } from './context/AudioContext';
 import { CallProvider } from './context/CallContext';
@@ -67,40 +68,42 @@ export const App: React.FC = () => {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <SocialProvider>
-          <AudioProvider>
-            <CallProvider>
-              <AppBootSplash />
-              <ThemeSelectorModal />
-              <BrowserRouter>
-              <Routes>
-                {/* Public Instagram-style Login / Signup & Legal */}
-                <Route path="/" element={<LandingPage defaultMode="login" />} />
-                <Route path="/login" element={<LandingPage defaultMode="login" />} />
-                <Route path="/signup" element={<LandingPage defaultMode="signup" />} />
-                <Route path="/legal/privacy" element={<LegalPage />} />
-                <Route path="/legal/terms" element={<LegalPage />} />
+        <WebSocketProvider>
+          <SocialProvider>
+            <AudioProvider>
+              <CallProvider>
+                <AppBootSplash />
+                <ThemeSelectorModal />
+                <BrowserRouter>
+                <Routes>
+                  {/* Public Instagram-style Login / Signup & Legal */}
+                  <Route path="/" element={<LandingPage defaultMode="login" />} />
+                  <Route path="/login" element={<LandingPage defaultMode="login" />} />
+                  <Route path="/signup" element={<LandingPage defaultMode="signup" />} />
+                  <Route path="/legal/privacy" element={<LegalPage />} />
+                  <Route path="/legal/terms" element={<LegalPage />} />
 
-                {/* Platform Shell */}
-                <Route element={<MainLayout />}>
-                  <Route path="/feed" element={<FeedPage />} />
-                  <Route path="/reels" element={<ReelsPage />} />
-                  <Route path="/explore" element={<ExplorePage />} />
-                  <Route path="/create" element={<StudioPage />} />
-                  <Route path="/direct" element={<DirectPage />} />
-                  <Route path="/music" element={<MusicPage />} />
-                  <Route path="/games" element={<GamesPage />} />
-                  <Route path="/settings" element={<SettingsPage />} />
-                  <Route path="/admin" element={<AdminPage />} />
-                  <Route path="/:username" element={<ProfilePage />} />
-                </Route>
-              </Routes>
-            </BrowserRouter>
-          </CallProvider>
-        </AudioProvider>
-      </SocialProvider>
+                  {/* Platform Shell */}
+                  <Route element={<MainLayout />}>
+                    <Route path="/feed" element={<FeedPage />} />
+                    <Route path="/reels" element={<ReelsPage />} />
+                    <Route path="/explore" element={<ExplorePage />} />
+                    <Route path="/create" element={<StudioPage />} />
+                    <Route path="/direct" element={<DirectPage />} />
+                    <Route path="/music" element={<MusicPage />} />
+                    <Route path="/games" element={<GamesPage />} />
+                    <Route path="/settings" element={<SettingsPage />} />
+                    <Route path="/admin" element={<AdminPage />} />
+                    <Route path="/:username" element={<ProfilePage />} />
+                  </Route>
+                </Routes>
+              </BrowserRouter>
+            </CallProvider>
+          </AudioProvider>
+        </SocialProvider>
+      </WebSocketProvider>
     </AuthProvider>
-    </ThemeProvider>
+  </ThemeProvider>
   );
 };
 

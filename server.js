@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { handleApiRequest } from './server/routes.js';
 import { loadDB } from './server/db.js';
+import { initWebSocketServer } from './server/ws.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -78,5 +79,6 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
+  initWebSocketServer(server);
   console.log(`🚀 VYRO Platform API & Web running on http://localhost:${PORT}`);
 });

@@ -1,5 +1,6 @@
 import { loadDB, saveDB, sanitizeUser } from '../db.js';
 import { sendJson, parseBody, getAuthUser } from '../utils.js';
+import { broadcastWsEvent } from '../ws.js';
 
 export async function handleChatRoutes(req, res, pathname) {
   const db = loadDB();
@@ -179,7 +180,9 @@ export async function handleChatRoutes(req, res, pathname) {
 
       db.messages.push(msg);
       saveDB();
-      return sendJson(res, 201, { message: { ...msg, sender: sanitizeUser(authUser) } });
+      const hydrated = { ...msg, sender: sanitizeUser(authUser) };
+      broadcastWsEvent({ type: 'new_message', message: hydrated }, group.memberIds);
+      return sendJson(res, 201, { message: hydrated });
     }
 
     // Handle Direct 1-to-1 message
@@ -205,6 +208,7 @@ export async function handleChatRoutes(req, res, pathname) {
 
     db.messages.push(msg);
     saveDB();
+    broadcastWsEvent({ type: 'new_message', message: msg }, [receiverId, authUser.id]);
 
     return sendJson(res, 201, { message: msg });
   }
