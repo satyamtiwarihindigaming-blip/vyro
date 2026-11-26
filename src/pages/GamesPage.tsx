@@ -72,19 +72,19 @@ export const GamesPage: React.FC = () => {
     <div className="max-w-4xl mx-auto py-6 px-4 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <Gamepad2 className="w-6 h-6 text-vyro-accent" />
+          <h2 className="text-xl font-black text-white flex items-center gap-2">
+            <Gamepad2 className="w-6 h-6 text-amber-400" />
             <span>VYRO Social Arcade</span>
           </h2>
-          <p className="text-xs text-slate-400">Casual multiplayer in-chat games. Free & zero gambling.</p>
+          <p className="text-xs text-slate-400">Casual multiplayer in-chat games with official Ludo King rules.</p>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => setSelectedGame('ludo')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
               selectedGame === 'ludo'
-                ? 'bg-gradient-to-r from-vyro-primary to-vyro-accent text-white shadow-glow-purple'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black shadow-[0_0_15px_rgba(245,158,11,0.35)]'
                 : 'bg-vyro-card text-slate-400 hover:text-white border border-vyro-border'
             }`}
           >
@@ -93,9 +93,9 @@ export const GamesPage: React.FC = () => {
           </button>
           <button
             onClick={() => setSelectedGame('tictactoe')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
               selectedGame === 'tictactoe'
-                ? 'bg-vyro-primary text-white shadow-glow-purple'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black shadow-[0_0_15px_rgba(245,158,11,0.35)]'
                 : 'bg-vyro-card text-slate-400 hover:text-white border border-vyro-border'
             }`}
           >
@@ -103,9 +103,9 @@ export const GamesPage: React.FC = () => {
           </button>
           <button
             onClick={() => setSelectedGame('trivia')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
               selectedGame === 'trivia'
-                ? 'bg-vyro-primary text-white shadow-glow-purple'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black shadow-[0_0_15px_rgba(245,158,11,0.35)]'
                 : 'bg-vyro-card text-slate-400 hover:text-white border border-vyro-border'
             }`}
           >
