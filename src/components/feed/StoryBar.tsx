@@ -65,10 +65,16 @@ export const StoryBar: React.FC = () => {
           </div>
         ) : (
           uniqueCreatorsWithStories.map(({ story, count }) => {
+            const storyUser = story.user || (story as any).author || {
+              username: 'creator',
+              displayName: 'Creator',
+              avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+              isPro: false,
+            };
             const isVip =
-              story.user.username === 'satyam' ||
-              story.user.username === 'vyro_admin' ||
-              story.user.isPro;
+              storyUser.username === 'satyam' ||
+              storyUser.username === 'vyro_admin' ||
+              storyUser.isPro;
 
             return (
               <motion.button
@@ -94,8 +100,8 @@ export const StoryBar: React.FC = () => {
                 >
                   <div className="p-[2px] bg-black/60 rounded-full">
                     <Avatar
-                      src={story.user.avatarUrl}
-                      alt={story.user.displayName}
+                      src={storyUser.avatarUrl}
+                      alt={storyUser.displayName}
                       size="md"
                     />
                   </div>
@@ -108,7 +114,7 @@ export const StoryBar: React.FC = () => {
                 </div>
 
                 <span className="text-[11px] text-white/70 font-medium max-w-[72px] truncate group-hover:text-white transition">
-                  {story.user.username}
+                  {storyUser.username}
                 </span>
               </motion.button>
             );

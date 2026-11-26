@@ -88,8 +88,17 @@ export const PostCard: React.FC<PostCardProps> = ({
     }
   };
 
+  const postUser = post.user || (post as any).author || {
+    id: post.userId || 'creator',
+    username: 'creator',
+    displayName: 'Creator',
+    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+    isVerified: false,
+    isPro: false,
+  };
+
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(`${window.location.origin}/${post.user.username}`);
+    navigator.clipboard.writeText(`${window.location.origin}/${postUser.username}`);
     setCopiedLink(true);
     setTimeout(() => {
       setCopiedLink(false);
@@ -120,22 +129,22 @@ export const PostCard: React.FC<PostCardProps> = ({
     <article className="liquid-glass rounded-[28px] overflow-hidden mb-6 relative">
       {/* Post Header */}
       <header className="p-4 flex items-center justify-between">
-        <Link to={`/${post.user.username}`} className="flex items-center gap-3 group">
+        <Link to={`/${postUser.username}`} className="flex items-center gap-3 group">
           <Avatar
-            src={post.user.avatarUrl}
-            alt={post.user.displayName}
+            src={postUser.avatarUrl}
+            alt={postUser.displayName}
             size="sm"
-            hasStory={post.user.isPro}
+            hasStory={postUser.isPro}
           />
           <div>
             <div className="flex items-center gap-1.5">
               <span className="text-sm font-semibold text-white/95 group-hover:text-cyan-200 transition-colors">
-                {post.user.username}
+                {postUser.username}
               </span>
               <VerifiedBadge
-                isVerified={post.user.isVerified}
-                isPro={post.user.isPro}
-                proBadge={post.user.proBadge}
+                isVerified={postUser.isVerified}
+                isPro={postUser.isPro}
+                proBadge={postUser.proBadge}
               />
             </div>
             {post.location && (
@@ -408,8 +417,8 @@ export const PostCard: React.FC<PostCardProps> = ({
         {/* Caption */}
         {post.caption && (
           <div className="text-xs text-white/85 leading-relaxed">
-            <Link to={`/${post.user.username}`} className="font-semibold mr-1.5 text-white hover:underline">
-              {post.user.username}
+            <Link to={`/${postUser.username}`} className="font-semibold mr-1.5 text-white hover:underline">
+              {postUser.username}
             </Link>
             <span>{post.caption}</span>
           </div>

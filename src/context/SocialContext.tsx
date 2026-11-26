@@ -40,7 +40,7 @@ const STARTER_FALLBACK_POSTS: Post[] = [
   {
     id: 'starter_post_satyam_1',
     userId: 'usr_satyam_founder',
-    author: {
+    user: {
       id: 'usr_satyam_founder',
       username: 'satyam',
       displayName: 'Satyam Sharma',
@@ -50,7 +50,7 @@ const STARTER_FALLBACK_POSTS: Post[] = [
       proBadge: 'Founder & CEO',
     },
     caption: 'VYRO Spatial Glass Engine is live ⚡ 60fps spring physics and zero latency. Welcome to the future of social. #vyro #future #apple #spatial',
-    type: 'photo',
+    postType: 'photo',
     media: [
       {
         id: 'm_satyam_1',
@@ -60,6 +60,7 @@ const STARTER_FALLBACK_POSTS: Post[] = [
     ],
     likesCount: 18450,
     commentsCount: 412,
+    sharesCount: 95,
     isLiked: false,
     isSaved: false,
     location: 'VYRO Lab, Mumbai',
@@ -68,7 +69,7 @@ const STARTER_FALLBACK_POSTS: Post[] = [
   {
     id: 'starter_post_admin_1',
     userId: 'usr_vyro_admin',
-    author: {
+    user: {
       id: 'usr_vyro_admin',
       username: 'vyro_admin',
       displayName: 'VYRO Official',
@@ -78,7 +79,7 @@ const STARTER_FALLBACK_POSTS: Post[] = [
       proBadge: 'Official',
     },
     caption: 'Top trending tracks now synced across Reels & Studio 🎧 Drop your sound recommendations below! #trending #music #reels #spatial',
-    type: 'reel',
+    postType: 'reel',
     media: [
       {
         id: 'm_admin_1',
@@ -88,6 +89,7 @@ const STARTER_FALLBACK_POSTS: Post[] = [
     ],
     likesCount: 34100,
     commentsCount: 890,
+    sharesCount: 320,
     isLiked: false,
     isSaved: false,
     musicTrack: {
@@ -104,7 +106,7 @@ const STARTER_FALLBACK_POSTS: Post[] = [
   {
     id: 'starter_post_parag_1',
     userId: 'usr_parag_admin',
-    author: {
+    user: {
       id: 'usr_parag_admin',
       username: 'parag_113',
       displayName: 'Parag Admin',
@@ -114,7 +116,7 @@ const STARTER_FALLBACK_POSTS: Post[] = [
       proBadge: 'Moderator',
     },
     caption: 'Midnight neon vibes in the city 🌃 Captured on iPhone 16 Pro Max with Spatial HDR. #neon #nightvibes #photography',
-    type: 'photo',
+    postType: 'photo',
     media: [
       {
         id: 'm_parag_1',
@@ -124,6 +126,7 @@ const STARTER_FALLBACK_POSTS: Post[] = [
     ],
     likesCount: 12600,
     commentsCount: 238,
+    sharesCount: 42,
     isLiked: false,
     isSaved: false,
     location: 'Cyber City Hub',
@@ -146,6 +149,7 @@ const STARTER_FALLBACK_STORIES: Story[] = [
     },
     mediaUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1080',
     mediaType: 'image',
+    duration: 15,
     location: 'VYRO Lab',
     createdAt: new Date(Date.now() - 1800000).toISOString(),
     expiresAt: new Date(Date.now() + 3600000 * 22).toISOString(),
@@ -164,6 +168,7 @@ const STARTER_FALLBACK_STORIES: Story[] = [
     },
     mediaUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1080',
     mediaType: 'image',
+    duration: 15,
     location: 'Main Stage',
     createdAt: new Date(Date.now() - 3600000).toISOString(),
     expiresAt: new Date(Date.now() + 3600000 * 23).toISOString(),

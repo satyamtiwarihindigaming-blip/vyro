@@ -10,6 +10,7 @@ import { FloatingAudioPlayer } from './components/music/FloatingAudioPlayer';
 import { GlobalCallOverlay } from './components/calls/GlobalCallOverlay';
 import { PermissionPromptModal } from './components/permissions/PermissionPromptModal';
 import { AppBootSplash } from './components/common/AppBootSplash';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { ThemeProvider } from './context/ThemeContext';
 import { ThemeSelectorModal } from './components/theme/ThemeSelectorModal';
 
@@ -78,46 +79,48 @@ const MainLayout: React.FC = () => {
 
 export const App: React.FC = () => {
   return (
-    <MotionConfig reducedMotion="user">
-      <ThemeProvider>
-        <AuthProvider>
-          <WebSocketProvider>
-            <SocialProvider>
-              <AudioProvider>
-                <CallProvider>
-                  <AppBootSplash />
-                  <ThemeSelectorModal />
-                  <BrowserRouter>
-                    <Routes>
-                      {/* Public Authentication & Legal */}
-                      <Route path="/" element={<LandingPage defaultMode="login" />} />
-                      <Route path="/login" element={<LandingPage defaultMode="login" />} />
-                      <Route path="/signup" element={<LandingPage defaultMode="signup" />} />
-                      <Route path="/legal/privacy" element={<LegalPage />} />
-                      <Route path="/legal/terms" element={<LegalPage />} />
+    <ErrorBoundary>
+      <MotionConfig reducedMotion="user">
+        <ThemeProvider>
+          <AuthProvider>
+            <WebSocketProvider>
+              <SocialProvider>
+                <AudioProvider>
+                  <CallProvider>
+                    <AppBootSplash />
+                    <ThemeSelectorModal />
+                    <BrowserRouter>
+                      <Routes>
+                        {/* Public Authentication & Legal */}
+                        <Route path="/" element={<LandingPage defaultMode="login" />} />
+                        <Route path="/login" element={<LandingPage defaultMode="login" />} />
+                        <Route path="/signup" element={<LandingPage defaultMode="signup" />} />
+                        <Route path="/legal/privacy" element={<LegalPage />} />
+                        <Route path="/legal/terms" element={<LegalPage />} />
 
-                      {/* Spatial App Shell */}
-                      <Route element={<MainLayout />}>
-                        <Route path="/feed" element={<FeedPage />} />
-                        <Route path="/reels" element={<ReelsPage />} />
-                        <Route path="/explore" element={<ExplorePage />} />
-                        <Route path="/create" element={<StudioPage />} />
-                        <Route path="/direct" element={<DirectPage />} />
-                        <Route path="/music" element={<MusicPage />} />
-                        <Route path="/games" element={<GamesPage />} />
-                        <Route path="/settings" element={<SettingsPage />} />
-                        <Route path="/admin" element={<AdminPage />} />
-                        <Route path="/:username" element={<ProfilePage />} />
-                      </Route>
-                    </Routes>
-                  </BrowserRouter>
-                </CallProvider>
-              </AudioProvider>
-            </SocialProvider>
-          </WebSocketProvider>
-        </AuthProvider>
-      </ThemeProvider>
-    </MotionConfig>
+                        {/* Spatial App Shell */}
+                        <Route element={<MainLayout />}>
+                          <Route path="/feed" element={<FeedPage />} />
+                          <Route path="/reels" element={<ReelsPage />} />
+                          <Route path="/explore" element={<ExplorePage />} />
+                          <Route path="/create" element={<StudioPage />} />
+                          <Route path="/direct" element={<DirectPage />} />
+                          <Route path="/music" element={<MusicPage />} />
+                          <Route path="/games" element={<GamesPage />} />
+                          <Route path="/settings" element={<SettingsPage />} />
+                          <Route path="/admin" element={<AdminPage />} />
+                          <Route path="/:username" element={<ProfilePage />} />
+                        </Route>
+                      </Routes>
+                    </BrowserRouter>
+                  </CallProvider>
+                </AudioProvider>
+              </SocialProvider>
+            </WebSocketProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </MotionConfig>
+    </ErrorBoundary>
   );
 };
 
