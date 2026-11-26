@@ -138,74 +138,17 @@ export const FloatingAudioPlayer: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* 2. Persistent Floating Audio Dock (Non-Colliding Across All OS) */}
-      <div className="fixed z-40 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] md:bottom-6 right-3 sm:right-6 select-none">
-        <AnimatePresence mode="wait">
-          {!isExpanded ? (
-            /* Mini Liquid Capsule */
-            <motion.div
-              key="mini-player"
-              initial={{ opacity: 0, scale: 0.9, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 10 }}
-              transition={SPRING_SHEET}
-              className="liquid-glass-elevated rounded-full p-2 pr-4 flex items-center gap-3 shadow-2xl border-white/20"
-            >
-              {/* Play/Pause Button */}
-              <button
-                onClick={() => {
-                  soundEngine.playPop();
-                  togglePlay();
-                }}
-                className="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 text-white flex items-center justify-center shrink-0 shadow-md active:scale-90 transition-transform border border-white/20"
-                aria-label={isPlaying ? 'Pause' : 'Play'}
-              >
-                {isPlaying ? (
-                  <Pause className="w-4 h-4 fill-current stroke-[2.5]" />
-                ) : (
-                  <Play className="w-4 h-4 ml-0.5 fill-current stroke-[2.5]" />
-                )}
-              </button>
-
-              {/* Track Info */}
-              <div
-                className="cursor-pointer max-w-[120px] sm:max-w-[180px]"
-                onClick={() => setIsExpanded(true)}
-              >
-                <p className="text-xs font-semibold text-white truncate">{currentTrack.title}</p>
-                <p className="text-[10px] text-white/50 truncate font-medium">@{currentTrack.artist}</p>
-              </div>
-
-              {/* Next Track */}
-              <button
-                onClick={() => {
-                  soundEngine.playPop();
-                  playNext();
-                }}
-                className="text-white/50 hover:text-white p-1 transition-colors"
-                title="Next Track"
-              >
-                <SkipForward className="w-4 h-4" />
-              </button>
-
-              {/* Expand Drawer */}
-              <button
-                onClick={() => setIsExpanded(true)}
-                className="text-white/50 hover:text-white p-1 transition-colors"
-                title="Expand Player"
-              >
-                <ChevronUp className="w-4 h-4" />
-              </button>
-            </motion.div>
-          ) : (
-            /* Expanded Apple Music Liquid Card */
+      {/* 2. Expanded Apple Music Modal (Only opened on click from Top Dynamic Island) */}
+      <AnimatePresence>
+        {isExpanded && currentTrack && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md select-none">
             <motion.div
               key="expanded-player"
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.94, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              exit={{ opacity: 0, scale: 0.94, y: 16 }}
               transition={SPRING_SHEET}
-              className="liquid-glass-elevated rounded-[30px] p-6 w-[calc(100vw-1.5rem)] sm:w-[380px] shadow-2xl border-white/25 space-y-4"
+              className="liquid-glass-elevated rounded-[30px] p-6 w-[calc(100vw-1.5rem)] sm:w-[380px] shadow-2xl border border-white/25 space-y-4"
             >
               {/* Header Bar */}
               <div className="flex items-center justify-between">
@@ -216,9 +159,9 @@ export const FloatingAudioPlayer: React.FC = () => {
                 <button
                   onClick={() => setIsExpanded(false)}
                   className="p-1.5 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
-                  title="Minimize Player"
+                  title="Close Player"
                 >
-                  <ChevronDown className="w-5 h-5" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
@@ -411,10 +354,10 @@ export const FloatingAudioPlayer: React.FC = () => {
                 {Math.round(volume * 100)}%
               </span>
             </div>
-          </motion.div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
-      </div>
     </>
   );
 };
