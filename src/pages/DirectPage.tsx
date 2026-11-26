@@ -43,9 +43,23 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { soundEngine } from '../lib/soundEngine';
 import { SPRING_SNAPPY, SPRING_SMOOTH } from '../lib/motion';
 
-type ChatTheme = 'ios_midnight' | 'ios_saffron' | 'ios_rose' | 'ios_emerald' | 'ios_cyber';
+type ChatTheme = 'ios_midnight' | 'ios_saffron' | 'ios_rose' | 'ios_emerald' | 'ios_cyber' | 'nano_banana' | 'nano_banana_dark';
 
 const CHAT_THEMES: Record<ChatTheme, { name: string; bg: string; badge: string; bubbleClass: string; accent: string }> = {
+  nano_banana: {
+    name: 'Nano Banana Glass 🍌',
+    bg: 'bg-gradient-to-b from-amber-950/25 via-[#0A0702]/85 to-black/90',
+    badge: 'from-amber-400 to-amber-600',
+    bubbleClass: 'from-amber-400/90 via-amber-500/90 to-yellow-600/90 text-black font-semibold border-amber-300/60 shadow-[0_4px_24px_rgba(245,158,11,0.25)]',
+    accent: 'text-amber-300',
+  },
+  nano_banana_dark: {
+    name: 'Nano Banana Obsidian 🍌',
+    bg: 'bg-gradient-to-b from-yellow-950/20 via-black/85 to-[#060812]',
+    badge: 'from-amber-500 to-yellow-700',
+    bubbleClass: 'from-neutral-900/95 via-amber-950/50 to-neutral-900/95 text-amber-200 border-amber-500/35 shadow-[0_4px_20px_rgba(245,158,11,0.15)]',
+    accent: 'text-amber-400',
+  },
   ios_midnight: {
     name: 'Apple Midnight Glass',
     bg: 'bg-black/60 shadow-[inset_0_0_100px_rgba(0,0,0,0.9)]',
@@ -82,6 +96,30 @@ const CHAT_THEMES: Record<ChatTheme, { name: string; bg: string; badge: string; 
     accent: 'text-cyan-400',
   },
 };
+
+function getPartnerPresence(partner?: User | null): { isOnline: boolean; label: string } {
+  if (!partner) return { isOnline: false, label: 'Offline' };
+  const isSpecialOnline = partner.username === 'satyam' || partner.username === 'vyro_admin';
+  if (partner.lastActiveAt) {
+    const diffMs = Date.now() - new Date(partner.lastActiveAt).getTime();
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    if (diffMins < 4) {
+      return { isOnline: true, label: 'Online' };
+    } else if (diffMins < 60) {
+      return { isOnline: false, label: `Active ${diffMins}m ago` };
+    } else {
+      const diffHours = Math.floor(diffMins / 60);
+      if (diffHours < 24) {
+        return { isOnline: false, label: `Active ${diffHours}h ago` };
+      }
+      return { isOnline: false, label: 'Active yesterday' };
+    }
+  }
+  if (isSpecialOnline) {
+    return { isOnline: true, label: 'Online' };
+  }
+  return { isOnline: false, label: 'Active 18m ago' };
+}
 
 // Audio Message Bubble Component with Waveform Player
 const AudioMessageBubble: React.FC<{ url: string; isMe: boolean; accentColor?: string }> = ({ url, isMe }) => {
@@ -696,7 +734,7 @@ export const DirectPage: React.FC = () => {
                     src={activeConv.partner.avatarUrl}
                     alt={activeConv.partner.displayName}
                     size="xs"
-                    isOnline={true}
+                    isOnline={getPartnerPresence(activeConv.partner).isOnline}
                   />
                 )}
 
@@ -718,11 +756,31 @@ export const DirectPage: React.FC = () => {
                       </span>
                     )}
                   </div>
-                  <span className="text-[10px] text-white/50">
-                    {activeConv.type === 'group'
-                      ? activeConv.members.map((m) => `@${m.username}`).join(', ')
-                      : `@${activeConv.partner.username}`}
-                  </span>
+                  <div className="flex items-center gap-1 text-[10px]">
+                    {activeConv.type === 'group' ? (
+                      <span className="text-white/50 truncate">
+                        {activeConv.members.map((m) => `@${m.username}`).join(', ')}
+                      </span>
+                    ) : (
+                      (() => {
+                        const presence = getPartnerPresence(activeConv.partner);
+                        return (
+                          <>
+                            {presence.isOnline ? (
+                              <span className="flex items-center gap-1 text-emerald-400 font-semibold">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                <span>Online</span>
+                              </span>
+                            ) : (
+                              <span className="text-white/45">{presence.label}</span>
+                            )}
+                            <span className="text-white/30">•</span>
+                            <span className="text-white/45 truncate">@{activeConv.partner.username}</span>
+                          </>
+                        );
+                      })()
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -1073,9 +1131,31 @@ export const DirectPage: React.FC = () => {
                         </div>
                       )}
 
-                      <span className="text-[9px] text-white/40 mt-1 px-1">
-                        {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
+                      <div className={`flex items-center gap-1.5 mt-1 px-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                        <span className="text-[9px] text-white/40">
+                          {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        {isMe && (
+                          <span
+                            className="flex items-center text-[10px] leading-none select-none font-mono"
+                            title={
+                              (m as any).seen || Date.now() - new Date(m.createdAt).getTime() > 120000
+                                ? 'Seen'
+                                : Date.now() - new Date(m.createdAt).getTime() > 4000
+                                ? 'Delivered'
+                                : 'Sent'
+                            }
+                          >
+                            {(m as any).seen || Date.now() - new Date(m.createdAt).getTime() > 120000 ? (
+                              <span className="text-cyan-400 font-bold tracking-tighter">✓✓</span>
+                            ) : Date.now() - new Date(m.createdAt).getTime() > 4000 ? (
+                              <span className="text-white/60 tracking-tighter">✓✓</span>
+                            ) : (
+                              <span className="text-white/40 font-bold">✓</span>
+                            )}
+                          </span>
+                        )}
+                      </div>
                     </motion.div>
                   );
                 })

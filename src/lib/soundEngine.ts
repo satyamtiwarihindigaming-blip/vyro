@@ -26,158 +26,186 @@ class SoundEngine {
   // 1. Cinematic Boot Sound (Apple / PlayStation 5 Startup Tier)
   // Deep 55Hz sub-bass cosmic drop + spatial crystal harmonic chime chord
   playCinematicBootSound() {
-    if (!this.init() || !this.ctx) return;
-    const now = this.ctx.currentTime;
+    try {
+      if (!this.init() || !this.ctx) return;
+      const now = this.ctx.currentTime;
 
-    // Sub-Bass Cosmic Drop (55Hz -> 28Hz)
-    const subOsc = this.ctx.createOscillator();
-    const subGain = this.ctx.createGain();
-    subOsc.type = 'sine';
-    subOsc.frequency.setValueAtTime(55, now);
-    subOsc.frequency.exponentialRampToValueAtTime(28, now + 1.2);
-    subGain.gain.setValueAtTime(0.35, now);
-    subGain.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
-    subOsc.connect(subGain);
-    subGain.connect(this.ctx.destination);
-    subOsc.start(now);
-    subOsc.stop(now + 1.4);
+      // Sub-Bass Cosmic Drop (55Hz -> 28Hz)
+      const subOsc = this.ctx.createOscillator();
+      const subGain = this.ctx.createGain();
+      subOsc.type = 'sine';
+      subOsc.frequency.setValueAtTime(55, now);
+      subOsc.frequency.exponentialRampToValueAtTime(28, now + 1.2);
+      subGain.gain.setValueAtTime(0.35, now);
+      subGain.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
+      subOsc.connect(subGain);
+      subGain.connect(this.ctx.destination);
+      subOsc.start(now);
+      subOsc.stop(now + 1.4);
 
-    // Mid Harmonic Atmospheric Shimmer (220Hz -> 440Hz)
-    const midOsc = this.ctx.createOscillator();
-    const midGain = this.ctx.createGain();
-    midOsc.type = 'triangle';
-    midOsc.frequency.setValueAtTime(220, now + 0.3);
-    midOsc.frequency.exponentialRampToValueAtTime(440, now + 0.9);
-    midGain.gain.setValueAtTime(0.001, now + 0.3);
-    midGain.gain.linearRampToValueAtTime(0.12, now + 0.6);
-    midGain.gain.exponentialRampToValueAtTime(0.001, now + 1.6);
-    midOsc.connect(midGain);
-    midGain.connect(this.ctx.destination);
-    midOsc.start(now + 0.3);
-    midOsc.stop(now + 1.6);
+      // Mid Harmonic Atmospheric Shimmer (220Hz -> 440Hz)
+      const midOsc = this.ctx.createOscillator();
+      const midGain = this.ctx.createGain();
+      midOsc.type = 'triangle';
+      midOsc.frequency.setValueAtTime(220, now + 0.3);
+      midOsc.frequency.exponentialRampToValueAtTime(440, now + 0.9);
+      midGain.gain.setValueAtTime(0.001, now + 0.3);
+      midGain.gain.linearRampToValueAtTime(0.12, now + 0.6);
+      midGain.gain.exponentialRampToValueAtTime(0.001, now + 1.6);
+      midOsc.connect(midGain);
+      midGain.connect(this.ctx.destination);
+      midOsc.start(now + 0.3);
+      midOsc.stop(now + 1.6);
 
-    // Crystal Harmonic Chimes (Major 9th Triad: 440Hz, 880Hz, 1320Hz, 1760Hz)
-    const freqs = [440, 880, 1320, 1760];
-    freqs.forEach((f, idx) => {
-      const delay = 0.65 + idx * 0.08;
-      const chimeOsc = this.ctx!.createOscillator();
-      const chimeGain = this.ctx!.createGain();
-      chimeOsc.type = 'sine';
-      chimeOsc.frequency.setValueAtTime(f, now + delay);
-      chimeGain.gain.setValueAtTime(0.001, now + delay);
-      chimeGain.gain.linearRampToValueAtTime(0.08, now + delay + 0.03);
-      chimeGain.gain.exponentialRampToValueAtTime(0.0001, now + delay + 0.8);
-      chimeOsc.connect(chimeGain);
-      chimeGain.connect(this.ctx!.destination);
-      chimeOsc.start(now + delay);
-      chimeOsc.stop(now + delay + 0.8);
-    });
+      // Crystal Harmonic Chimes (Major 9th Triad: 440Hz, 880Hz, 1320Hz, 1760Hz)
+      const freqs = [440, 880, 1320, 1760];
+      freqs.forEach((f, idx) => {
+        const delay = 0.65 + idx * 0.08;
+        const chimeOsc = this.ctx!.createOscillator();
+        const chimeGain = this.ctx!.createGain();
+        chimeOsc.type = 'sine';
+        chimeOsc.frequency.setValueAtTime(f, now + delay);
+        chimeGain.gain.setValueAtTime(0.001, now + delay);
+        chimeGain.gain.linearRampToValueAtTime(0.08, now + delay + 0.03);
+        chimeGain.gain.exponentialRampToValueAtTime(0.0001, now + delay + 0.8);
+        chimeOsc.connect(chimeGain);
+        chimeGain.connect(this.ctx!.destination);
+        chimeOsc.start(now + delay);
+        chimeOsc.stop(now + delay + 0.8);
+      });
+    } catch {
+      // Audio playback safely handled
+    }
   }
 
   // 2. Soft Pop for Likes & Reactions (Sine ramp 320Hz -> 640Hz in 60ms)
   playPop() {
-    if (!this.init() || !this.ctx) return;
-    const now = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(320, now);
-    osc.frequency.exponentialRampToValueAtTime(640, now + 0.06);
-    gain.gain.setValueAtTime(0.2, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.06);
+    try {
+      if (!this.init() || !this.ctx) return;
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(320, now);
+      osc.frequency.exponentialRampToValueAtTime(640, now + 0.06);
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.06);
+    } catch {
+      // Audio playback safely handled
+    }
   }
 
   // 3. Apple-Style Mechanical Haptic Tick for Theme Toggles & Story Navigation
   playHapticClick() {
-    if (!this.init() || !this.ctx) return;
-    const now = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(1400, now);
-    gain.gain.setValueAtTime(0.09, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.025);
+    try {
+      if (!this.init() || !this.ctx) return;
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(1400, now);
+      gain.gain.setValueAtTime(0.09, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.025);
+    } catch {
+      // Audio playback safely handled
+    }
   }
 
   // 4. Tactical Biometric Scan Sound for FBI / Cyber Command Login
   playTacticalScan() {
-    if (!this.init() || !this.ctx) return;
-    const now = this.ctx.currentTime;
-    const pulses = [800, 950, 1100, 1350, 1600];
-    pulses.forEach((freq, i) => {
-      const t = now + i * 0.07;
-      const osc = this.ctx!.createOscillator();
-      const gain = this.ctx!.createGain();
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(freq, t);
-      gain.gain.setValueAtTime(0.05, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.045);
-      osc.connect(gain);
-      gain.connect(this.ctx!.destination);
-      osc.start(t);
-      osc.stop(t + 0.045);
-    });
+    try {
+      if (!this.init() || !this.ctx) return;
+      const now = this.ctx.currentTime;
+      const pulses = [800, 950, 1100, 1350, 1600];
+      pulses.forEach((freq, i) => {
+        const t = now + i * 0.07;
+        const osc = this.ctx!.createOscillator();
+        const gain = this.ctx!.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, t);
+        gain.gain.setValueAtTime(0.05, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.045);
+        osc.connect(gain);
+        gain.connect(this.ctx!.destination);
+        osc.start(t);
+        osc.stop(t + 0.045);
+      });
+    } catch {
+      // Audio playback safely handled
+    }
   }
 
   // 5. Camera Shutter Mechanical Double-Click
   playShutter() {
-    this.playHapticClick();
-    setTimeout(() => this.playHapticClick(), 65);
+    try {
+      this.playHapticClick();
+      setTimeout(() => this.playHapticClick(), 65);
+    } catch {
+      // Audio playback safely handled
+    }
   }
 
   // 6. Futuristic Chime for AI Image Generation Complete
   playChime() {
-    if (!this.init() || !this.ctx) return;
-    const now = this.ctx.currentTime;
-    const chord = [523.25, 659.25, 783.99, 1046.5]; // C-E-G-C Major
-    chord.forEach((freq, i) => {
-      const t = now + i * 0.06;
-      const osc = this.ctx!.createOscillator();
-      const gain = this.ctx!.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, t);
-      gain.gain.setValueAtTime(0.12, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
-      osc.connect(gain);
-      gain.connect(this.ctx!.destination);
-      osc.start(t);
-      osc.stop(t + 0.4);
-    });
+    try {
+      if (!this.init() || !this.ctx) return;
+      const now = this.ctx.currentTime;
+      const chord = [523.25, 659.25, 783.99, 1046.5]; // C-E-G-C Major
+      chord.forEach((freq, i) => {
+        const t = now + i * 0.06;
+        const osc = this.ctx!.createOscillator();
+        const gain = this.ctx!.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, t);
+        gain.gain.setValueAtTime(0.12, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+        osc.connect(gain);
+        gain.connect(this.ctx!.destination);
+        osc.start(t);
+        osc.stop(t + 0.4);
+      });
+    } catch {
+      // Audio playback safely handled
+    }
   }
 
   // 7. Subtle Air Whoosh for Story 3D Cube Transitions
   playWhoosh() {
-    if (!this.init() || !this.ctx) return;
-    const now = this.ctx.currentTime;
-    const bufferSize = this.ctx.sampleRate * 0.15;
-    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = Math.random() * 2 - 1;
+    try {
+      if (!this.init() || !this.ctx) return;
+      const now = this.ctx.currentTime;
+      const bufferSize = this.ctx.sampleRate * 0.15;
+      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+      const noise = this.ctx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(400, now);
+      filter.frequency.exponentialRampToValueAtTime(1200, now + 0.08);
+      filter.frequency.exponentialRampToValueAtTime(200, now + 0.15);
+      const gain = this.ctx.createGain();
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.ctx.destination);
+      noise.start(now);
+      noise.stop(now + 0.15);
+    } catch {
+      // Audio playback safely handled
     }
-    const noise = this.ctx.createBufferSource();
-    noise.buffer = buffer;
-    const filter = this.ctx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(400, now);
-    filter.frequency.exponentialRampToValueAtTime(1200, now + 0.08);
-    filter.frequency.exponentialRampToValueAtTime(200, now + 0.15);
-    const gain = this.ctx.createGain();
-    gain.gain.setValueAtTime(0.08, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-    noise.connect(filter);
-    filter.connect(gain);
-    gain.connect(this.ctx.destination);
-    noise.start(now);
-    noise.stop(now + 0.15);
   }
 }
 

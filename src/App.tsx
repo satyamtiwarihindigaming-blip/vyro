@@ -59,7 +59,7 @@ const MainLayout: React.FC = () => {
           animate={PAGE_TRANSITION.animate}
           exit={PAGE_TRANSITION.exit}
           transition={PAGE_TRANSITION.transition}
-          className={`flex-1 pb-24 md:pb-12 overflow-x-hidden ${
+          className={`flex-1 pb-36 sm:pb-32 md:pb-16 overflow-x-hidden ${
             !isStudioOrReel ? 'pt-24 sm:pt-28 px-3 sm:px-6' : ''
           }`}
         >

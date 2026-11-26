@@ -783,6 +783,13 @@ export const StudioPage: React.FC = () => {
                     autoPlay
                     loop
                     playsInline
+                    muted
+                    preload="auto"
+                    onLoadedMetadata={(e) => {
+                      const v = e.currentTarget;
+                      v.currentTime = 0.05;
+                      v.play().catch(() => {});
+                    }}
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-xs font-semibold flex items-center gap-1.5">

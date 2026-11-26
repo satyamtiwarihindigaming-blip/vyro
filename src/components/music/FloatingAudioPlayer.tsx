@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAudio } from '../../context/AudioContext';
 import {
@@ -6,7 +6,7 @@ import {
   Pause,
   Volume2,
   VolumeX,
-  ShieldCheck,
+  Sparkles,
   ChevronUp,
   ChevronDown,
   SkipForward,
@@ -14,9 +14,10 @@ import {
   Repeat,
   Repeat1,
   Shuffle,
+  X,
 } from 'lucide-react';
 import { soundEngine } from '../../lib/soundEngine';
-import { SPRING_SHEET } from '../../lib/motion';
+import { SPRING_SHEET, SPRING_SNAPPY } from '../../lib/motion';
 
 export const FloatingAudioPlayer: React.FC = () => {
   const {
@@ -38,6 +39,22 @@ export const FloatingAudioPlayer: React.FC = () => {
   } = useAudio();
 
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showTopIsland, setShowTopIsland] = useState(false);
+  const autoHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // iPhone-Style Top Dynamic Island Animation on Play / Track Change
+  useEffect(() => {
+    if (currentTrack && isPlaying) {
+      setShowTopIsland(true);
+      if (autoHideTimerRef.current) clearTimeout(autoHideTimerRef.current);
+      autoHideTimerRef.current = setTimeout(() => {
+        setShowTopIsland(false);
+      }, 4200);
+    }
+    return () => {
+      if (autoHideTimerRef.current) clearTimeout(autoHideTimerRef.current);
+    };
+  }, [currentTrack?.id, isPlaying]);
 
   if (!currentTrack) return null;
 
@@ -49,88 +66,143 @@ export const FloatingAudioPlayer: React.FC = () => {
   };
 
   return (
-    <div className="fixed z-40 bottom-20 md:bottom-6 right-3 sm:right-6 select-none">
-      <AnimatePresence mode="wait">
-        {!isExpanded ? (
-          /* Mini Liquid Capsule */
+    <>
+      {/* 1. iPhone-Style Dynamic Island Top Notification Banner */}
+      <AnimatePresence>
+        {showTopIsland && currentTrack && (
           <motion.div
-            key="mini-player"
-            initial={{ opacity: 0, scale: 0.9, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 10 }}
-            transition={SPRING_SHEET}
-            className="liquid-glass-elevated rounded-full p-2 pr-4 flex items-center gap-3 shadow-2xl border-white/20"
+            initial={{ y: -70, opacity: 0, scale: 0.92 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: -70, opacity: 0, scale: 0.92 }}
+            transition={{ type: 'spring', stiffness: 420, damping: 28 }}
+            className="fixed top-3 left-1/2 -translate-x-1/2 z-50 pointer-events-auto"
           >
-            {/* Play/Pause Button */}
-            <button
-              onClick={() => {
-                soundEngine.playPop();
-                togglePlay();
-              }}
-              className="w-10 h-10 rounded-full liquid-pill-cta flex items-center justify-center shrink-0 shadow-md active:scale-90 transition-transform"
-              aria-label={isPlaying ? 'Pause' : 'Play'}
-            >
-              {isPlaying ? (
-                <Pause className="w-4 h-4 fill-current stroke-[2.5]" />
-              ) : (
-                <Play className="w-4 h-4 ml-0.5 fill-current stroke-[2.5]" />
-              )}
-            </button>
-
-            {/* Track Info */}
             <div
-              className="cursor-pointer max-w-[130px] sm:max-w-[180px]"
-              onClick={() => setIsExpanded(true)}
-            >
-              <p className="text-xs font-semibold text-white truncate">{currentTrack.title}</p>
-              <p className="text-[10px] text-white/50 truncate font-medium">@{currentTrack.artist}</p>
-            </div>
-
-            {/* Next Track */}
-            <button
               onClick={() => {
                 soundEngine.playPop();
-                playNext();
+                setIsExpanded(true);
+                setShowTopIsland(false);
               }}
-              className="text-white/50 hover:text-white p-1 transition-colors"
-              title="Next Track"
+              className="px-3.5 py-2 rounded-full liquid-glass-elevated border border-white/25 shadow-2xl flex items-center gap-3 cursor-pointer hover:scale-105 active:scale-95 transition-transform backdrop-blur-2xl"
             >
-              <SkipForward className="w-4 h-4" />
-            </button>
-
-            {/* Expand Drawer */}
-            <button
-              onClick={() => setIsExpanded(true)}
-              className="text-white/50 hover:text-white p-1 transition-colors"
-              title="Expand Player"
-            >
-              <ChevronUp className="w-4 h-4" />
-            </button>
-          </motion.div>
-        ) : (
-          /* Expanded Apple Music Liquid Card */
-          <motion.div
-            key="expanded-player"
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={SPRING_SHEET}
-            className="liquid-glass-elevated rounded-[30px] p-6 w-[calc(100vw-1.5rem)] sm:w-[380px] shadow-2xl border-white/25 space-y-4"
-          >
-            {/* Header Bar */}
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-white/80 flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                <span>320kbps Studio Master</span>
-              </span>
+              <img
+                src={currentTrack.coverUrl}
+                alt={currentTrack.title}
+                className="w-7 h-7 rounded-full object-cover ring-1 ring-white/30 shrink-0"
+              />
+              <div className="max-w-[130px] sm:max-w-[200px] text-left min-w-0">
+                <p className="text-xs font-semibold text-white truncate leading-tight">
+                  {currentTrack.title}
+                </p>
+                <p className="text-[10px] text-white/60 truncate leading-tight">
+                  {currentTrack.artist}
+                </p>
+              </div>
+              {/* Mini Equalizer Animated Waveform */}
+              <div className="flex items-end gap-0.5 h-3.5 px-1 shrink-0">
+                <span className="w-0.5 h-3 bg-cyan-400 rounded-full animate-pulse" />
+                <span className="w-0.5 h-2 bg-pink-400 rounded-full animate-bounce" />
+                <span className="w-0.5 h-3.5 bg-violet-400 rounded-full animate-pulse" />
+              </div>
               <button
-                onClick={() => setIsExpanded(false)}
-                className="p-1.5 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
-                title="Minimize Player"
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  soundEngine.playPop();
+                  togglePlay();
+                }}
+                className="p-1 rounded-full text-white/80 hover:text-white"
               >
-                <ChevronDown className="w-5 h-5" />
+                {isPlaying ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current" />}
               </button>
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 2. Persistent Floating Audio Dock (Non-Colliding Across All OS) */}
+      <div className="fixed z-40 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] md:bottom-6 right-3 sm:right-6 select-none">
+        <AnimatePresence mode="wait">
+          {!isExpanded ? (
+            /* Mini Liquid Capsule */
+            <motion.div
+              key="mini-player"
+              initial={{ opacity: 0, scale: 0.9, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 10 }}
+              transition={SPRING_SHEET}
+              className="liquid-glass-elevated rounded-full p-2 pr-4 flex items-center gap-3 shadow-2xl border-white/20"
+            >
+              {/* Play/Pause Button */}
+              <button
+                onClick={() => {
+                  soundEngine.playPop();
+                  togglePlay();
+                }}
+                className="w-10 h-10 rounded-full liquid-pill-cta flex items-center justify-center shrink-0 shadow-md active:scale-90 transition-transform"
+                aria-label={isPlaying ? 'Pause' : 'Play'}
+              >
+                {isPlaying ? (
+                  <Pause className="w-4 h-4 fill-current stroke-[2.5]" />
+                ) : (
+                  <Play className="w-4 h-4 ml-0.5 fill-current stroke-[2.5]" />
+                )}
+              </button>
+
+              {/* Track Info */}
+              <div
+                className="cursor-pointer max-w-[120px] sm:max-w-[180px]"
+                onClick={() => setIsExpanded(true)}
+              >
+                <p className="text-xs font-semibold text-white truncate">{currentTrack.title}</p>
+                <p className="text-[10px] text-white/50 truncate font-medium">@{currentTrack.artist}</p>
+              </div>
+
+              {/* Next Track */}
+              <button
+                onClick={() => {
+                  soundEngine.playPop();
+                  playNext();
+                }}
+                className="text-white/50 hover:text-white p-1 transition-colors"
+                title="Next Track"
+              >
+                <SkipForward className="w-4 h-4" />
+              </button>
+
+              {/* Expand Drawer */}
+              <button
+                onClick={() => setIsExpanded(true)}
+                className="text-white/50 hover:text-white p-1 transition-colors"
+                title="Expand Player"
+              >
+                <ChevronUp className="w-4 h-4" />
+              </button>
+            </motion.div>
+          ) : (
+            /* Expanded Apple Music Liquid Card */
+            <motion.div
+              key="expanded-player"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={SPRING_SHEET}
+              className="liquid-glass-elevated rounded-[30px] p-6 w-[calc(100vw-1.5rem)] sm:w-[380px] shadow-2xl border-white/25 space-y-4"
+            >
+              {/* Header Bar */}
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-white/80 flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15">
+                  <Sparkles className="w-3.5 h-3.5 text-cyan-300" />
+                  <span>VYRO Spatial Audio</span>
+                </span>
+                <button
+                  onClick={() => setIsExpanded(false)}
+                  className="p-1.5 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+                  title="Minimize Player"
+                >
+                  <ChevronDown className="w-5 h-5" />
+                </button>
+              </div>
 
             {/* Album Art & Title with Dynamic Ambient Glow */}
             <div className="flex items-center gap-4 pt-1">
@@ -287,6 +359,7 @@ export const FloatingAudioPlayer: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+      </div>
+    </>
   );
 };

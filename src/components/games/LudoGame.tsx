@@ -13,6 +13,10 @@ import {
   Flame,
   Shield,
   Zap,
+  Globe,
+  Copy,
+  Check,
+  Send,
 } from 'lucide-react';
 import { soundEngine } from '../../lib/soundEngine';
 
@@ -228,6 +232,44 @@ export const LudoGame: React.FC<LudoGameProps> = ({ inChat = false, onGameAction
   const [consecutiveSixes, setConsecutiveSixes] = useState(0);
   const [lastKillEffect, setLastKillEffect] = useState<{ x: number; y: number } | null>(null);
   const [rankings, setRankings] = useState<PlayerColor[]>([]);
+
+  // Online Room Code & Multiplayer Invites
+  const [onlineRoom, setOnlineRoom] = useState<string | null>(null);
+  const [copiedCode, setCopiedCode] = useState(false);
+  const [showRoomInput, setShowRoomInput] = useState(false);
+  const [roomInputText, setRoomInputText] = useState('');
+
+  const handleCreateOnlineRoom = () => {
+    soundEngine.playPop();
+    const code = 'VY-' + Math.floor(1000 + Math.random() * 9000);
+    setOnlineRoom(code);
+    setStatusMsg(`Room ${code} Live! Share code or invite friends 🎲`);
+    if (onGameAction) {
+      onGameAction(`🎲 I created Ludo Room ${code}! Tap to join!`);
+    }
+  };
+
+  const handleCopyCode = () => {
+    if (!onlineRoom) return;
+    soundEngine.playHapticClick();
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(onlineRoom).catch(() => {});
+    }
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2000);
+  };
+
+  const handleJoinCustomRoom = () => {
+    const trimmed = roomInputText.trim().toUpperCase();
+    if (!trimmed) return;
+    soundEngine.playPop();
+    setOnlineRoom(trimmed);
+    setShowRoomInput(false);
+    setStatusMsg(`Joined Room ${trimmed}! Ready to roll 🎲`);
+    if (onGameAction) {
+      onGameAction(`🎲 Joined Ludo Room ${trimmed}! Let's play!`);
+    }
+  };
 
   // 2-Player Mode: Red vs Yellow seated in opposite corners (Top-Left vs Bottom-Right)
   const activeColors: PlayerColor[] = useMemo(() => {
@@ -717,8 +759,30 @@ export const LudoGame: React.FC<LudoGameProps> = ({ inChat = false, onGameAction
             className="px-2 py-1 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 text-slate-300 text-[11px] font-bold transition flex items-center gap-1"
             title="Toggle Fast Mode (2 to win) vs Classic (4 to win)"
           >
-            <Zap className="w-3 h-3 text-amber-400" />
+            <Zap className="w-3 h-3 text-cyan-400" />
             <span>{gameMode === 'fast' ? 'Fast (2 Win)' : 'Classic (4 Win)'}</span>
+          </button>
+
+          {/* Online Room Code Button */}
+          <button
+            onClick={() => {
+              if (onlineRoom) {
+                setOnlineRoom(null);
+                soundEngine.playPop();
+              } else {
+                setShowRoomInput(!showRoomInput);
+                soundEngine.playPop();
+              }
+            }}
+            className={`px-2.5 py-1 rounded-xl border text-[11px] font-bold transition flex items-center gap-1 shadow-sm ${
+              onlineRoom
+                ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+                : 'bg-white/5 border-white/10 hover:border-cyan-400 text-slate-300'
+            }`}
+            title="Play Online with Friends"
+          >
+            <Globe className="w-3 h-3 text-cyan-400" />
+            <span>{onlineRoom ? onlineRoom : 'Online Room'}</span>
           </button>
         </div>
 
@@ -739,6 +803,78 @@ export const LudoGame: React.FC<LudoGameProps> = ({ inChat = false, onGameAction
           </button>
         </div>
       </div>
+
+      {/* Online Room Code Drawer */}
+      {(showRoomInput || onlineRoom) && (
+        <div className="w-full mb-2 p-2.5 rounded-2xl liquid-glass-inner border border-white/10 flex flex-wrap items-center justify-between gap-2 shadow-lg">
+          {onlineRoom ? (
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-xs font-bold text-white tracking-wide">
+                  Room: <span className="font-mono text-cyan-300">{onlineRoom}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={handleCopyCode}
+                  className="px-2 py-0.5 rounded-lg bg-white/10 hover:bg-white/20 text-[10px] font-semibold text-slate-200 flex items-center gap-1 transition"
+                  title="Copy Room Code"
+                >
+                  {copiedCode ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-white/70" />}
+                  <span>{copiedCode ? 'Copied!' : 'Copy'}</span>
+                </button>
+              </div>
+              <div className="flex items-center gap-1.5">
+                {onGameAction && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      soundEngine.playPop();
+                      onGameAction(`🎲 Play with me in Ludo Room ${onlineRoom}! Tap to join!`);
+                    }}
+                    className="px-2.5 py-1 rounded-xl liquid-pill-cta text-white text-[10px] font-bold flex items-center gap-1 shadow-md hover:scale-105 transition"
+                  >
+                    <Send className="w-3 h-3" />
+                    <span>Invite to Chat</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setOnlineRoom(null)}
+                  className="px-2 py-0.5 rounded-lg bg-rose-500/20 text-rose-300 text-[10px] hover:bg-rose-500/30 transition"
+                >
+                  Leave
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 w-full">
+              <input
+                type="text"
+                placeholder="Enter 6-char Room Code (e.g. VY-8492)"
+                value={roomInputText}
+                onChange={(e) => setRoomInputText(e.target.value)}
+                className="flex-1 px-3 py-1.5 rounded-xl bg-black/40 border border-white/15 text-xs text-white placeholder-white/40 focus:outline-none focus:border-cyan-400"
+              />
+              <button
+                type="button"
+                onClick={handleJoinCustomRoom}
+                className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition"
+              >
+                Join
+              </button>
+              <button
+                type="button"
+                onClick={handleCreateOnlineRoom}
+                className="px-3 py-1.5 rounded-xl liquid-pill-cta text-white font-bold text-xs flex items-center gap-1 shadow-md transition"
+              >
+                <Sparkles className="w-3 h-3 text-cyan-200" />
+                <span>Create New</span>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Dynamic Status Banner with Turn Timer */}
       <div className="w-full flex items-center justify-between px-4 py-2 rounded-2xl liquid-glass-inner border border-white/10 mb-2.5 shadow-lg">
@@ -782,6 +918,78 @@ export const LudoGame: React.FC<LudoGameProps> = ({ inChat = false, onGameAction
           )}
         </div>
       </div>
+
+      {/* Online Room Code Drawer */}
+      {(showRoomInput || onlineRoom) && (
+        <div className="w-full mb-2 p-2.5 rounded-2xl liquid-glass-inner border border-white/10 flex flex-wrap items-center justify-between gap-2 shadow-lg">
+          {onlineRoom ? (
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-xs font-bold text-white tracking-wide">
+                  Room: <span className="font-mono text-cyan-300">{onlineRoom}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={handleCopyCode}
+                  className="px-2 py-0.5 rounded-lg bg-white/10 hover:bg-white/20 text-[10px] font-semibold text-slate-200 flex items-center gap-1 transition"
+                  title="Copy Room Code"
+                >
+                  {copiedCode ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-white/70" />}
+                  <span>{copiedCode ? 'Copied!' : 'Copy'}</span>
+                </button>
+              </div>
+              <div className="flex items-center gap-1.5">
+                {onGameAction && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      soundEngine.playPop();
+                      onGameAction(`🎲 Play with me in Ludo Room ${onlineRoom}! Tap to join!`);
+                    }}
+                    className="px-2.5 py-1 rounded-xl liquid-pill-cta text-white text-[10px] font-bold flex items-center gap-1 shadow-md hover:scale-105 transition"
+                  >
+                    <Send className="w-3 h-3" />
+                    <span>Invite to Chat</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setOnlineRoom(null)}
+                  className="px-2 py-0.5 rounded-lg bg-rose-500/20 text-rose-300 text-[10px] hover:bg-rose-500/30 transition"
+                >
+                  Leave
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 w-full">
+              <input
+                type="text"
+                placeholder="Enter 6-char Room Code (e.g. VY-8492)"
+                value={roomInputText}
+                onChange={(e) => setRoomInputText(e.target.value)}
+                className="flex-1 px-3 py-1.5 rounded-xl bg-black/40 border border-white/15 text-xs text-white placeholder-white/40 focus:outline-none focus:border-cyan-400"
+              />
+              <button
+                type="button"
+                onClick={handleJoinCustomRoom}
+                className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition"
+              >
+                Join
+              </button>
+              <button
+                type="button"
+                onClick={handleCreateOnlineRoom}
+                className="px-3 py-1.5 rounded-xl liquid-pill-cta text-white font-bold text-xs flex items-center gap-1 shadow-md transition"
+              >
+                <Sparkles className="w-3 h-3 text-cyan-200" />
+                <span>Create New</span>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Handcrafted Tactile 15x15 Ludo Board SVG */}
       <div className="relative w-full aspect-square max-w-[340px] sm:max-w-[420px] rounded-[28px] overflow-hidden shadow-2xl border-2 border-white/15 bg-[#060911]">
@@ -1109,17 +1317,18 @@ export const LudoGame: React.FC<LudoGameProps> = ({ inChat = false, onGameAction
                   onClick={() => canMove && moveToken(t, diceValue!)}
                   className={canMove ? 'cursor-pointer' : 'pointer-events-none'}
                 >
-                  {/* Bouncing Gold Ring Indicator when token is eligible to move */}
+                  {/* Specular Pulsing Ring Indicator when token is eligible to move (No Yellow Circle) */}
                   {canMove && (
                     <circle
                       cx={px}
                       cy={py}
                       r="20"
                       fill="none"
-                      stroke="#FACC15"
-                      strokeWidth="2.8"
-                      strokeDasharray="5 3"
-                      className="animate-spin"
+                      stroke="#FFFFFF"
+                      strokeWidth="2.2"
+                      opacity="0.95"
+                      className="animate-pulse"
+                      filter={`drop-shadow(0 0 6px ${PLAYER_CONFIG[t.color].hex})`}
                     />
                   )}
 

@@ -176,6 +176,11 @@ export const ReelsPage: React.FC = () => {
                   loop
                   muted={isMuted}
                   playsInline
+                  preload="auto"
+                  onLoadedMetadata={(e) => {
+                    const v = e.currentTarget;
+                    if (v.currentTime === 0) v.currentTime = 0.05;
+                  }}
                   className="w-full h-full object-cover"
                 />
               ) : (
