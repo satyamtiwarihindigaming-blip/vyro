@@ -21,7 +21,6 @@ import { useTheme } from '../../context/ThemeContext';
 import { apiRequest } from '../../lib/api';
 import { User } from '../../types';
 import { AuthModal } from '../auth/AuthModal';
-import { ROYALTY_FREE_TRACKS, TRENDING_SEARCH_SUGGESTIONS } from '../../lib/musicCatalog';
 import { soundEngine } from '../../lib/soundEngine';
 
 export const Navbar: React.FC = () => {
@@ -81,17 +80,6 @@ export const Navbar: React.FC = () => {
     }
   };
 
-  const matchingTracks = searchTerm.trim()
-    ? ROYALTY_FREE_TRACKS.filter(
-        (t) =>
-          t.title.toLowerCase().includes(searchTerm.toLowerCase().trim()) ||
-          t.artist.toLowerCase().includes(searchTerm.toLowerCase().trim()) ||
-          (t.genre && t.genre.toLowerCase().includes(searchTerm.toLowerCase().trim()))
-      ).slice(0, 4)
-    : [];
-
-  const topTrendingTracks = ROYALTY_FREE_TRACKS.slice(0, 4);
-
   return (
     <>
       <header className="sticky top-0 z-30 w-full glass-panel border-b border-vyro-border/60 px-4 py-3 flex items-center justify-between gap-3">
@@ -111,7 +99,7 @@ export const Navbar: React.FC = () => {
                 setSearchTerm(e.target.value);
                 setShowDropdown(true);
               }}
-              placeholder="Fast search @username..."
+              placeholder="Search creators @username..."
               className="w-full bg-vyro-card/90 border border-vyro-border rounded-xl pl-10 pr-8 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-400/80 focus:ring-1 focus:ring-amber-400/25 transition-all"
             />
             {searchTerm && (
@@ -138,102 +126,26 @@ export const Navbar: React.FC = () => {
                 className="absolute left-0 right-0 top-11 z-50 rounded-2xl glass-panel border border-vyro-border shadow-2xl p-3 max-h-96 overflow-y-auto space-y-3"
               >
                 {!searchTerm.trim() ? (
-                  /* Empty state: Smart Trending & Discover Recommendations */
+                  /* Empty state: Featured Creators & Dedicated Music Notice */
                   <div className="space-y-3 select-none">
-                    {/* Quick Trending Searches */}
                     <div>
-                      <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-300 uppercase tracking-wider mb-2">
-                        <Flame className="w-3.5 h-3.5 fill-amber-400" />
-                        <span>Trending Searches & Discover</span>
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {TRENDING_SEARCH_SUGGESTIONS.slice(0, 6).map((sug, i) => (
-                          <button
-                            key={i}
-                            type="button"
-                            onClick={() => {
-                              soundEngine.playHapticClick();
-                              setSearchTerm(sug.query);
-                            }}
-                            className="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-semibold text-slate-300 hover:text-white transition-colors"
-                          >
-                            {sug.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Trending Soundtracks */}
-                    <div>
-                      <div className="flex items-center justify-between text-[11px] font-bold text-pink-300 uppercase tracking-wider mb-2">
-                        <div className="flex items-center gap-1.5">
-                          <Music className="w-3.5 h-3.5 text-pink-400" />
-                          <span>Top Viral Audio</span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setShowDropdown(false);
-                            navigate('/music');
-                          }}
-                          className="text-[10px] text-vyro-cyan hover:underline font-semibold"
-                        >
-                          View All Hub →
-                        </button>
-                      </div>
-                      <div className="space-y-1">
-                        {topTrendingTracks.map((track) => (
-                          <button
-                            key={track.id}
-                            type="button"
-                            onClick={() => {
-                              setShowDropdown(false);
-                              navigate(`/music`);
-                            }}
-                            className="w-full p-2 rounded-xl hover:bg-white/10 flex items-center justify-between text-left transition-colors"
-                          >
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              <img
-                                src={track.coverUrl}
-                                alt={track.title}
-                                className="w-8 h-8 rounded-lg object-cover border border-white/10 shrink-0"
-                              />
-                              <div className="min-w-0">
-                                <p className="text-xs font-bold text-white truncate">
-                                  {track.title}
-                                </p>
-                                <p className="text-[10px] text-slate-400 truncate">
-                                  {track.artist}
-                                </p>
-                              </div>
-                            </div>
-                            <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                              {track.genre || 'Trending'}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Verified Creators */}
-                    <div>
-                      <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-400 uppercase tracking-wider mb-1.5">
+                      <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-400 uppercase tracking-wider mb-2">
                         <Users className="w-3.5 h-3.5 text-amber-400" />
-                        <span>Featured Creators</span>
+                        <span>Featured Creators & Founders</span>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <button
                           type="button"
                           onClick={() => {
                             setShowDropdown(false);
                             navigate('/satyam');
                           }}
-                          className="flex-1 p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center gap-2 transition"
+                          className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center gap-2.5 transition text-left"
                         >
-                          <Avatar size="xs" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300" alt="satyam" />
-                          <div className="text-left min-w-0">
+                          <Avatar size="sm" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300" alt="satyam" />
+                          <div className="min-w-0">
                             <p className="text-xs font-bold text-white truncate">@satyam</p>
-                            <p className="text-[9px] text-amber-300 font-semibold truncate">Root Founder • 1B</p>
+                            <p className="text-[10px] text-amber-400 font-semibold truncate">Root Founder • 1B</p>
                           </div>
                         </button>
                         <button
@@ -242,95 +154,88 @@ export const Navbar: React.FC = () => {
                             setShowDropdown(false);
                             navigate('/vyro_admin');
                           }}
-                          className="flex-1 p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center gap-2 transition"
+                          className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center gap-2.5 transition text-left"
                         >
-                          <Avatar size="xs" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=300" alt="vyro_admin" />
-                          <div className="text-left min-w-0">
+                          <Avatar size="sm" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=300" alt="vyro_admin" />
+                          <div className="min-w-0">
                             <p className="text-xs font-bold text-white truncate">@vyro_admin</p>
-                            <p className="text-[9px] text-emerald-300 font-semibold truncate">Security Lead • 1B</p>
+                            <p className="text-[10px] text-emerald-400 font-semibold truncate">Security Lead • 1B</p>
                           </div>
                         </button>
                       </div>
                     </div>
+
+                    {/* Quick navigation to dedicated Music Hub */}
+                    <div className="pt-2 border-t border-white/10 flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+                        <Music className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Search songs, singers or playlists:</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowDropdown(false);
+                          navigate('/music');
+                        }}
+                        className="text-[11px] font-bold text-amber-400 hover:text-amber-300 hover:underline flex items-center gap-1"
+                      >
+                        <span>Music Hub →</span>
+                      </button>
+                    </div>
                   </div>
                 ) : (
-                  /* Typed State: Autocomplete with Creators & Soundtracks */
-                  <div className="space-y-3">
-                    {/* Matching Creators */}
-                    <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1 mb-1">
-                        Creators
+                  /* Typed State: Creators (@username) Search Only */
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between px-1 mb-1">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        Creators (@username)
                       </p>
-                      {isSearching ? (
-                        <p className="text-xs text-slate-400 p-2 text-center">Searching...</p>
-                      ) : searchResults.length === 0 ? (
-                        <p className="text-xs text-slate-500 p-1.5">No creators match "{searchTerm}"</p>
-                      ) : (
-                        <div className="space-y-1">
-                          {searchResults.map((u) => (
-                            <button
-                              key={u.id}
-                              type="button"
-                              onClick={() => {
-                                setShowDropdown(false);
-                                setSearchTerm('');
-                                navigate(`/${u.username}`);
-                              }}
-                              className="w-full p-2 rounded-xl hover:bg-white/10 flex items-center gap-2.5 text-left transition-colors"
-                            >
-                              <Avatar src={u.avatarUrl} alt={u.displayName} size="xs" />
-                              <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-1">
-                                  <span className="text-xs font-bold text-white truncate">
-                                    @{u.username}
-                                  </span>
-                                  <VerifiedBadge
-                                    isVerified={u.isVerified}
-                                    isPro={u.isPro}
-                                    proBadge={u.proBadge}
-                                  />
-                                </div>
-                                <p className="text-[11px] text-slate-400 truncate">{u.displayName}</p>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
+                      {searchResults.length > 0 && (
+                        <span className="text-[10px] text-slate-500 font-medium">
+                          {searchResults.length} found
+                        </span>
                       )}
                     </div>
 
-                    {/* Matching Soundtracks */}
-                    {matchingTracks.length > 0 && (
-                      <div className="pt-2 border-t border-white/10">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1 mb-1">
-                          Soundtracks
-                        </p>
-                        <div className="space-y-1">
-                          {matchingTracks.map((t) => (
-                            <button
-                              key={t.id}
-                              type="button"
-                              onClick={() => {
-                                setShowDropdown(false);
-                                setSearchTerm('');
-                                navigate(`/music?q=${encodeURIComponent(t.title)}`);
-                              }}
-                              className="w-full p-2 rounded-xl hover:bg-white/10 flex items-center gap-2.5 text-left transition-colors"
-                            >
-                              <img
-                                src={t.coverUrl}
-                                alt={t.title}
-                                className="w-8 h-8 rounded-lg object-cover border border-white/10 shrink-0"
-                              />
-                              <div className="min-w-0 flex-1">
-                                <p className="text-xs font-bold text-white truncate">{t.title}</p>
-                                <p className="text-[10px] text-slate-400 truncate">{t.artist}</p>
+                    {isSearching ? (
+                      <p className="text-xs text-slate-400 p-3 text-center">Searching creators...</p>
+                    ) : searchResults.length === 0 ? (
+                      <div className="p-3 text-center space-y-1">
+                        <p className="text-xs text-slate-400">No creators match "{searchTerm}"</p>
+                        <p className="text-[11px] text-slate-500">Check spelling or search another username</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        {searchResults.map((u) => (
+                          <button
+                            key={u.id}
+                            type="button"
+                            onClick={() => {
+                              setShowDropdown(false);
+                              setSearchTerm('');
+                              navigate(`/${u.username}`);
+                            }}
+                            className="w-full p-2.5 rounded-xl hover:bg-white/10 flex items-center gap-2.5 text-left transition-colors group"
+                          >
+                            <Avatar src={u.avatarUrl} alt={u.displayName} size="xs" />
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1">
+                                <span className="text-xs font-bold text-white group-hover:text-amber-400 transition-colors truncate">
+                                  @{u.username}
+                                </span>
+                                <VerifiedBadge
+                                  isVerified={u.isVerified}
+                                  isPro={u.isPro}
+                                  proBadge={u.proBadge}
+                                />
                               </div>
-                              <span className="text-[9px] px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-300 font-bold">
-                                Music
-                              </span>
-                            </button>
-                          ))}
-                        </div>
+                              <p className="text-[11px] text-slate-400 truncate">{u.displayName}</p>
+                            </div>
+                            <span className="text-[10px] font-bold text-slate-500 group-hover:text-slate-300">
+                              View →
+                            </span>
+                          </button>
+                        ))}
                       </div>
                     )}
                   </div>

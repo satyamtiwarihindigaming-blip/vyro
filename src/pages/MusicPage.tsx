@@ -185,9 +185,9 @@ export const MusicPage: React.FC = () => {
               setSelectedGenre(genre.id);
               setSearchQuery('');
             }}
-            className={`px-4 py-2 rounded-2xl text-xs font-extrabold whitespace-nowrap transition-all border ${
+            className={`px-4 py-2 rounded-2xl text-xs font-black whitespace-nowrap transition-all border ${
               selectedGenre === genre.id
-                ? 'bg-gradient-to-r from-vyro-primary to-vyro-accent text-white border-transparent shadow-[0_0_15px_rgba(139,92,246,0.4)] scale-105'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 border-amber-400/50 shadow-[0_0_18px_rgba(245,158,11,0.35)] scale-105'
                 : 'bg-vyro-card/80 border-white/10 text-slate-300 hover:text-white hover:border-white/25'
             }`}
           >
@@ -204,10 +204,10 @@ export const MusicPage: React.FC = () => {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search millions of tracks (Warning, Diljit, Arijit, Karan Aujla, Starboy, Pehle Bhi Main)..."
+            placeholder="Search songs, singers, artists, or genres (Warning, Diljit, Arijit, Karan Aujla, Starboy)..."
             className="w-full bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none"
           />
-          {isSearching && <Loader2 className="w-4 h-4 text-vyro-accent animate-spin shrink-0 mr-1" />}
+          {isSearching && <Loader2 className="w-4 h-4 text-amber-400 animate-spin shrink-0 mr-1" />}
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
