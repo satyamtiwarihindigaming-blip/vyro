@@ -359,7 +359,7 @@ export const PostCard: React.FC<PostCardProps> = ({
               }`}
               aria-label={post.isLiked ? 'Unlike post' : 'Like post'}
             >
-              <Heart className={`w-5 h-5 ${post.isLiked ? 'fill-rose-500' : ''}`} />
+              <Heart className={`w-5 h-5 icon-pop-rose ${post.isLiked ? 'fill-rose-500' : ''}`} />
               <span className="font-semibold text-xs" title={`${post.likesCount.toLocaleString()} likes`}>
                 {formatMetric(post.likesCount)}
               </span>
@@ -373,7 +373,7 @@ export const PostCard: React.FC<PostCardProps> = ({
               className="flex items-center gap-1.5 text-sm text-white/70 hover:text-white p-1.5 rounded-full transition-colors"
               aria-label="View comments"
             >
-              <MessageCircle className="w-5 h-5" />
+              <MessageCircle className="w-5 h-5 icon-pop-cyan" />
               <span className="font-semibold text-xs" title={`${post.commentsCount.toLocaleString()} comments`}>
                 {formatMetric(post.commentsCount)}
               </span>
@@ -387,7 +387,7 @@ export const PostCard: React.FC<PostCardProps> = ({
               className="text-white/70 hover:text-white p-1.5 rounded-full transition-colors"
               aria-label="Share post"
             >
-              <Send className="w-5 h-5" />
+              <Send className="w-5 h-5 icon-pop-ambient" />
             </motion.button>
           </div>
 
@@ -401,7 +401,7 @@ export const PostCard: React.FC<PostCardProps> = ({
             }`}
             aria-label={post.isSaved ? 'Unsave post' : 'Save post'}
           >
-            <Bookmark className={`w-5 h-5 ${post.isSaved ? 'fill-amber-400' : ''}`} />
+            <Bookmark className={`w-5 h-5 icon-pop-amber ${post.isSaved ? 'fill-amber-400' : ''}`} />
           </motion.button>
         </div>
 

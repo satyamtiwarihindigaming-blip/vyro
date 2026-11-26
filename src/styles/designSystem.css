@@ -231,3 +231,36 @@
 .safe-bottom {
   padding-bottom: calc(1rem + env(safe-area-inset-bottom));
 }
+
+/* ==========================================================================
+   Ambient Icon Pop & Specular Halo (Smooth 60fps Micro-Interactions)
+   ========================================================================== */
+
+.icon-pop-ambient {
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), filter 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, filter;
+}
+
+.icon-pop-ambient:hover {
+  transform: scale(1.15);
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+}
+
+.icon-pop-ambient:active {
+  transform: scale(0.92);
+}
+
+.icon-pop-amber:hover {
+  transform: scale(1.15);
+  filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.6));
+}
+
+.icon-pop-rose:hover {
+  transform: scale(1.15);
+  filter: drop-shadow(0 0 12px rgba(244, 63, 94, 0.6));
+}
+
+.icon-pop-cyan:hover {
+  transform: scale(1.15);
+  filter: drop-shadow(0 0 12px rgba(6, 182, 212, 0.6));
+}

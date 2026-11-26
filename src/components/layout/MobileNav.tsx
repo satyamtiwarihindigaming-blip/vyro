@@ -52,7 +52,7 @@ export const MobileNav: React.FC = () => {
               />
             )}
             <div className="relative">
-              <Icon className="w-5 h-5" />
+              <Icon className="w-5 h-5 icon-pop-ambient" />
               {item.hasBadge && (
                 <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 ring-2 ring-black" />
               )}

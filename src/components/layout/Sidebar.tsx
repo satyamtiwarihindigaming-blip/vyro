@@ -86,7 +86,7 @@ export const Sidebar: React.FC = () => {
                       isActive ? 'text-amber-400 bg-amber-400/10' : 'text-white/70 group-hover:text-white'
                     }`}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-4 h-4 icon-pop-ambient" />
                   </div>
                   <span>{item.name}</span>
                 </div>

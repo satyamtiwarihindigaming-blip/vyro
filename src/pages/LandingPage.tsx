@@ -2,17 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Camera,
-  Music,
-  Video,
-  Gamepad2,
-  ShieldCheck,
-  Lock,
-  Mail,
-  User,
   Check,
   AlertCircle,
-  Sparkles,
   ArrowRight,
 } from 'lucide-react';
 import { Logo } from '../components/layout/Logo';
@@ -139,108 +130,58 @@ export const LandingPage: React.FC<{ defaultMode?: 'login' | 'signup' }> = ({
       </div>
       <div className="silk-grain-overlay" aria-hidden="true" />
 
-      <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center z-10 py-8">
-        {/* Left: Apple Product Vision Hero */}
-        <motion.div
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="lg:col-span-7 space-y-6 text-center lg:text-left"
-        >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full liquid-glass-inner text-xs font-semibold text-white/80">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>The Human-Designed Social Operating System</span>
-          </div>
-
-          <div className="space-y-3">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.08]">
-              Where Creators <br />
-              <span className="bg-gradient-to-r from-amber-300 via-rose-300 to-violet-300 bg-clip-text text-transparent">
-                Actually Connect.
-              </span>
-            </h1>
-            <p className="text-base sm:text-lg text-white/60 max-w-xl mx-auto lg:mx-0 font-normal leading-relaxed">
-              Zero fake bots. Zero algorithm manipulation. Pure 320kbps full-length music, real-time WebRTC group calls, and authentic Cyber Ludo King arena.
+      {/* Centered Pure Auth Card */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 16 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full max-w-md z-10 py-6"
+      >
+        <div className="liquid-glass-elevated rounded-[32px] p-6 sm:p-8 shadow-2xl border border-white/20">
+          {/* Logo & Headline */}
+          <div className="flex flex-col items-center justify-center mb-6 text-center">
+            <Logo size="lg" />
+            <p className="text-xs text-white/50 mt-2 font-medium tracking-wide">
+              Create, Connect, Express
             </p>
           </div>
 
-          {/* Floating Spatial Feature Badges */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-            <div className="p-4 rounded-2xl liquid-glass-inner space-y-1.5 text-left">
-              <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-pink-400">
-                <Music className="w-4 h-4" />
-              </div>
-              <h4 className="text-xs font-semibold text-white">Apple Music Engine</h4>
-              <p className="text-[11px] text-white/50">35+ studio tracks with auto-play next & crossfade.</p>
-            </div>
+          {/* Segmented Sliding Tabs */}
+          <div className="relative flex p-1 rounded-full bg-white/[0.08] border border-white/15 mb-6">
+            <button
+              type="button"
+              onClick={() => switchMode('login')}
+              className={`relative flex-1 py-2.5 text-xs font-semibold transition-colors z-10 ${
+                mode === 'login' ? 'text-slate-950 font-bold' : 'text-white/60 hover:text-white'
+              }`}
+            >
+              {mode === 'login' && (
+                <motion.div
+                  layoutId="authTabPill"
+                  className="absolute inset-0 rounded-full bg-white shadow-md -z-10"
+                  transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+                />
+              )}
+              <span>Sign In</span>
+            </button>
 
-            <div className="p-4 rounded-2xl liquid-glass-inner space-y-1.5 text-left">
-              <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-amber-400">
-                <Gamepad2 className="w-4 h-4" />
-              </div>
-              <h4 className="text-xs font-semibold text-white">Ludo King 2.0</h4>
-              <p className="text-[11px] text-white/50">Red vs Yellow opposite corners & fair crypto dice.</p>
-            </div>
-
-            <div className="p-4 rounded-2xl liquid-glass-inner space-y-1.5 text-left">
-              <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-cyan-400">
-                <Video className="w-4 h-4" />
-              </div>
-              <h4 className="text-xs font-semibold text-white">FaceTime Calls</h4>
-              <p className="text-[11px] text-white/50">Crystal clear voice & video with WebRTC signaling.</p>
-            </div>
+            <button
+              type="button"
+              onClick={() => switchMode('signup')}
+              className={`relative flex-1 py-2.5 text-xs font-semibold transition-colors z-10 ${
+                mode === 'signup' ? 'text-slate-950 font-bold' : 'text-white/60 hover:text-white'
+              }`}
+            >
+              {mode === 'signup' && (
+                <motion.div
+                  layoutId="authTabPill"
+                  className="absolute inset-0 rounded-full bg-white shadow-md -z-10"
+                  transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+                />
+              )}
+              <span>Create Account</span>
+            </button>
           </div>
-        </motion.div>
-
-        {/* Right: Centerpiece Liquid Glass Auth Card */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-          className="lg:col-span-5"
-        >
-          <div className="liquid-glass-elevated rounded-[32px] p-6 sm:p-8 shadow-2xl border-white/20">
-            {/* Logo */}
-            <div className="flex justify-center mb-6">
-              <Logo size="md" />
-            </div>
-
-            {/* Segmented Sliding Tabs */}
-            <div className="relative flex p-1 rounded-full bg-white/[0.08] border border-white/15 mb-6">
-              <button
-                type="button"
-                onClick={() => switchMode('login')}
-                className={`relative flex-1 py-2 text-xs font-semibold transition-colors z-10 ${
-                  mode === 'login' ? 'text-slate-950' : 'text-white/60 hover:text-white'
-                }`}
-              >
-                {mode === 'login' && (
-                  <motion.div
-                    layoutId="authTabPill"
-                    className="absolute inset-0 rounded-full bg-white shadow-md -z-10"
-                    transition={{ type: 'spring', stiffness: 450, damping: 32 }}
-                  />
-                )}
-                <span>Sign In</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => switchMode('signup')}
-                className={`relative flex-1 py-2 text-xs font-semibold transition-colors z-10 ${
-                  mode === 'signup' ? 'text-slate-950' : 'text-white/60 hover:text-white'
-                }`}
-              >
-                {mode === 'signup' && (
-                  <motion.div
-                    layoutId="authTabPill"
-                    className="absolute inset-0 rounded-full bg-white shadow-md -z-10"
-                    transition={{ type: 'spring', stiffness: 450, damping: 32 }}
-                  />
-                )}
-                <span>Create Account</span>
-              </button>
-            </div>
 
             {/* Alert Banners */}
             <AnimatePresence mode="wait">
@@ -379,7 +320,6 @@ export const LandingPage: React.FC<{ defaultMode?: 'login' | 'signup' }> = ({
             </div>
           </div>
         </motion.div>
-      </div>
     </div>
   );
 };
