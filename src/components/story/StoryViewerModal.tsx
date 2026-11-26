@@ -76,10 +76,32 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
   const storyAudioRef = useRef<HTMLAudioElement | null>(null);
   const currentCreatorGroup = groupedStories[creatorIndex] || groupedStories[0];
   const currentStory = currentCreatorGroup?.items[segmentIndex] || currentCreatorGroup?.items[0];
+  const creatorUser = currentCreatorGroup?.user || (currentStory as any)?.user || {
+    username: 'creator',
+    displayName: 'Creator',
+    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+    isVerified: false,
+    isPro: false,
+  };
 
   // Story Duration: 5 seconds for image, dynamic for video
   const DURATION_MS = 5000;
   const STEP_INTERVAL_MS = 50;
+
+  // Keyboard Navigation: ArrowRight, ArrowLeft, Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') handleNext();
+      if (e.key === 'ArrowLeft') handlePrev();
+      if (e.key === 'Escape') onClose();
+      if (e.key === ' ') {
+        e.preventDefault();
+        setIsPaused((p) => !p);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [creatorIndex, segmentIndex, currentCreatorGroup?.items.length]);
 
   // Play Story Background Music if present
   useEffect(() => {
@@ -243,7 +265,7 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
   if (!currentStory) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex items-center justify-center select-none overflow-hidden">
+    <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-2xl flex items-center justify-center select-none overflow-hidden">
       {/* Background Ambience Shimmer */}
       <div
         className="absolute inset-0 bg-cover bg-center blur-3xl opacity-20 scale-125 transition-all duration-700 pointer-events-none"
@@ -277,10 +299,10 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.85, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-        className="relative w-full max-w-[420px] h-[92vh] max-h-[820px] rounded-3xl overflow-hidden shadow-2xl border border-white/10 bg-black flex flex-col justify-between"
+        className="relative w-full h-full md:max-w-[430px] md:h-[94vh] md:max-h-[860px] md:rounded-[36px] overflow-hidden shadow-2xl border border-white/10 bg-black flex flex-col justify-between"
       >
         {/* Top Multi-Segment Progress Indicators with Liquid Glass Glow */}
-        <div className="absolute top-3 left-3 right-3 z-30 flex items-center gap-1.5">
+        <div className="absolute top-3 left-3 right-3 z-30 flex items-center gap-1.5 pt-[env(safe-area-inset-top)]">
           {currentCreatorGroup.items.map((item, idx) => {
             const isCompleted = idx < segmentIndex;
             const isActive = idx === segmentIndex;
@@ -308,19 +330,19 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
         >
           <div className="flex items-center gap-2.5">
             <Avatar
-              src={currentCreatorGroup.user.avatarUrl}
-              alt={currentCreatorGroup.user.displayName}
+              src={creatorUser.avatarUrl}
+              alt={creatorUser.displayName}
               size="sm"
             />
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="text-xs font-black text-white leading-none">
-                  {currentCreatorGroup.user.username}
+                  {creatorUser.username}
                 </span>
                 <VerifiedBadge
-                  isVerified={currentCreatorGroup.user.isVerified}
-                  isPro={currentCreatorGroup.user.isPro}
-                  proBadge={currentCreatorGroup.user.proBadge}
+                  isVerified={creatorUser.isVerified}
+                  isPro={creatorUser.isPro}
+                  proBadge={creatorUser.proBadge}
                 />
               </div>
               <div className="flex items-center gap-2 mt-0.5">
@@ -369,7 +391,12 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
               autoPlay
               playsInline
               loop
+              preload="auto"
               muted={isMuted}
+              onLoadedMetadata={(e) => {
+                e.currentTarget.currentTime = 0.05;
+                e.currentTarget.play().catch(() => {});
+              }}
               className="w-full h-full object-cover"
             />
           ) : (
@@ -397,7 +424,7 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
 
           {/* Interactive Music Sticker (If track exists) */}
           <div className="absolute top-20 left-4 z-20 flex items-center gap-2 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 shadow-lg pointer-events-none">
-            <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-vyro-primary to-vyro-accent flex items-center justify-center animate-spin">
+            <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-cyan-400 to-violet-600 flex items-center justify-center animate-spin">
               <Music className="w-3 h-3 text-white" />
             </div>
             <span className="text-[11px] font-bold text-white tracking-wide truncate max-w-[180px]">
@@ -405,9 +432,9 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
             </span>
             {currentStory.musicTrack && (
               <div className="flex items-center gap-0.5 ml-1">
-                <span className="w-0.5 h-3 bg-vyro-cyan animate-pulse" />
-                <span className="w-0.5 h-4 bg-vyro-primary animate-bounce" />
-                <span className="w-0.5 h-2 bg-vyro-accent animate-pulse" />
+                <span className="w-0.5 h-3 bg-cyan-400 animate-pulse" />
+                <span className="w-0.5 h-4 bg-violet-400 animate-bounce" />
+                <span className="w-0.5 h-2 bg-rose-400 animate-pulse" />
               </div>
             )}
           </div>

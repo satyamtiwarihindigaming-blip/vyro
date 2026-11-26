@@ -15,6 +15,8 @@ import {
   Repeat1,
   Shuffle,
   X,
+  RotateCcw,
+  RotateCw,
 } from 'lucide-react';
 import { soundEngine } from '../../lib/soundEngine';
 import { SPRING_SHEET, SPRING_SNAPPY } from '../../lib/motion';
@@ -57,6 +59,14 @@ export const FloatingAudioPlayer: React.FC = () => {
   }, [currentTrack?.id, isPlaying]);
 
   if (!currentTrack) return null;
+
+  const seekRelative = (deltaSecs: number) => {
+    soundEngine.playHapticClick();
+    if (duration > 0) {
+      const target = Math.max(0, Math.min(duration, currentTime + deltaSecs));
+      seek((target / duration) * 100);
+    }
+  };
 
   const formatTime = (secs: number) => {
     if (isNaN(secs) || secs < 0) return '0:00';
@@ -204,18 +214,33 @@ export const FloatingAudioPlayer: React.FC = () => {
                 </button>
               </div>
 
-            {/* Album Art & Title with Dynamic Ambient Glow */}
+            {/* Album Art & Title with Dynamic Ambient Glow & Swipe Next/Prev */}
             <div className="flex items-center gap-4 pt-1">
               <div className="relative shrink-0">
                 {/* Glow behind art */}
                 <div
-                  className="absolute inset-0 rounded-2xl blur-xl opacity-50 scale-105"
+                  className={`absolute inset-0 rounded-2xl blur-xl transition-opacity duration-500 ${
+                    isPlaying ? 'opacity-70 scale-110' : 'opacity-40 scale-100'
+                  }`}
                   style={{ backgroundImage: `url(${currentTrack.coverUrl})`, backgroundSize: 'cover' }}
                 />
-                <img
+                <motion.img
+                  drag="x"
+                  dragConstraints={{ left: 0, right: 0 }}
+                  dragElastic={0.4}
+                  onDragEnd={(_, info) => {
+                    if (info.offset.x < -35) {
+                      soundEngine.playPop();
+                      playNext();
+                    } else if (info.offset.x > 35) {
+                      soundEngine.playPop();
+                      playPrev();
+                    }
+                  }}
                   src={currentTrack.coverUrl}
                   alt={currentTrack.title}
-                  className="relative w-16 h-16 rounded-2xl object-cover ring-1 ring-white/25 shadow-xl"
+                  className="relative w-16 h-16 rounded-2xl object-cover ring-1 ring-white/25 shadow-xl cursor-grab active:cursor-grabbing"
+                  title="Swipe left/right to change tracks"
                 />
               </div>
 
@@ -235,7 +260,7 @@ export const FloatingAudioPlayer: React.FC = () => {
               </div>
             </div>
 
-            {/* Progress Slider */}
+            {/* Progress Slider & Touch Jump Seek (-10s / +10s) */}
             <div className="space-y-1.5 pt-2">
               <div
                 className="w-full h-1.5 bg-white/15 hover:h-2 rounded-full cursor-pointer relative overflow-hidden transition-all"
@@ -251,9 +276,31 @@ export const FloatingAudioPlayer: React.FC = () => {
                 />
               </div>
 
-              <div className="flex justify-between text-[11px] text-white/45 font-mono">
-                <span>{formatTime(currentTime)}</span>
-                <span>{formatTime(duration)}</span>
+              <div className="flex items-center justify-between text-[11px] text-white/45 font-mono">
+                <div className="flex items-center gap-1.5">
+                  <span>{formatTime(currentTime)}</span>
+                  <button
+                    type="button"
+                    onClick={() => seekRelative(-10)}
+                    className="px-1.5 py-0.5 rounded-md bg-white/5 hover:bg-white/15 text-[10px] text-white/60 hover:text-white transition flex items-center gap-0.5"
+                    title="Jump back 10 seconds"
+                  >
+                    <RotateCcw className="w-2.5 h-2.5" />
+                    <span>-10s</span>
+                  </button>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => seekRelative(10)}
+                    className="px-1.5 py-0.5 rounded-md bg-white/5 hover:bg-white/15 text-[10px] text-white/60 hover:text-white transition flex items-center gap-0.5"
+                    title="Jump forward 10 seconds"
+                  >
+                    <span>+10s</span>
+                    <RotateCw className="w-2.5 h-2.5" />
+                  </button>
+                  <span>{formatTime(duration)}</span>
+                </div>
               </div>
             </div>
 

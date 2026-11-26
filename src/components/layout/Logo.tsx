@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { soundEngine } from '../../lib/soundEngine';
 
 export interface LogoProps {
@@ -77,32 +78,50 @@ export const Logo: React.FC<LogoProps> = ({ size = 'md', showText = true, onLogo
                 </linearGradient>
               </defs>
 
-              {/* Left Aerodynamic Wing */}
-              <path
+              {/* Left Aerodynamic Wing with Vector Draw */}
+              <motion.path
                 d="M8 10L24 40L21 40L5 13C4.5 12 5 10 6.5 10H8Z"
                 fill="url(#vyro-wing-left)"
+                initial={{ pathLength: 0, opacity: 0.6 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: 0.8, ease: 'easeOut' }}
               />
 
-              {/* Right Aerodynamic Wing */}
-              <path
+              {/* Right Aerodynamic Wing with Vector Draw */}
+              <motion.path
                 d="M40 10L24 40L27 40L43 13C43.5 12 43 10 41.5 10H40Z"
                 fill="url(#vyro-wing-right)"
+                initial={{ pathLength: 0, opacity: 0.6 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: 0.8, delay: 0.1, ease: 'easeOut' }}
               />
 
               {/* Stereoscopic Inner Wing Ribbons */}
-              <path
+              <motion.path
                 d="M14 11L24 33L19 33L11 15C10.5 14 11 12 12.5 11H14Z"
                 fill="url(#vyro-prism)"
-                opacity="0.9"
+                initial={{ opacity: 0.4, scale: 0.95 }}
+                animate={{ opacity: 0.9, scale: 1 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
               />
-              <path
+              <motion.path
                 d="M34 11L24 33L29 33L37 15C37.5 14 37 12 35.5 11H34Z"
                 fill="url(#vyro-wing-right)"
-                opacity="0.9"
+                initial={{ opacity: 0.4, scale: 0.95 }}
+                animate={{ opacity: 0.9, scale: 1 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
               />
 
               {/* Central Kinetic Specular Node */}
-              <circle cx="24" cy="20" r="2.8" fill="#FFFFFF" filter="drop-shadow(0 0 6px rgba(56,189,248,0.8))" />
+              <motion.circle
+                cx="24"
+                cy="20"
+                r="2.8"
+                fill="#FFFFFF"
+                filter="drop-shadow(0 0 6px rgba(56,189,248,0.8))"
+                animate={{ scale: [1, 1.25, 1], opacity: [0.9, 1, 0.9] }}
+                transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut' }}
+              />
             </svg>
           </div>
         </div>

@@ -142,13 +142,17 @@ export const MusicPage: React.FC = () => {
                 />
                 <button
                   onClick={() => handlePlayToggle(topSpotlight)}
-                  className="absolute inset-0 m-auto w-12 h-12 rounded-full liquid-pill-cta text-white flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-all"
+                  className={`absolute inset-0 m-auto w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+                    isPlaying && currentTrack?.id === topSpotlight.id
+                      ? 'bg-gradient-to-tr from-cyan-500/50 to-blue-600/50 border border-cyan-400 text-cyan-200 shadow-[0_0_24px_rgba(6,182,212,0.5)] scale-105'
+                      : 'bg-black/60 backdrop-blur-md border border-white/25 text-white hover:bg-white/20 hover:scale-105 active:scale-95 shadow-xl'
+                  }`}
                   aria-label="Play spotlight track"
                 >
                   {isPlaying && currentTrack?.id === topSpotlight.id ? (
-                    <Pause className="w-5 h-5 text-white" />
+                    <Pause className="w-5 h-5 text-cyan-300 fill-current" />
                   ) : (
-                    <Play className="w-5 h-5 ml-1 text-white" />
+                    <Play className="w-5 h-5 ml-0.5 text-white fill-white/80" />
                   )}
                 </button>
               </div>
@@ -363,13 +367,17 @@ export const MusicPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handlePlayToggle(track)}
-                    className="w-11 h-11 rounded-2xl liquid-pill-cta text-white flex items-center justify-center shrink-0 shadow-md hover:scale-105 active:scale-95 transition-transform"
+                    className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 transition-all ${
+                      isThisTrackPlaying || isExternalActive
+                        ? 'bg-gradient-to-tr from-cyan-500/40 to-blue-600/40 border border-cyan-400/80 text-cyan-200 shadow-[0_0_20px_rgba(6,182,212,0.4)] scale-105'
+                        : 'bg-white/10 hover:bg-white/20 border border-white/20 text-white shadow-md hover:scale-105 active:scale-95'
+                    }`}
                     aria-label={isThisTrackPlaying ? 'Pause track' : 'Play track'}
                   >
                     {isThisTrackPlaying || isExternalActive ? (
-                      <Pause className="w-5 h-5 text-white" />
+                      <Pause className="w-5 h-5 text-cyan-300 fill-current" />
                     ) : (
-                      <Play className="w-5 h-5 ml-0.5 text-white" />
+                      <Play className="w-5 h-5 ml-0.5 text-white fill-white/90" />
                     )}
                   </button>
 
