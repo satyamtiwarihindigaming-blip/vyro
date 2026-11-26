@@ -1,116 +1,233 @@
-/* VYRO Global Design System — Handcrafted Obsidian & Saffron Tokens */
+/* VYRO Apple visionOS / iOS "Liquid Glass" Global Design System */
 
 :root {
-  /* Surfaces (Deep Navy to Ink Canvas) */
-  --surface-canvas: #060911;
-  --surface-raised: #0b101d;
-  --surface-card: #0f172a;
-  --surface-glass: rgba(11, 16, 29, 0.72);
-  --surface-glass-border-light: rgba(255, 255, 255, 0.12);
-  --surface-glass-border-dark: rgba(255, 255, 255, 0.03);
+  /* Living Silk Mesh Palette */
+  --silk-bg: #060812;
+  --silk-indigo: #1e3a8a;
+  --silk-violet: #6d28d9;
+  --silk-rose: #f43f5e;
+  --silk-cyan: #0ea5e9;
 
-  /* Distinctive Non-AI Accent: Warm Solar Saffron */
+  /* Saffron Accent */
   --accent-saffron: #f59e0b;
   --accent-saffron-light: #fbbf24;
   --accent-saffron-dark: #d97706;
-  --accent-saffron-glow: rgba(245, 158, 11, 0.45);
 
-  /* Secondary Coral Accent */
-  --accent-coral: #f43f5e;
-  --accent-coral-glow: rgba(244, 63, 94, 0.45);
-
-  /* Ludo Acrylic Palette (High-Saturation Physical Board Game) */
+  /* Ludo King Authentic Acrylic Palette */
   --ludo-red: #dc2626;
-  --ludo-red-light: #f87171;
-  --ludo-red-dark: #991b1b;
-  --ludo-red-glow: rgba(220, 38, 38, 0.5);
-
   --ludo-green: #059669;
-  --ludo-green-light: #34d399;
-  --ludo-green-dark: #065f46;
-  --ludo-green-glow: rgba(5, 150, 105, 0.5);
-
-  /* True Bright Yellow (Ludo King Grade - Never Orange) */
   --ludo-yellow: #facc15;
-  --ludo-yellow-light: #fef08a;
-  --ludo-yellow-dark: #ca8a04;
-  --ludo-yellow-glow: rgba(250, 204, 21, 0.55);
-
   --ludo-blue: #2563eb;
-  --ludo-blue-light: #60a5fa;
-  --ludo-blue-dark: #1e40af;
-  --ludo-blue-glow: rgba(37, 99, 235, 0.5);
 
-  /* Motion Curves & Springs */
-  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --duration-fast: 150ms;
-  --duration-normal: 250ms;
+  /* Font */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", system-ui, sans-serif;
 }
 
-/* Authentic Handcrafted Glassmorphism */
-.glass-panel {
-  background: var(--surface-glass);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border: 1px solid var(--surface-glass-border-light);
-  box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+/* ==========================================================================
+   Liquid Glass Materials (Apple visionOS / iOS Grade)
+   ========================================================================== */
+
+/* Standard Floating Glass Card & Container */
+.liquid-glass {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0.04) 100%);
+  backdrop-filter: blur(28px) saturate(185%);
+  -webkit-backdrop-filter: blur(28px) saturate(185%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.35),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.06),
+    0 20px 50px rgba(0, 0, 0, 0.35);
+  border-radius: 26px;
+  position: relative;
+  overflow: hidden;
 }
 
-.glass-card {
-  background: rgba(15, 23, 42, 0.55);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  transition: all var(--duration-normal) var(--ease-spring);
+/* Elevated Floating Navigation, Modals, Docks & Audio Capsule */
+.liquid-glass-elevated {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.06) 100%);
+  backdrop-filter: blur(36px) saturate(200%);
+  -webkit-backdrop-filter: blur(36px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  box-shadow:
+    inset 0 1px 1.5px rgba(255, 255, 255, 0.45),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.08),
+    0 28px 65px rgba(0, 0, 0, 0.5);
+  border-radius: 30px;
 }
 
-.glass-card:hover {
-  background: rgba(15, 23, 42, 0.75);
-  border-color: rgba(245, 158, 11, 0.35);
-  transform: translateY(-2px);
-  box-shadow: 0 14px 28px -6px rgba(0, 0, 0, 0.7), 0 0 16px rgba(245, 158, 11, 0.15);
+/* Lightweight Nested Glass Inner (zero nested blur for 60fps performance) */
+.liquid-glass-inner {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Tactile Pressed Feedback */
-.tactile-press {
-  transition: transform var(--duration-fast) var(--ease-bounce), filter var(--duration-fast) ease;
+.liquid-glass-inner:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.22);
 }
-.tactile-press:active {
+
+/* Luminous Apple Pill CTA Button */
+.liquid-pill-cta {
+  background: rgba(255, 255, 255, 0.92);
+  color: #020617;
+  font-weight: 600;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow:
+    0 0 20px rgba(255, 255, 255, 0.25),
+    inset 0 1px 1px rgba(255, 255, 255, 0.8);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.liquid-pill-cta:hover {
+  background: #ffffff;
+  box-shadow:
+    0 0 28px rgba(255, 255, 255, 0.45),
+    inset 0 1px 1.5px rgba(255, 255, 255, 1);
+  transform: translateY(-1px);
+}
+
+.liquid-pill-cta:active {
   transform: scale(0.96);
-  filter: brightness(0.92);
+  background: rgba(255, 255, 255, 0.85);
 }
 
-/* Drifting Ambient Background Glow Orbs */
-.ambient-glow-orb-1 {
+/* Backwards compatibility aliases */
+.glass-panel {
+  @apply liquid-glass-elevated;
+}
+.glass-card {
+  @apply liquid-glass;
+}
+
+/* Cursor Spotlight Sheen inside GlassCard */
+.glass-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    600px circle at var(--mouse-x, -1000px) var(--mouse-y, -1000px),
+    rgba(255, 255, 255, 0.08),
+    transparent 40%
+  );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.glass-card:hover::before {
+  opacity: 1;
+}
+
+/* ==========================================================================
+   Living Silk Mesh Background (Apple visionOS Spatial Canvas)
+   ========================================================================== */
+
+.living-silk-mesh {
   position: fixed;
-  top: -10%;
+  inset: 0;
+  overflow: hidden;
+  background-color: var(--silk-bg);
+  pointer-events: none;
+  z-index: -10;
+}
+
+/* 4 Large, Slow-Drifting Silk Gradients (GPU accelerated) */
+.silk-orb-indigo {
+  position: absolute;
+  top: -15%;
+  left: 10%;
+  width: 58vw;
+  height: 58vw;
+  max-width: 800px;
+  max-height: 800px;
+  background: radial-gradient(circle, rgba(30, 58, 138, 0.45) 0%, transparent 68%);
+  filter: blur(120px);
+  will-change: transform;
+  animation: driftSilk1 24s ease-in-out infinite alternate;
+}
+
+.silk-orb-violet {
+  position: absolute;
+  top: 35%;
+  right: -10%;
+  width: 52vw;
+  height: 52vw;
+  max-width: 720px;
+  max-height: 720px;
+  background: radial-gradient(circle, rgba(109, 40, 217, 0.40) 0%, transparent 65%);
+  filter: blur(120px);
+  will-change: transform;
+  animation: driftSilk2 28s ease-in-out infinite alternate-reverse;
+}
+
+.silk-orb-rose {
+  position: absolute;
+  bottom: -15%;
   left: 20%;
-  width: 480px;
-  height: 480px;
-  background: radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, transparent 70%);
-  filter: blur(60px);
-  pointer-events: none;
-  z-index: 0;
-  animation: floatOrb 22s ease-in-out infinite alternate;
+  width: 50vw;
+  height: 50vw;
+  max-width: 700px;
+  max-height: 700px;
+  background: radial-gradient(circle, rgba(244, 63, 94, 0.30) 0%, transparent 65%);
+  filter: blur(120px);
+  will-change: transform;
+  animation: driftSilk3 22s ease-in-out infinite alternate;
 }
 
-.ambient-glow-orb-2 {
+.silk-orb-cyan {
+  position: absolute;
+  top: 15%;
+  right: 25%;
+  width: 44vw;
+  height: 44vw;
+  max-width: 620px;
+  max-height: 620px;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.32) 0%, transparent 65%);
+  filter: blur(120px);
+  will-change: transform;
+  animation: driftSilk4 26s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes driftSilk1 {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(60px, 40px, 0) scale(1.08); }
+  100% { transform: translate3d(-40px, 60px, 0) scale(0.95); }
+}
+
+@keyframes driftSilk2 {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-50px, -45px, 0) scale(1.1); }
+  100% { transform: translate3d(40px, -30px, 0) scale(0.92); }
+}
+
+@keyframes driftSilk3 {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(45px, -50px, 0) scale(1.06); }
+  100% { transform: translate3d(-35px, 30px, 0) scale(0.96); }
+}
+
+@keyframes driftSilk4 {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-40px, 50px, 0) scale(1.12); }
+  100% { transform: translate3d(50px, -40px, 0) scale(0.94); }
+}
+
+/* Subtle Film-Grain Noise Overlay (Anti-Banding) */
+.silk-grain-overlay {
   position: fixed;
-  bottom: 5%;
-  right: 15%;
-  width: 420px;
-  height: 420px;
-  background: radial-gradient(circle, rgba(244, 63, 94, 0.07) 0%, transparent 70%);
-  filter: blur(55px);
+  inset: 0;
   pointer-events: none;
-  z-index: 0;
-  animation: floatOrb 18s ease-in-out infinite alternate-reverse;
+  z-index: -9;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
-@keyframes floatOrb {
-  0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(40px, -30px) scale(1.1); }
-  100% { transform: translate(-30px, 40px) scale(0.95); }
+/* Safe-area padding helper */
+.safe-bottom {
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom));
 }

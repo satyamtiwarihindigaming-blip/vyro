@@ -40,44 +40,50 @@ import { LudoGame } from '../components/games/LudoGame';
 import { Button } from '../components/ui/Button';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { soundEngine } from '../lib/soundEngine';
+import { SPRING_SNAPPY, SPRING_SMOOTH } from '../lib/motion';
 
 type ChatTheme = 'ios_midnight' | 'ios_saffron' | 'ios_rose' | 'ios_emerald' | 'ios_cyber';
 
-const CHAT_THEMES: Record<ChatTheme, { name: string; bg: string; badge: string; bubbleClass: string }> = {
+const CHAT_THEMES: Record<ChatTheme, { name: string; bg: string; badge: string; bubbleClass: string; accent: string }> = {
   ios_midnight: {
     name: 'Apple Midnight Glass',
-    bg: 'bg-[#060911] shadow-[inset_0_0_100px_rgba(0,0,0,0.9)]',
-    badge: 'from-slate-700 to-slate-950',
-    bubbleClass: 'from-slate-800 to-slate-900 text-white border-white/20',
+    bg: 'bg-black/60 shadow-[inset_0_0_100px_rgba(0,0,0,0.9)]',
+    badge: 'from-slate-700 to-slate-900',
+    bubbleClass: 'from-white/20 to-white/10 text-white border-white/25',
+    accent: 'text-white/80',
   },
   ios_saffron: {
     name: 'Solar Saffron iOS',
-    bg: 'bg-gradient-to-b from-[#1a1205]/90 via-[#060911] to-[#120a02]/95',
+    bg: 'bg-gradient-to-b from-amber-950/30 via-black/60 to-black/80',
     badge: 'from-amber-500 to-amber-700',
-    bubbleClass: 'from-amber-500 via-amber-400 to-amber-600 text-slate-950 border-amber-300/40',
+    bubbleClass: 'from-amber-500/80 via-amber-600/80 to-amber-700/80 text-white border-amber-300/40',
+    accent: 'text-amber-400',
   },
   ios_rose: {
     name: 'Neon Rose Liquid',
-    bg: 'bg-gradient-to-b from-[#220713]/80 via-[#060911] to-[#19040c]/90',
+    bg: 'bg-gradient-to-b from-rose-950/30 via-black/60 to-black/80',
     badge: 'from-rose-500 to-pink-700',
-    bubbleClass: 'from-rose-500 via-rose-400 to-pink-600 text-white border-rose-300/40',
+    bubbleClass: 'from-rose-500/80 via-pink-600/80 to-rose-700/80 text-white border-rose-300/40',
+    accent: 'text-rose-400',
   },
   ios_emerald: {
     name: 'Aurora Emerald',
-    bg: 'bg-gradient-to-b from-[#031c13]/80 via-[#060911] to-[#01140e]/90',
+    bg: 'bg-gradient-to-b from-emerald-950/30 via-black/60 to-black/80',
     badge: 'from-emerald-500 to-teal-700',
-    bubbleClass: 'from-emerald-500 via-emerald-400 to-teal-600 text-slate-950 border-emerald-300/40',
+    bubbleClass: 'from-emerald-500/80 via-teal-600/80 to-emerald-700/80 text-white border-emerald-300/40',
+    accent: 'text-emerald-400',
   },
   ios_cyber: {
     name: 'Cyber Crystal Cyan',
-    bg: 'bg-gradient-to-b from-[#021824]/80 via-[#060911] to-[#040e1f]/90',
+    bg: 'bg-gradient-to-b from-cyan-950/30 via-black/60 to-black/80',
     badge: 'from-cyan-500 to-blue-700',
-    bubbleClass: 'from-cyan-500 via-cyan-400 to-blue-600 text-slate-950 border-cyan-300/40',
+    bubbleClass: 'from-cyan-500/80 via-blue-600/80 to-indigo-700/80 text-white border-cyan-300/40',
+    accent: 'text-cyan-400',
   },
 };
 
 // Audio Message Bubble Component with Waveform Player
-const AudioMessageBubble: React.FC<{ url: string; isMe: boolean }> = ({ url, isMe }) => {
+const AudioMessageBubble: React.FC<{ url: string; isMe: boolean; accentColor?: string }> = ({ url, isMe }) => {
   const [playing, setPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -104,8 +110,8 @@ const AudioMessageBubble: React.FC<{ url: string; isMe: boolean }> = ({ url, isM
       <button
         type="button"
         onClick={toggle}
-        className={`w-9 h-9 rounded-full flex items-center justify-center transition-transform active:scale-90 shadow-md ${
-          isMe ? 'bg-slate-950 text-amber-400' : 'bg-amber-500 text-slate-950'
+        className={`w-8 h-8 rounded-full flex items-center justify-center transition-transform active:scale-90 shadow-md ${
+          isMe ? 'bg-white/20 text-white' : 'liquid-glass-elevated text-white'
         }`}
         aria-label={playing ? 'Pause Voice Note' : 'Play Voice Note'}
       >
@@ -118,14 +124,14 @@ const AudioMessageBubble: React.FC<{ url: string; isMe: boolean }> = ({ url, isM
           <span
             key={i}
             className={`w-1 rounded-full transition-all duration-200 ${
-              isMe ? 'bg-slate-950/70' : 'bg-amber-400'
+              isMe ? 'bg-white/80' : 'bg-white/60'
             } ${playing ? 'animate-pulse' : 'opacity-60'}`}
-            style={{ height: `${playing ? Math.max(4, (h * Math.random() * 1.5).toFixed(0)) : h}px` }}
+            style={{ height: `${playing ? Math.max(4, Math.round(h * (0.8 + Math.random() * 0.6))) : h}px` }}
           />
         ))}
       </div>
 
-      <span className={`text-[10px] font-mono font-bold ${isMe ? 'text-slate-900' : 'text-amber-300'}`}>
+      <span className="text-[10px] font-mono font-medium text-white/70">
         Voice Note
       </span>
     </div>
@@ -133,7 +139,7 @@ const AudioMessageBubble: React.FC<{ url: string; isMe: boolean }> = ({ url, isM
 };
 
 export const DirectPage: React.FC = () => {
-  const { currentUser, isPro } = useAuth();
+  const { currentUser } = useAuth();
   const { startCall, startGroupCall } = useCall();
   const { subscribe } = useWebSocket();
   const navigate = useNavigate();
@@ -174,8 +180,9 @@ export const DirectPage: React.FC = () => {
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-  const recordTimerRef = useRef<number | null>(null);
+  const recordTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const QUICK_EMOJIS = ['🔥', '❤️', '😂', '👏', '🚀', '💯', '🎲', '🎵', '✨', '⚡', '👑', '🥳', '😎', '🙏'];
 
@@ -248,7 +255,7 @@ export const DirectPage: React.FC = () => {
         body.receiverId = activeConv.partner.id;
       }
 
-      const res = await apiRequest<{ message: Message }>('/api/messages', {
+      const res = await apiRequest<{ message: Message }>('/api/chat/messages', {
         method: 'POST',
         body: JSON.stringify(body),
       });
@@ -256,97 +263,102 @@ export const DirectPage: React.FC = () => {
         setMessages((prev) => [...prev, res.message]);
       }
     } catch (err) {
-      console.warn('Failed to send media:', err);
+      console.warn('Media send failed:', err);
     }
-  };
-
-  const handleSendGifOrSticker = async (url: string) => {
-    if (!activeConv || !currentUser) return;
-    setShowGifPicker(false);
-    setShowStickerPicker(false);
-    await handleSendMediaMessage(url, 'text');
   };
 
   const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file (PNG, JPG, WEBP, GIF).');
-      return;
-    }
-
     const reader = new FileReader();
     reader.onload = () => {
-      const base64 = reader.result as string;
-      handleSendMediaMessage(base64, 'image');
+      handleSendMediaMessage(reader.result as string, 'image');
     };
     reader.readAsDataURL(file);
-    e.target.value = '';
   };
 
-  // Voice Recording Engine
   const startVoiceRecording = async () => {
     try {
-      soundEngine.playHapticClick();
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      soundEngine.playPop();
       audioChunksRef.current = [];
-      const recorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = recorder;
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(stream);
+      mediaRecorderRef.current = mr;
 
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      mr.ondataavailable = (event) => {
+        if (event.data.size > 0) audioChunksRef.current.push(event.data);
       };
 
-      recorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const base64Audio = reader.result as string;
-          handleSendMediaMessage(base64Audio, 'audio');
-        };
-        reader.readAsDataURL(audioBlob);
+      mr.onstop = () => {
         stream.getTracks().forEach((track) => track.stop());
       };
 
-      recorder.start();
+      mr.start();
       setIsRecordingAudio(true);
       setRecordingSeconds(0);
-      recordTimerRef.current = window.setInterval(() => {
+      recordTimerRef.current = setInterval(() => {
         setRecordingSeconds((prev) => prev + 1);
       }, 1000);
-    } catch (err) {
-      console.warn('Mic error:', err);
-      alert('Microphone access is required to record voice notes.');
+    } catch {
+      alert('Microphone access denied or unavailable.');
     }
   };
 
   const stopVoiceRecording = (send: boolean) => {
     if (recordTimerRef.current) {
-      window.clearInterval(recordTimerRef.current);
+      clearInterval(recordTimerRef.current);
       recordTimerRef.current = null;
     }
-    if (mediaRecorderRef.current && isRecordingAudio) {
-      if (!send) {
-        mediaRecorderRef.current.ondataavailable = null;
-        mediaRecorderRef.current.onstop = null;
-        mediaRecorderRef.current.stop();
-      } else {
-        mediaRecorderRef.current.stop();
-      }
+    const mr = mediaRecorderRef.current;
+    if (mr && mr.state !== 'inactive') {
+      mr.onstop = () => {
+        if (send && audioChunksRef.current.length > 0) {
+          const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            handleSendMediaMessage(reader.result as string, 'audio');
+          };
+          reader.readAsDataURL(blob);
+        }
+      };
+      mr.stop();
     }
     setIsRecordingAudio(false);
-    setRecordingSeconds(0);
   };
 
-  const handleLaunchLudo = () => {
+  const handleSendGifOrSticker = (url: string) => {
     soundEngine.playPop();
-    setGameActive(true);
-    setActiveGameType('ludo');
-    handleSendGameAction('🎲 Started a live Ludo Match! Tap the dice to roll and play with me!');
+    handleSendMediaMessage(url, 'text');
+    setShowGifPicker(false);
+    setShowStickerPicker(false);
   };
 
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const text = inputText.trim();
+    if (!text || !activeConv || !currentUser) return;
+
+    soundEngine.playPop();
+    setInputText('');
+
+    try {
+      const payload =
+        activeConv.type === 'group'
+          ? { groupId: activeConv.groupId, content: text }
+          : { receiverId: activeConv.partner.id, content: text };
+
+      const res = await apiRequest<{ message: Message }>('/api/chat/messages', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+
+      if (res.message) {
+        setMessages((prev) => [...prev, res.message]);
+      }
+    } catch (err) {
+      console.warn('Send message error:', err);
+    }
+  };
 
   const loadConversations = async () => {
     if (!currentUser) return;
@@ -366,45 +378,7 @@ export const DirectPage: React.FC = () => {
     try {
       const res = await apiRequest<{ users: User[] }>('/api/users');
       const filtered = (res.users || []).filter((u) => u.id !== currentUser?.id);
-      if (filtered.length >= 2) {
-        setAllUsers(filtered);
-      } else {
-        const mockOthers: User[] = [
-          {
-            id: 'mock_1',
-            username: 'arijit_music',
-            displayName: 'Arijit Singh Official',
-            email: 'arijit@vyro.internal',
-            avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-            role: 'creator',
-            isPrivate: false,
-            isVerified: true,
-            isPro: true,
-            themePreference: 'dark',
-            followersCount: 42000000,
-            followingCount: 15,
-            postsCount: 88,
-            createdAt: new Date().toISOString(),
-          },
-          {
-            id: 'mock_2',
-            username: 'diljit_crew',
-            displayName: 'Diljit Dosanjh',
-            email: 'diljit@vyro.internal',
-            avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
-            role: 'creator',
-            isPrivate: false,
-            isVerified: true,
-            isPro: true,
-            themePreference: 'dark',
-            followersCount: 35000000,
-            followingCount: 40,
-            postsCount: 120,
-            createdAt: new Date().toISOString(),
-          },
-        ];
-        setAllUsers([...filtered, ...mockOthers]);
-      }
+      setAllUsers(filtered);
     } catch {
       setAllUsers([]);
     }
@@ -431,7 +405,14 @@ export const DirectPage: React.FC = () => {
 
   const activeConv = conversations.find((c) => c.id === activeConvId) || null;
 
-  // Real-time WebSocket listener for immediate instant message delivery
+  useEffect(() => {
+    loadMessages(activeConv);
+  }, [activeConvId]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages.length]);
+
   useEffect(() => {
     const unsub = subscribe('new_message', (newMsg: Message) => {
       if (!newMsg) return;
@@ -448,94 +429,55 @@ export const DirectPage: React.FC = () => {
           return [...prev, newMsg];
         });
       }
-      loadConversations();
     });
-
     return () => unsub();
-  }, [subscribe, activeConv?.id]);
+  }, [activeConv]);
 
-  useEffect(() => {
-    if (!activeConv || !currentUser) return;
-    loadMessages(activeConv);
-    const poll = setInterval(() => loadMessages(activeConv), 5000);
-    return () => clearInterval(poll);
-  }, [activeConvId, currentUser?.id]);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages.length]);
-
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputText.trim() || !activeConv || !currentUser) return;
-
-    soundEngine.playPop();
-    const text = inputText.trim();
-    setInputText('');
-    try {
-      let body: Record<string, unknown> = { content: text, messageType: 'text' };
-      if (activeConv.type === 'group') {
-        body.groupId = activeConv.groupId;
-      } else {
-        body.receiverId = activeConv.partner.id;
-      }
-
-      const res = await apiRequest<{ message: Message }>('/api/messages', {
-        method: 'POST',
-        body: JSON.stringify(body),
-      });
-      setMessages((prev) => [...prev, res.message]);
-      loadConversations();
-    } catch (err) {
-      console.warn('Send message failed:', err);
-    }
-  };
-
-  const handleCreateGroup = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreateGroup = async () => {
     if (!newGroupName.trim() || selectedMemberIds.length === 0) return;
-
     setCreatingGroup(true);
+    soundEngine.playPop();
     try {
-      const res = await apiRequest<{ group: { id: string; name: string } }>('/api/groups', {
+      const res = await apiRequest<{ conversation: GroupConversation }>('/api/chat/groups', {
         method: 'POST',
         body: JSON.stringify({
           name: newGroupName.trim(),
           memberIds: selectedMemberIds,
         }),
       });
-
-      setShowCreateGroup(false);
-      setNewGroupName('');
-      setSelectedMemberIds([]);
-      await loadConversations();
-      setActiveConvId(`group_${res.group.id}`);
+      if (res.conversation) {
+        setConversations((prev) => [res.conversation, ...prev]);
+        setActiveConvId(res.conversation.id);
+        setShowCreateGroup(false);
+        setNewGroupName('');
+        setSelectedMemberIds([]);
+      }
     } catch (err) {
-      console.warn('Group creation failed:', err);
+      console.warn('Failed to create group:', err);
     } finally {
       setCreatingGroup(false);
     }
   };
 
-  const toggleSelectMember = (userId: string) => {
-    setSelectedMemberIds((prev) =>
-      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
-    );
-  };
-
-  const handleCellClick = (index: number) => {
-    if (board[index] || calculateWinner(board)) return;
+  const handleCellClick = (idx: number) => {
+    if (board[idx] || calculateWinner(board)) return;
+    soundEngine.playHapticClick();
     const nextBoard = [...board];
-    nextBoard[index] = isXNext ? 'X' : 'O';
+    nextBoard[idx] = isXNext ? 'X' : 'O';
     setBoard(nextBoard);
     setIsXNext(!isXNext);
   };
 
   const calculateWinner = (squares: (string | null)[]) => {
     const lines = [
-      [0, 1, 2], [3, 4, 5], [6, 7, 8],
-      [0, 3, 6], [1, 4, 7], [2, 5, 8],
-      [0, 4, 8], [2, 4, 6],
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6],
     ];
     for (const [a, b, c] of lines) {
       if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
@@ -548,10 +490,10 @@ export const DirectPage: React.FC = () => {
   if (!currentUser) {
     return (
       <div className="max-w-md mx-auto py-16 px-4 text-center">
-        <div className="glass-panel rounded-3xl p-8 border border-white/10 space-y-4 shadow-2xl">
-          <MessageCircle className="w-10 h-10 text-amber-400 mx-auto" />
-          <h2 className="text-lg font-bold text-white">Direct Messaging & Calls</h2>
-          <p className="text-xs text-slate-400">
+        <div className="liquid-glass rounded-[32px] p-8 space-y-4 shadow-2xl">
+          <MessageCircle className="w-10 h-10 text-cyan-300 mx-auto" />
+          <h2 className="text-lg font-semibold text-white tracking-tight">Direct Messaging & Calls</h2>
+          <p className="text-xs text-white/60">
             Sign in to message real users and start live WebRTC voice & video calls.
           </p>
         </div>
@@ -574,7 +516,7 @@ export const DirectPage: React.FC = () => {
   const currentThemeConfig = CHAT_THEMES[chatTheme] || CHAT_THEMES.ios_saffron;
 
   return (
-    <div className={`h-[calc(100vh-4.5rem)] max-w-6xl mx-auto flex rounded-3xl overflow-hidden glass-panel border border-white/10 my-2 shadow-[0_20px_50px_rgba(0,0,0,0.8)] ${currentThemeConfig.bg}`}>
+    <div className={`h-[calc(100vh-6rem)] max-w-6xl mx-auto flex rounded-[32px] overflow-hidden liquid-glass my-2 shadow-2xl relative ${currentThemeConfig.bg}`}>
       {/* Hidden File Input for Image Attachments */}
       <input
         type="file"
@@ -584,13 +526,13 @@ export const DirectPage: React.FC = () => {
         className="hidden"
       />
 
-      {/* Sidebar: Conversations List & New Group Button */}
-      <div className={`w-full md:w-80 border-r border-white/10 flex-col bg-[#0B101D]/75 backdrop-blur-xl ${activeConvId ? 'hidden md:flex' : 'flex'}`}>
-        <div className="p-3.5 border-b border-white/10 space-y-2.5">
+      {/* Sidebar: Conversations List */}
+      <div className={`w-full md:w-80 border-r border-white/10 flex-col liquid-glass-inner ${activeConvId ? 'hidden md:flex' : 'flex'}`}>
+        <div className="p-4 border-b border-white/10 space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="font-extrabold text-sm text-white flex items-center gap-2">
-              <MessageCircle className="w-4 h-4 text-amber-400" />
-              <span>Messages & Calls</span>
+            <h2 className="font-semibold text-sm text-white flex items-center gap-2 tracking-tight">
+              <MessageCircle className="w-4 h-4 text-cyan-300" />
+              <span>Direct Messages</span>
             </h2>
             <button
               onClick={() => {
@@ -598,7 +540,7 @@ export const DirectPage: React.FC = () => {
                 loadAllUsers();
                 setShowCreateGroup(true);
               }}
-              className="px-2.5 py-1 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-400 text-xs font-bold flex items-center gap-1 transition-colors"
+              className="px-3 py-1 rounded-full liquid-glass-inner hover:bg-white/15 text-white text-xs font-semibold flex items-center gap-1 transition-colors"
               title="Create New Group Chat"
             >
               <Users className="w-3.5 h-3.5" />
@@ -606,20 +548,20 @@ export const DirectPage: React.FC = () => {
             </button>
           </div>
           <div className="relative">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40" />
             <input
               type="text"
               value={userFilter}
               onChange={(e) => setUserFilter(e.target.value)}
               placeholder="Search chats & groups..."
-              className="w-full bg-[#060911]/90 border border-white/10 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-400/80"
+              className="w-full liquid-glass-inner rounded-full pl-9 pr-3 py-2 text-xs text-white placeholder-white/40 focus:outline-none focus:border-white/30"
             />
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto divide-y divide-white/5">
+        <div className="flex-1 overflow-y-auto divide-y divide-white/5 no-scrollbar">
           {filteredConversations.length === 0 ? (
-            <div className="p-6 text-center text-xs text-slate-500">
+            <div className="p-6 text-center text-xs text-white/50">
               {conversations.length === 0
                 ? 'No chats or groups yet. Start one!'
                 : `No result matching "${userFilter}"`}
@@ -637,11 +579,11 @@ export const DirectPage: React.FC = () => {
                     setActiveConvId(c.id);
                   }}
                   className={`w-full p-3.5 flex items-center gap-3 text-left transition-all ${
-                    isSelected ? 'bg-amber-500/15 border-l-2 border-amber-400' : 'hover:bg-white/5'
+                    isSelected ? 'bg-white/15' : 'hover:bg-white/5'
                   }`}
                 >
                   {isGroup ? (
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-500 to-amber-600 flex items-center justify-center text-slate-950 font-extrabold text-xs shadow-md">
+                    <div className="w-10 h-10 rounded-full liquid-pill-cta flex items-center justify-center text-white font-bold text-xs shadow-md">
                       <Users className="w-5 h-5" />
                     </div>
                   ) : (
@@ -654,11 +596,11 @@ export const DirectPage: React.FC = () => {
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <p className="text-xs font-bold text-white truncate">
+                      <p className="text-xs font-semibold text-white truncate">
                         {isGroup ? c.name : c.partner.displayName}
                       </p>
                       {c.lastMessage && (
-                        <span className="text-[10px] text-slate-400">
+                        <span className="text-[10px] text-white/40">
                           {new Date(c.lastMessage.createdAt).toLocaleTimeString([], {
                             hour: '2-digit',
                             minute: '2-digit',
@@ -666,12 +608,12 @@ export const DirectPage: React.FC = () => {
                         </span>
                       )}
                     </div>
-                    <p className="text-[11px] text-slate-400 truncate">
+                    <p className="text-[11px] text-white/50 truncate">
                       {c.lastMessage ? c.lastMessage.content : isGroup ? 'Group Created' : 'No messages yet'}
                     </p>
                   </div>
                   {c.unreadCount > 0 && (
-                    <span className="w-4 h-4 rounded-full bg-amber-500 text-slate-950 text-[10px] font-black flex items-center justify-center">
+                    <span className="w-4 h-4 rounded-full liquid-pill-cta text-white text-[10px] font-bold flex items-center justify-center">
                       {c.unreadCount}
                     </span>
                   )}
@@ -686,18 +628,18 @@ export const DirectPage: React.FC = () => {
       <div className={`flex-1 flex flex-col min-w-0 ${activeConvId ? 'flex' : 'hidden md:flex'}`}>
         {activeConv ? (
           <>
-            {/* iOS Specular Glass Header Bar */}
-            <div className="p-3.5 border-b border-white/10 flex items-center justify-between gap-3 bg-[#0B101D]/60 backdrop-blur-xl">
+            {/* Header Bar */}
+            <div className="p-3.5 border-b border-white/10 flex items-center justify-between gap-3 liquid-glass-inner">
               <div className="flex items-center gap-3 min-w-0">
                 <button
                   onClick={() => setActiveConvId(null)}
-                  className="md:hidden p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/5"
+                  className="md:hidden p-1.5 rounded-full text-white/60 hover:text-white hover:bg-white/10"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
 
                 {activeConv.type === 'group' ? (
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-amber-500 to-amber-600 flex items-center justify-center text-slate-950 font-bold text-xs">
+                  <div className="w-9 h-9 rounded-full liquid-pill-cta flex items-center justify-center text-white font-semibold text-xs">
                     <Users className="w-4 h-4" />
                   </div>
                 ) : (
@@ -711,7 +653,7 @@ export const DirectPage: React.FC = () => {
 
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-white truncate">
+                    <span className="text-xs font-semibold text-white truncate">
                       {activeConv.type === 'group' ? activeConv.name : activeConv.partner.displayName}
                     </span>
                     {activeConv.type === 'direct' && (
@@ -722,12 +664,12 @@ export const DirectPage: React.FC = () => {
                       />
                     )}
                     {activeConv.type === 'group' && (
-                      <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold">
+                      <span className="px-2 py-0.5 rounded-full liquid-glass-inner text-cyan-200 text-[10px] font-semibold">
                         👥 {activeConv.members.length}
                       </span>
                     )}
                   </div>
-                  <span className="text-[10px] text-slate-400">
+                  <span className="text-[10px] text-white/50">
                     {activeConv.type === 'group'
                       ? activeConv.members.map((m) => `@${m.username}`).join(', ')
                       : `@${activeConv.partner.username}`}
@@ -737,15 +679,15 @@ export const DirectPage: React.FC = () => {
 
               {/* Call & Tool Actions Deck */}
               <div className="flex items-center gap-1.5 sm:gap-2">
-                {/* iPhone Theme Selector Button */}
+                {/* Theme Selector Button */}
                 <div className="relative">
                   <button
                     onClick={() => {
                       soundEngine.playHapticClick();
                       setShowThemePicker(!showThemePicker);
                     }}
-                    className="p-2 rounded-xl text-amber-400 hover:bg-white/10 transition-colors flex items-center gap-1 border border-amber-400/30 shadow-sm"
-                    title="Switch iPhone Liquid Themes"
+                    className="p-2 rounded-full liquid-glass-inner text-white/80 hover:text-white hover:bg-white/15 transition-colors"
+                    title="Switch Liquid Themes"
                   >
                     <Palette className="w-4 h-4" />
                   </button>
@@ -756,10 +698,10 @@ export const DirectPage: React.FC = () => {
                         initial={{ opacity: 0, scale: 0.95, y: -6 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: -6 }}
-                        className="absolute right-0 top-11 z-50 w-52 rounded-2xl glass-panel border border-white/15 p-3 space-y-2 shadow-2xl bg-[#0B101D]/95 backdrop-blur-2xl"
+                        className="absolute right-0 top-11 z-50 w-52 rounded-2xl liquid-glass-elevated border border-white/15 p-3 space-y-2 shadow-2xl"
                       >
-                        <p className="text-[10px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1">
-                          <Crown className="w-3.5 h-3.5" /> iPhone Glass Themes
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-white/70 flex items-center gap-1">
+                          <Crown className="w-3.5 h-3.5 text-amber-300" /> Liquid Glass Themes
                         </p>
                         <div className="space-y-1">
                           {(Object.keys(CHAT_THEMES) as ChatTheme[]).map((key) => {
@@ -775,8 +717,8 @@ export const DirectPage: React.FC = () => {
                                 }}
                                 className={`w-full flex items-center justify-between p-2 rounded-xl text-xs transition-all ${
                                   isCurrent
-                                    ? 'bg-amber-500/20 text-white font-extrabold border border-amber-400/40'
-                                    : 'text-slate-300 hover:bg-white/10'
+                                    ? 'bg-white/20 text-white font-semibold'
+                                    : 'text-white/70 hover:bg-white/10'
                                 }`}
                               >
                                 <span>{t.name}</span>
@@ -795,8 +737,8 @@ export const DirectPage: React.FC = () => {
                     soundEngine.playPop();
                     setGameActive(!gameActive);
                   }}
-                  className="p-2 rounded-xl text-slate-300 hover:text-amber-400 hover:bg-white/10 transition-colors"
-                  title="In-Chat Games (Ludo, Chess, Tic-Tac-Toe)"
+                  className="p-2 rounded-full liquid-glass-inner text-white/80 hover:text-white hover:bg-white/15 transition-colors"
+                  title="In-Chat Games"
                 >
                   <Gamepad2 className="w-4 h-4" />
                 </button>
@@ -811,8 +753,8 @@ export const DirectPage: React.FC = () => {
                       startCall(activeConv.partner, 'voice');
                     }
                   }}
-                  className="px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500 text-amber-400 hover:text-slate-950 transition-all flex items-center gap-1.5 text-xs font-bold border border-amber-400/30"
-                  title={activeConv.type === 'group' ? 'Start Group Voice Call' : 'Start Live Voice Call'}
+                  className="px-3.5 py-1.5 rounded-full liquid-glass-inner hover:bg-white/20 text-white transition-all flex items-center gap-1.5 text-xs font-semibold"
+                  title="Start Live Voice Call"
                 >
                   <Phone className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">Voice</span>
@@ -828,46 +770,46 @@ export const DirectPage: React.FC = () => {
                       startCall(activeConv.partner, 'video');
                     }
                   }}
-                  className="px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-white border border-rose-500/30 transition-all flex items-center gap-1.5 text-xs font-bold shadow-[0_0_12px_rgba(244,63,94,0.2)]"
-                  title={activeConv.type === 'group' ? 'Start Group Video Call' : 'Start Live Video Call'}
+                  className="px-3.5 py-1.5 rounded-full liquid-pill-cta text-white transition-all flex items-center gap-1.5 text-xs font-semibold shadow-lg"
+                  title="Start Live Video Call"
                 >
                   <Video className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Video ⚡</span>
+                  <span className="hidden sm:inline">FaceTime</span>
                 </button>
               </div>
             </div>
 
             {/* In-chat Games Drawer */}
             {gameActive && (
-              <div className="p-3 bg-vyro-card/95 border-b border-vyro-border flex flex-col items-center max-h-[500px] overflow-y-auto">
+              <div className="p-3 liquid-glass-inner border-b border-white/10 flex flex-col items-center max-h-[500px] overflow-y-auto no-scrollbar">
                 <div className="flex items-center justify-between w-full max-w-sm mb-2">
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => setActiveGameType('ludo')}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
-                        activeGameType === 'ludo' ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950' : 'bg-vyro-bg text-slate-400'
+                      className={`px-3 py-1 rounded-full text-xs font-semibold transition ${
+                        activeGameType === 'ludo' ? 'liquid-pill-cta text-white' : 'liquid-glass-inner text-white/60'
                       }`}
                     >
                       🎲 Ludo
                     </button>
                     <button
                       onClick={() => setActiveGameType('tictactoe')}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
-                        activeGameType === 'tictactoe' ? 'bg-amber-500 text-slate-950' : 'bg-vyro-bg text-slate-400'
+                      className={`px-3 py-1 rounded-full text-xs font-semibold transition ${
+                        activeGameType === 'tictactoe' ? 'liquid-pill-cta text-white' : 'liquid-glass-inner text-white/60'
                       }`}
                     >
                       Tic-Tac-Toe
                     </button>
                     <button
                       onClick={() => setActiveGameType('chess')}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
-                        activeGameType === 'chess' ? 'bg-amber-500 text-slate-950' : 'bg-vyro-bg text-slate-400'
+                      className={`px-3 py-1 rounded-full text-xs font-semibold transition ${
+                        activeGameType === 'chess' ? 'liquid-pill-cta text-white' : 'liquid-glass-inner text-white/60'
                       }`}
                     >
-                      Cyber Chess
+                      Mini Chess
                     </button>
                   </div>
-                  <button onClick={() => setGameActive(false)} className="text-slate-400 hover:text-white">
+                  <button onClick={() => setGameActive(false)} className="text-white/60 hover:text-white">
                     <X className="w-4 h-4" />
                   </button>
                 </div>
@@ -881,14 +823,14 @@ export const DirectPage: React.FC = () => {
                         <button
                           key={idx}
                           onClick={() => handleCellClick(idx)}
-                          className="w-full h-full rounded-xl bg-vyro-bg border border-vyro-border text-lg font-bold flex items-center justify-center hover:bg-vyro-card text-white"
+                          className="w-full h-full rounded-2xl liquid-glass-inner text-lg font-semibold flex items-center justify-center hover:bg-white/15 text-white"
                         >
-                          {cell === 'X' ? <span className="text-amber-400">X</span> : cell === 'O' ? <span className="text-rose-400">O</span> : ''}
+                          {cell === 'X' ? <span className="text-amber-300">X</span> : cell === 'O' ? <span className="text-rose-400">O</span> : ''}
                         </button>
                       ))}
                     </div>
                     {calculateWinner(board) && (
-                      <p className="mt-2 text-xs font-bold text-emerald-400">
+                      <p className="mt-2 text-xs font-semibold text-emerald-400">
                         Winner: Player {calculateWinner(board)}! 🎉
                       </p>
                     )}
@@ -899,19 +841,19 @@ export const DirectPage: React.FC = () => {
               </div>
             )}
 
-            {/* Messages Stream with iPhone Fluid Motion */}
-            <div className="flex-1 p-4 overflow-y-auto space-y-3">
+            {/* Messages Stream */}
+            <div className="flex-1 p-4 overflow-y-auto space-y-3 no-scrollbar">
               {messages.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center text-xs text-slate-400 space-y-2">
-                  <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-400">
-                    <Sparkles className="w-6 h-6" />
+                <div className="h-full flex flex-col items-center justify-center text-center text-xs text-white/50 space-y-2">
+                  <div className="w-12 h-12 rounded-2xl liquid-glass-elevated flex items-center justify-center text-white">
+                    <Sparkles className="w-6 h-6 text-amber-300" />
                   </div>
-                  <p className="font-bold text-white text-sm">
+                  <p className="font-semibold text-white text-sm">
                     {activeConv.type === 'group'
                       ? `Welcome to ${activeConv.name}!`
                       : `Chat with @${activeConv.partner.username}`}
                   </p>
-                  <p className="text-[11px] text-slate-400 max-w-xs">
+                  <p className="text-[11px] text-white/50 max-w-xs">
                     Send stickers, images, voice notes, or play live Ludo in chat!
                   </p>
                 </div>
@@ -927,28 +869,25 @@ export const DirectPage: React.FC = () => {
                   return (
                     <motion.div
                       key={m.id}
-                      initial={{ opacity: 0, scale: 0.94, y: 8 }}
+                      initial={{ opacity: 0, scale: 0.95, y: 8 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
-                      transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+                      transition={SPRING_SNAPPY}
                       className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
                     >
                       {activeConv.type === 'group' && !isMe && (
-                        <span className="text-[10px] font-bold text-amber-400 mb-0.5 px-1">
+                        <span className="text-[10px] font-semibold text-white/60 mb-0.5 px-1">
                           {senderName}
                         </span>
                       )}
 
-                      {/* iPhone Glass Liquid Message Bubble */}
+                      {/* Liquid Message Bubble */}
                       <div
-                        className={`relative max-w-[80%] sm:max-w-[70%] px-3.5 py-2.5 rounded-3xl text-xs leading-relaxed transition-all shadow-md ${
+                        className={`relative max-w-[80%] sm:max-w-[70%] px-3.5 py-2.5 rounded-3xl text-xs leading-relaxed shadow-md ${
                           isMe
-                            ? `bg-gradient-to-tr ${currentThemeConfig.bubbleClass} rounded-br-sm shadow-[0_4px_16px_rgba(0,0,0,0.4)]`
-                            : 'glass-card bg-[#0F172A]/85 text-slate-100 rounded-bl-sm border border-white/10 shadow-[0_4px_18px_rgba(0,0,0,0.5)]'
-                        } ${isLudoMsg ? 'border-amber-400/50 shadow-[0_0_15px_rgba(245,158,11,0.25)]' : ''}`}
+                            ? `bg-gradient-to-tr ${currentThemeConfig.bubbleClass} rounded-br-sm shadow-lg`
+                            : 'liquid-glass-inner text-white rounded-bl-sm border border-white/10 shadow-md'
+                        } ${isLudoMsg ? 'border-amber-400/50' : ''}`}
                       >
-                        {/* Top specular highlight rim */}
-                        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none rounded-t-3xl" />
-
                         {isAudioMsg ? (
                           <AudioMessageBubble url={m.mediaUrl || m.content} isMe={isMe} />
                         ) : isImageMsg ? (
@@ -980,7 +919,7 @@ export const DirectPage: React.FC = () => {
                                   setGameActive(true);
                                   setActiveGameType('ludo');
                                 }}
-                                className="mt-2 px-3 py-1 rounded-xl bg-slate-950 text-amber-400 font-bold text-[10px] flex items-center gap-1.5 shadow-md hover:scale-105 transition-transform border border-amber-400/40"
+                                className="mt-2 px-3 py-1 rounded-full liquid-glass-inner text-white font-semibold text-[10px] flex items-center gap-1.5 shadow-md hover:scale-105 transition-transform"
                               >
                                 <Gamepad2 className="w-3.5 h-3.5" />
                                 <span>Play Ludo Together 🎲</span>
@@ -990,7 +929,7 @@ export const DirectPage: React.FC = () => {
                         )}
                       </div>
 
-                      <span className="text-[9px] text-slate-500 mt-1 px-1">
+                      <span className="text-[9px] text-white/40 mt-1 px-1">
                         {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </motion.div>
@@ -1007,7 +946,7 @@ export const DirectPage: React.FC = () => {
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  className="px-3 py-2 bg-[#0B101D]/90 border-t border-white/10 flex items-center gap-2 overflow-x-auto no-scrollbar"
+                  className="px-3 py-2 liquid-glass-inner border-t border-white/10 flex items-center gap-2 overflow-x-auto no-scrollbar"
                 >
                   {QUICK_EMOJIS.map((emoji) => (
                     <button
@@ -1034,30 +973,30 @@ export const DirectPage: React.FC = () => {
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  className="p-3 bg-[#0B101D]/95 border-t border-white/10 space-y-3 max-h-60 overflow-y-auto no-scrollbar"
+                  className="p-3 liquid-glass-elevated border-t border-white/10 space-y-3 max-h-60 overflow-y-auto no-scrollbar"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-                      <Sticker className="w-3.5 h-3.5" /> Animated Stickers
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-white/80 flex items-center gap-1.5">
+                      <Sticker className="w-3.5 h-3.5 text-cyan-300" /> Animated Stickers
                     </span>
-                    <button type="button" onClick={() => setShowStickerPicker(false)} className="text-slate-400 hover:text-white">
+                    <button type="button" onClick={() => setShowStickerPicker(false)} className="text-white/60 hover:text-white">
                       <X className="w-4 h-4" />
                     </button>
                   </div>
                   <div className="space-y-3">
                     {STICKER_PACKS.map((pack, pIdx) => (
                       <div key={pIdx} className="space-y-1.5">
-                        <p className="text-[10px] font-bold text-slate-400">{pack.category}</p>
+                        <p className="text-[10px] font-semibold text-white/50">{pack.category}</p>
                         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                           {pack.stickers.map((s, sIdx) => (
                             <button
                               key={sIdx}
                               type="button"
                               onClick={() => handleSendGifOrSticker(s.url)}
-                              className="group relative rounded-2xl overflow-hidden aspect-video border border-white/10 hover:border-amber-400 transition-all hover:scale-105 active:scale-95 shadow-md"
+                              className="group relative rounded-2xl overflow-hidden aspect-video border border-white/10 hover:border-white/30 transition-all hover:scale-105 active:scale-95 shadow-md"
                             >
                               <img src={s.url} alt={s.name} className="w-full h-full object-cover" />
-                              <span className="absolute bottom-0 inset-x-0 bg-black/60 text-[9px] text-white font-bold p-0.5 text-center truncate">
+                              <span className="absolute bottom-0 inset-x-0 bg-black/60 text-[9px] text-white font-semibold p-0.5 text-center truncate">
                                 {s.name}
                               </span>
                             </button>
@@ -1077,11 +1016,11 @@ export const DirectPage: React.FC = () => {
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  className="p-3 bg-[#0B101D]/95 border-t border-white/10 space-y-2"
+                  className="p-3 liquid-glass-elevated border-t border-white/10 space-y-2"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Trending GIFs</span>
-                    <button type="button" onClick={() => setShowGifPicker(false)} className="text-slate-400 hover:text-white">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-white/60">Trending GIFs</span>
+                    <button type="button" onClick={() => setShowGifPicker(false)} className="text-white/60 hover:text-white">
                       <X className="w-4 h-4" />
                     </button>
                   </div>
@@ -1091,10 +1030,10 @@ export const DirectPage: React.FC = () => {
                         key={gif.name}
                         type="button"
                         onClick={() => handleSendGifOrSticker(gif.url)}
-                        className="group relative rounded-xl overflow-hidden aspect-video border border-white/10 hover:border-amber-400 transition-all active:scale-95 shadow-md"
+                        className="group relative rounded-2xl overflow-hidden aspect-video border border-white/10 hover:border-white/30 transition-all active:scale-95 shadow-md"
                       >
                         <img src={gif.url} alt={gif.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
-                        <span className="absolute bottom-0 inset-x-0 bg-black/60 text-[9px] text-white font-bold p-0.5 text-center truncate">
+                        <span className="absolute bottom-0 inset-x-0 bg-black/60 text-[9px] text-white font-semibold p-0.5 text-center truncate">
                           {gif.name}
                         </span>
                       </button>
@@ -1104,12 +1043,12 @@ export const DirectPage: React.FC = () => {
               )}
             </AnimatePresence>
 
-            {/* Live Voice Recording Bar (When Recording) */}
+            {/* Live Voice Recording Bar */}
             {isRecordingAudio ? (
-              <div className="p-3 border-t border-amber-500/30 bg-amber-500/10 flex items-center justify-between gap-3 animate-pulse">
+              <div className="p-3 border-t border-rose-500/30 bg-rose-500/10 flex items-center justify-between gap-3 animate-pulse">
                 <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-rose-500 animate-ping" />
-                  <span className="text-xs font-bold text-amber-300">
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
+                  <span className="text-xs font-semibold text-rose-200">
                     Recording Audio ({recordingSeconds}s)...
                   </span>
                 </div>
@@ -1117,14 +1056,14 @@ export const DirectPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => stopVoiceRecording(false)}
-                    className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-slate-300 transition"
+                    className="px-3 py-1.5 rounded-full liquid-glass-inner text-xs font-semibold text-white/70 transition"
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
                     onClick={() => stopVoiceRecording(true)}
-                    className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 text-xs font-black shadow-md flex items-center gap-1 active:scale-95 transition"
+                    className="px-4 py-1.5 rounded-full liquid-pill-cta text-white text-xs font-semibold shadow-md flex items-center gap-1 active:scale-95 transition"
                   >
                     <Check className="w-4 h-4" />
                     <span>Send Audio</span>
@@ -1135,9 +1074,9 @@ export const DirectPage: React.FC = () => {
               /* Standard Input Deck */
               <form
                 onSubmit={handleSendMessage}
-                className="p-3 border-t border-white/10 bg-[#0B101D]/75 backdrop-blur-xl flex items-center gap-2 relative"
+                className="p-3 border-t border-white/10 liquid-glass-inner flex items-center gap-2 relative"
               >
-                {/* Emoji Bar Toggle */}
+                {/* Emoji Toggle */}
                 <button
                   type="button"
                   onClick={() => {
@@ -1146,32 +1085,32 @@ export const DirectPage: React.FC = () => {
                     setShowGifPicker(false);
                     setShowStickerPicker(false);
                   }}
-                  className={`p-2 rounded-xl transition-colors ${
-                    showEmojiPicker ? 'text-amber-400 bg-white/10' : 'text-slate-400 hover:text-white'
+                  className={`p-2 rounded-full transition-colors ${
+                    showEmojiPicker ? 'bg-white/20 text-white' : 'text-white/60 hover:text-white'
                   }`}
                   title="Insert Emoji"
                 >
                   <Smile className="w-4 h-4" />
                 </button>
 
-                {/* Stickers Tray Toggle */}
+                {/* Stickers Toggle */}
                 <button
                   type="button"
                   onClick={() => {
                     soundEngine.playHapticClick();
                     setShowStickerPicker(!showStickerPicker);
-                    setShowGifPicker(false);
                     setShowEmojiPicker(false);
+                    setShowGifPicker(false);
                   }}
-                  className={`p-2 rounded-xl transition-colors ${
-                    showStickerPicker ? 'text-amber-400 bg-white/10' : 'text-slate-400 hover:text-white'
+                  className={`p-2 rounded-full transition-colors ${
+                    showStickerPicker ? 'bg-white/20 text-white' : 'text-white/60 hover:text-white'
                   }`}
-                  title="Sticker Packs"
+                  title="Animated Stickers"
                 >
                   <Sticker className="w-4 h-4" />
                 </button>
 
-                {/* GIF Picker Toggle */}
+                {/* GIFs Toggle */}
                 <button
                   type="button"
                   onClick={() => {
@@ -1180,198 +1119,173 @@ export const DirectPage: React.FC = () => {
                     setShowEmojiPicker(false);
                     setShowStickerPicker(false);
                   }}
-                  className={`p-2 rounded-xl text-xs font-black tracking-wider transition-colors ${
-                    showGifPicker ? 'text-amber-400 bg-white/10' : 'text-slate-400 hover:text-white'
+                  className={`px-2 py-1 rounded-full text-[10px] font-semibold transition-colors ${
+                    showGifPicker ? 'bg-white/20 text-white' : 'text-white/60 hover:text-white liquid-glass-inner'
                   }`}
-                  title="Send Reaction GIF"
+                  title="Search GIFs"
                 >
                   GIF
                 </button>
 
-                {/* Photo / Image Attachment Button */}
+                {/* Photo Attachment */}
                 <button
                   type="button"
-                  onClick={() => {
-                    soundEngine.playPop();
-                    fileInputRef.current?.click();
-                  }}
-                  className="p-2 rounded-xl text-slate-400 hover:text-amber-400 hover:bg-white/10 transition-colors"
-                  title="Attach Photo / Image"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-2 rounded-full text-white/60 hover:text-white transition-colors"
+                  title="Send Photo"
                 >
                   <ImageIcon className="w-4 h-4" />
                 </button>
 
-                {/* Live Microphone Voice Note Button */}
+                {/* Voice Note Recording Trigger */}
                 <button
                   type="button"
                   onClick={startVoiceRecording}
-                  className="p-2 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-white/10 transition-colors"
+                  className="p-2 rounded-full text-white/60 hover:text-rose-300 transition-colors"
                   title="Record Voice Note"
                 >
                   <Mic className="w-4 h-4" />
                 </button>
 
-                {/* Quick Ludo Launch */}
-                <button
-                  type="button"
-                  onClick={handleLaunchLudo}
-                  className="px-2.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-400 text-xs font-bold flex items-center gap-1 shadow-sm transition-all"
-                  title="Launch Ludo Match"
-                >
-                  <Gamepad2 className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Ludo</span>
-                </button>
-
+                {/* Main Input Text Field */}
                 <input
                   type="text"
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
-                  placeholder={
-                    activeConv.type === 'group'
-                      ? `Message in ${activeConv.name}...`
-                      : `Message ${activeConv.partner.displayName}...`
-                  }
-                  className="flex-1 bg-[#060911]/90 border border-white/10 rounded-2xl px-3.5 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-400/80 transition-all"
+                  placeholder="Type a message..."
+                  className="flex-1 liquid-glass-inner rounded-full px-4 py-2 text-xs text-white placeholder-white/40 focus:outline-none focus:border-white/30"
                 />
 
-                <button
+                {/* Send Button */}
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={SPRING_SNAPPY}
                   type="submit"
                   disabled={!inputText.trim()}
-                  className="p-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold disabled:opacity-40 hover:brightness-110 shadow-[0_0_15px_rgba(245,158,11,0.35)] transition-all active:scale-95"
+                  className="p-2.5 rounded-full liquid-pill-cta text-white disabled:opacity-40 shadow-md transition-all flex items-center justify-center"
                 >
                   <Send className="w-4 h-4" />
-                </button>
+                </motion.button>
               </form>
             )}
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-2 text-slate-400">
-            <MessageCircle className="w-10 h-10 text-amber-400/60" />
-            <p className="text-sm font-bold text-white">Select a Chat or Group Call</p>
-            <p className="text-xs max-w-xs">
-              Search any user, chat in groups, or start live voice & video calls.
-            </p>
+          <div className="flex-1 flex flex-col items-center justify-center text-center p-8 space-y-3">
+            <div className="w-16 h-16 rounded-3xl liquid-glass-elevated flex items-center justify-center text-white shadow-xl">
+              <MessageCircle className="w-8 h-8 text-cyan-300" />
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-white tracking-tight">Your Direct Messages</h3>
+              <p className="text-xs text-white/50 max-w-xs mt-1">
+                Select a creator or group from the list, or start a new group conversation.
+              </p>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Lightbox Modal for Shared Photos */}
+      {/* New Group Modal */}
       <AnimatePresence>
-        {lightboxImage && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setLightboxImage(null)}
-            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 cursor-pointer"
-          >
-            <motion.img
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.9 }}
-              src={lightboxImage}
-              alt="Enlarged photo"
-              className="max-w-full max-h-[90vh] rounded-2xl shadow-2xl object-contain border border-white/20"
-            />
-            <button
-              onClick={() => setLightboxImage(null)}
-              className="absolute top-5 right-5 p-2 rounded-full bg-black/60 text-white hover:bg-black/90 transition"
+        {showCreateGroup && (
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-md liquid-glass-elevated rounded-[32px] p-6 space-y-4 shadow-2xl border border-white/15"
             >
-              <X className="w-6 h-6" />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Create Group Modal */}
-      {showCreateGroup && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-md glass-panel border border-white/10 rounded-3xl p-6 space-y-4 shadow-2xl bg-[#0B101D]">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-amber-400" />
-                <h3 className="font-bold text-base text-white">Create Group Chat & Call</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-sm text-white flex items-center gap-2">
+                  <Users className="w-4 h-4 text-cyan-300" />
+                  <span>Create New Group</span>
+                </h3>
+                <button onClick={() => setShowCreateGroup(false)} className="text-white/60 hover:text-white">
+                  <X className="w-4 h-4" />
+                </button>
               </div>
-              <button
-                onClick={() => setShowCreateGroup(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
 
-            <form onSubmit={handleCreateGroup} className="space-y-4">
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1">Group Name</label>
+                <label className="text-xs font-semibold text-white/60 uppercase tracking-wider block mb-1">
+                  Group Name
+                </label>
                 <input
                   type="text"
                   value={newGroupName}
                   onChange={(e) => setNewGroupName(e.target.value)}
-                  placeholder="e.g. Creators VIP Arena"
-                  required
-                  className="w-full bg-[#060911] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+                  placeholder="e.g. VIP Gaming Clan, Mumbai Creators"
+                  className="w-full liquid-glass-inner rounded-2xl px-4 py-2.5 text-xs text-white placeholder-white/40 focus:outline-none focus:border-white/30"
                 />
               </div>
 
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1">
-                  Select Members ({selectedMemberIds.length} chosen)
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-white/60 uppercase tracking-wider block">
+                  Select Members ({selectedMemberIds.length} selected)
                 </label>
-                <div className="max-h-52 overflow-y-auto space-y-2 border border-white/10 rounded-xl p-2 bg-[#060911]/60">
-                  {allUsers.length === 0 ? (
-                    <p className="text-xs text-slate-400 text-center py-4">No other users found.</p>
-                  ) : (
-                    allUsers.map((u) => {
-                      const isSelected = selectedMemberIds.includes(u.id);
-                      return (
-                        <div
-                          key={u.id}
-                          onClick={() => toggleSelectMember(u.id)}
-                          className={`flex items-center justify-between p-2 rounded-xl cursor-pointer transition-colors ${
-                            isSelected ? 'bg-amber-500/20 border border-amber-500/40' : 'hover:bg-white/5'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5">
-                            <Avatar src={u.avatarUrl} alt={u.displayName} size="xs" />
-                            <div>
-                              <p className="text-xs font-bold text-white">{u.displayName}</p>
-                              <p className="text-[10px] text-slate-400">@{u.username}</p>
-                            </div>
-                          </div>
-                          <div
-                            className={`w-5 h-5 rounded-lg flex items-center justify-center border ${
-                              isSelected
-                                ? 'bg-amber-500 border-amber-500 text-slate-950 font-bold'
-                                : 'border-slate-600'
-                            }`}
-                          >
-                            {isSelected && <Check className="w-3.5 h-3.5" />}
+                <div className="max-h-52 overflow-y-auto space-y-1.5 no-scrollbar p-1">
+                  {allUsers.map((u) => {
+                    const isSelected = selectedMemberIds.includes(u.id);
+                    return (
+                      <button
+                        key={u.id}
+                        type="button"
+                        onClick={() => {
+                          soundEngine.playHapticClick();
+                          setSelectedMemberIds((prev) =>
+                            isSelected ? prev.filter((id) => id !== u.id) : [...prev, u.id]
+                          );
+                        }}
+                        className={`w-full p-2.5 rounded-2xl flex items-center justify-between text-left transition-all ${
+                          isSelected
+                            ? 'bg-white/20 border border-white/30 text-white'
+                            : 'liquid-glass-inner text-white/70 hover:text-white'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <Avatar src={u.avatarUrl} alt={u.displayName} size="xs" />
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold text-white truncate">{u.displayName}</p>
+                            <p className="text-[10px] text-white/45 truncate">@{u.username}</p>
                           </div>
                         </div>
-                      );
-                    })
-                  )}
+                        {isSelected && <Check className="w-4 h-4 text-emerald-400" />}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <Button variant="ghost" size="sm" type="button" onClick={() => setShowCreateGroup(false)}>
-                  Cancel
-                </Button>
-                <Button
-                  variant="gradient"
-                  size="sm"
-                  type="submit"
-                  disabled={!newGroupName.trim() || selectedMemberIds.length === 0 || creatingGroup}
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  {creatingGroup ? 'Creating...' : 'Create Group'}
-                </Button>
-              </div>
-            </form>
+              <button
+                type="button"
+                onClick={handleCreateGroup}
+                disabled={creatingGroup || !newGroupName.trim() || selectedMemberIds.length === 0}
+                className="w-full py-3 rounded-full liquid-pill-cta text-xs font-semibold flex items-center justify-center gap-2 disabled:opacity-40 shadow-xl"
+              >
+                {creatingGroup ? 'Creating Group...' : 'Create Group'}
+              </button>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
+
+      {/* Lightbox for Full-screen Image Preview */}
+      <AnimatePresence>
+        {lightboxImage && (
+          <div
+            onClick={() => setLightboxImage(null)}
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4 cursor-pointer"
+          >
+            <motion.img
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              src={lightboxImage}
+              alt="Enlarged photo"
+              className="max-w-full max-h-[90vh] rounded-3xl object-contain shadow-2xl"
+            />
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

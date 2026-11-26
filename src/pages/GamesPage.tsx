@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Gamepad2, Trophy, RotateCcw, Dices } from 'lucide-react';
-import { Button } from '../components/ui/Button';
 import { LudoGame } from '../components/games/LudoGame';
+import { SPRING_SNAPPY } from '../lib/motion';
 
 export const GamesPage: React.FC = () => {
   const [selectedGame, setSelectedGame] = useState<'ludo' | 'tictactoe' | 'trivia'>('ludo');
@@ -61,7 +62,7 @@ export const GamesPage: React.FC = () => {
       if (triviaStep < triviaQuestions.length - 1) {
         setTriviaStep((prev) => prev + 1);
       } else {
-        setTriviaStep(99); // Finished
+        setTriviaStep(99);
       }
     }, 900);
   };
@@ -72,64 +73,62 @@ export const GamesPage: React.FC = () => {
     <div className="max-w-4xl mx-auto py-6 px-4 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-black text-white flex items-center gap-2">
-            <Gamepad2 className="w-6 h-6 text-amber-400" />
+          <h2 className="text-xl font-semibold text-white flex items-center gap-2 tracking-tight">
+            <Gamepad2 className="w-6 h-6 text-amber-300" />
             <span>VYRO Social Arcade</span>
           </h2>
-          <p className="text-xs text-slate-400">Casual multiplayer in-chat games with official Ludo King rules.</p>
+          <p className="text-xs text-white/60">Casual multiplayer in-chat games with official Ludo King rules.</p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            onClick={() => setSelectedGame('ludo')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-              selectedGame === 'ludo'
-                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black shadow-[0_0_15px_rgba(245,158,11,0.35)]'
-                : 'bg-vyro-card text-slate-400 hover:text-white border border-vyro-border'
-            }`}
-          >
-            <Dices className="w-4 h-4 text-amber-300" />
-            <span>Cyber Ludo</span>
-          </button>
-          <button
-            onClick={() => setSelectedGame('tictactoe')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-              selectedGame === 'tictactoe'
-                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black shadow-[0_0_15px_rgba(245,158,11,0.35)]'
-                : 'bg-vyro-card text-slate-400 hover:text-white border border-vyro-border'
-            }`}
-          >
-            Tic-Tac-Toe
-          </button>
-          <button
-            onClick={() => setSelectedGame('trivia')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-              selectedGame === 'trivia'
-                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black shadow-[0_0_15px_rgba(245,158,11,0.35)]'
-                : 'bg-vyro-card text-slate-400 hover:text-white border border-vyro-border'
-            }`}
-          >
-            Tech Trivia
-          </button>
+        <div className="relative flex items-center p-1 rounded-full liquid-glass-inner">
+          {(
+            [
+              { id: 'ludo', label: 'Cyber Ludo', icon: Dices },
+              { id: 'tictactoe', label: 'Tic-Tac-Toe', icon: null },
+              { id: 'trivia', label: 'Tech Trivia', icon: null },
+            ] as const
+          ).map((tab) => {
+            const Icon = tab.icon;
+            const isActive = selectedGame === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setSelectedGame(tab.id)}
+                className={`relative z-10 px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+                  isActive ? 'text-white' : 'text-white/60 hover:text-white'
+                }`}
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="gamesTabPill"
+                    className="absolute inset-0 rounded-full bg-white/20 border border-white/25 shadow-sm"
+                    transition={SPRING_SNAPPY}
+                  />
+                )}
+                {Icon && <Icon className="w-3.5 h-3.5 relative z-10 text-amber-300" />}
+                <span className="relative z-10">{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {selectedGame === 'ludo' ? (
-        <div className="glass-panel rounded-3xl p-4 sm:p-6 border border-vyro-border flex flex-col items-center">
+        <div className="liquid-glass rounded-[32px] p-4 sm:p-6 flex flex-col items-center">
           <div className="text-center mb-2">
-            <h3 className="text-base font-bold text-white flex items-center justify-center gap-2">
-              <Dices className="w-5 h-5 text-amber-400" />
+            <h3 className="text-base font-semibold text-white flex items-center justify-center gap-2 tracking-tight">
+              <Dices className="w-5 h-5 text-amber-300" />
               <span>Cyber Ludo Arena</span>
             </h3>
-            <p className="text-xs text-slate-400">Play with friends or challenge the smart bot!</p>
+            <p className="text-xs text-white/50">Play with friends or challenge the smart bot!</p>
           </div>
           <LudoGame />
         </div>
       ) : selectedGame === 'tictactoe' ? (
-        <div className="glass-panel rounded-3xl p-6 border border-vyro-border flex flex-col items-center">
+        <div className="liquid-glass rounded-[32px] p-6 flex flex-col items-center">
           <div className="text-center mb-4">
-            <h3 className="text-base font-bold text-white">Cyber Tic-Tac-Toe</h3>
-            <p className="text-xs text-slate-400">
+            <h3 className="text-base font-semibold text-white tracking-tight">Cyber Tic-Tac-Toe</h3>
+            <p className="text-xs text-white/60">
               {winner ? `Winner: Player ${winner}! 🎉` : `Turn: Player ${isXNext ? 'X' : 'O'}`}
             </p>
           </div>
@@ -139,12 +138,12 @@ export const GamesPage: React.FC = () => {
               <button
                 key={idx}
                 onClick={() => handleCellClick(idx)}
-                className="w-full h-full rounded-2xl bg-vyro-bg border border-vyro-border hover:border-vyro-primary text-2xl font-bold flex items-center justify-center transition-all select-none"
+                className="w-full h-full rounded-2xl liquid-glass-inner hover:border-white/30 text-2xl font-bold flex items-center justify-center transition-all select-none"
               >
                 {cell === 'X' ? (
-                  <span className="text-vyro-primary animate-scaleUp">X</span>
+                  <span className="text-cyan-300">X</span>
                 ) : cell === 'O' ? (
-                  <span className="text-vyro-accent animate-scaleUp">O</span>
+                  <span className="text-rose-400">O</span>
                 ) : (
                   ''
                 )}
@@ -157,22 +156,22 @@ export const GamesPage: React.FC = () => {
               setBoard(Array(9).fill(null));
               setIsXNext(true);
             }}
-            className="mt-6 flex items-center gap-1.5 px-4 py-2 rounded-xl bg-vyro-card border border-vyro-border text-xs text-slate-300 hover:text-white"
+            className="mt-6 flex items-center gap-1.5 px-4 py-2 rounded-full liquid-glass-inner text-xs text-white/70 hover:text-white transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Reset Board</span>
           </button>
         </div>
       ) : (
-        <div className="glass-panel rounded-3xl p-6 border border-vyro-border max-w-xl mx-auto">
+        <div className="liquid-glass rounded-[32px] p-6 max-w-xl mx-auto space-y-4">
           {triviaStep < triviaQuestions.length ? (
             <div className="space-y-4">
-              <div className="flex justify-between items-center text-xs text-slate-400">
+              <div className="flex justify-between items-center text-xs text-white/60">
                 <span>Question {triviaStep + 1} of {triviaQuestions.length}</span>
-                <span className="font-bold text-vyro-cyan">Score: {triviaScore} pts</span>
+                <span className="font-semibold text-cyan-300">Score: {triviaScore} pts</span>
               </div>
 
-              <h3 className="text-sm font-bold text-white">
+              <h3 className="text-sm font-semibold text-white tracking-tight">
                 {triviaQuestions[triviaStep].q}
               </h3>
 
@@ -185,12 +184,12 @@ export const GamesPage: React.FC = () => {
                       key={i}
                       disabled={selectedAnswer !== null}
                       onClick={() => handleTriviaAnswer(i)}
-                      className={`w-full text-left p-3 rounded-xl border text-xs font-semibold transition-all ${
+                      className={`w-full text-left p-3.5 rounded-2xl border text-xs font-semibold transition-all ${
                         isChosen
                           ? isCorrect
-                            ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300'
-                            : 'bg-rose-500/20 border-rose-500 text-rose-300'
-                          : 'bg-vyro-card border-vyro-border hover:border-vyro-primary text-slate-200'
+                            ? 'bg-emerald-500/20 border-emerald-500 text-emerald-200'
+                            : 'bg-rose-500/20 border-rose-500 text-rose-200'
+                          : 'liquid-glass-inner text-white/80 hover:text-white hover:bg-white/15'
                       }`}
                     >
                       {opt}
@@ -201,19 +200,18 @@ export const GamesPage: React.FC = () => {
             </div>
           ) : (
             <div className="text-center py-6 space-y-4">
-              <Trophy className="w-12 h-12 text-vyro-gold mx-auto animate-bounce" />
-              <h3 className="text-lg font-bold text-white">Trivia Complete!</h3>
-              <p className="text-xs text-slate-300">You scored {triviaScore} points.</p>
-              <Button
-                variant="gradient"
-                size="sm"
+              <Trophy className="w-12 h-12 text-amber-300 mx-auto animate-bounce" />
+              <h3 className="text-lg font-semibold text-white">Trivia Complete!</h3>
+              <p className="text-xs text-white/60">You scored {triviaScore} points.</p>
+              <button
                 onClick={() => {
                   setTriviaStep(0);
                   setTriviaScore(0);
                 }}
+                className="px-6 py-2.5 rounded-full liquid-pill-cta text-xs font-semibold text-white shadow-lg"
               >
                 Play Again
-              </Button>
+              </button>
             </div>
           )}
         </div>

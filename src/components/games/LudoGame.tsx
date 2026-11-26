@@ -741,7 +741,7 @@ export const LudoGame: React.FC<LudoGameProps> = ({ inChat = false, onGameAction
       </div>
 
       {/* Dynamic Status Banner with Turn Timer */}
-      <div className="w-full flex items-center justify-between px-4 py-2 rounded-2xl bg-gradient-to-r from-[#0F172A]/90 via-[#0B101D] to-[#0F172A]/90 border border-white/10 mb-2.5 shadow-lg">
+      <div className="w-full flex items-center justify-between px-4 py-2 rounded-2xl liquid-glass-inner border border-white/10 mb-2.5 shadow-lg">
         <div className="flex items-center gap-2.5 min-w-0">
           <div
             className="w-3.5 h-3.5 rounded-full shadow-md shrink-0 animate-pulse"
@@ -784,7 +784,7 @@ export const LudoGame: React.FC<LudoGameProps> = ({ inChat = false, onGameAction
       </div>
 
       {/* Handcrafted Tactile 15x15 Ludo Board SVG */}
-      <div className="relative w-full aspect-square max-w-[340px] sm:max-w-[420px] rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.85)] border-4 border-slate-800/90 bg-[#060911]">
+      <div className="relative w-full aspect-square max-w-[340px] sm:max-w-[420px] rounded-[28px] overflow-hidden shadow-2xl border-2 border-white/15 bg-[#060911]">
         <svg viewBox="0 0 600 600" className="w-full h-full">
           <defs>
             {/* 3D Pawn Radial Gradients */}
@@ -1166,7 +1166,7 @@ export const LudoGame: React.FC<LudoGameProps> = ({ inChat = false, onGameAction
       </div>
 
       {/* 3D Tumbling Dice & Action Bar */}
-      <div className="w-full mt-3 flex items-center justify-between glass-panel p-3.5 rounded-2xl border border-white/10 shadow-2xl bg-[#0B101D]/80">
+      <div className="w-full mt-3 flex items-center justify-between liquid-glass-elevated p-3.5 rounded-2xl border border-white/15 shadow-2xl">
         {/* Active Player Status Tag */}
         <div className="flex items-center gap-2.5">
           <div

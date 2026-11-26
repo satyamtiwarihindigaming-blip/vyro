@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Avatar } from '../ui/Avatar';
 import { useAuth } from '../../context/AuthContext';
 import { useSocial } from '../../context/SocialContext';
@@ -7,6 +8,7 @@ import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { StoryViewerModal } from '../story/StoryViewerModal';
 import { soundEngine } from '../../lib/soundEngine';
+import { SPRING_SNAPPY } from '../../lib/motion';
 
 export const StoryBar: React.FC = () => {
   const { currentUser } = useAuth();
@@ -27,9 +29,12 @@ export const StoryBar: React.FC = () => {
 
   return (
     <>
-      <div className="flex items-center gap-3.5 overflow-x-auto no-scrollbar py-2 px-1 select-none">
+      <div className="flex items-center gap-4 overflow-x-auto no-scrollbar py-1 px-1 select-none">
         {/* Create Your Story Bubble */}
-        <div
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          transition={SPRING_SNAPPY}
           onClick={() => {
             soundEngine.playHapticClick();
             navigate('/create?mode=story');
@@ -38,24 +43,24 @@ export const StoryBar: React.FC = () => {
           title="Post to your 24h Story"
         >
           <div className="relative">
-            <div className="p-[2.5px] rounded-full bg-gradient-to-tr from-slate-700 to-slate-800 group-hover:from-vyro-primary group-hover:to-vyro-accent transition duration-300">
+            <div className="p-[2.5px] rounded-full liquid-glass-inner">
               <Avatar
                 src={currentUser?.avatarUrl}
                 alt={currentUser?.displayName || 'Your Story'}
                 size="md"
               />
             </div>
-            <div className="absolute -bottom-0.5 -right-0.5 p-1 bg-gradient-to-r from-vyro-primary via-vyro-accent to-vyro-cyan rounded-full text-white shadow-glow-pink group-hover:scale-110 transition-transform">
+            <div className="absolute -bottom-0.5 -right-0.5 p-1 rounded-full liquid-pill-cta text-white shadow-lg">
               <Plus className="w-3 h-3 stroke-[3]" />
             </div>
           </div>
-          <span className="text-[11px] text-slate-300 font-semibold group-hover:text-white transition">
+          <span className="text-[11px] text-white/70 font-semibold group-hover:text-white transition">
             Your Story
           </span>
-        </div>
+        </motion.div>
 
         {uniqueCreatorsWithStories.length === 0 ? (
-          <div className="text-[11px] text-slate-500 pl-2">
+          <div className="text-[11px] text-white/45 pl-2 font-medium">
             No active 24h stories yet — tap Your Story to post the first!
           </div>
         ) : (
@@ -66,8 +71,11 @@ export const StoryBar: React.FC = () => {
               story.user.isPro;
 
             return (
-              <button
+              <motion.button
                 key={story.id}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                transition={SPRING_SNAPPY}
                 onClick={() => {
                   soundEngine.playHapticClick();
                   setActiveStory(story);
@@ -76,15 +84,15 @@ export const StoryBar: React.FC = () => {
               >
                 {/* Conic Gradient Animated Ring */}
                 <div
-                  className={`relative p-[2.5px] rounded-full transition-transform duration-300 group-hover:scale-105 ${
+                  className={`relative p-[2.5px] rounded-full transition-transform duration-300 ${
                     isVip
-                      ? 'animate-conic-vip shadow-[0_0_16px_rgba(16,185,129,0.5)]'
+                      ? 'shadow-[0_0_16px_rgba(16,185,129,0.5)] bg-gradient-to-tr from-emerald-400 via-cyan-400 to-indigo-500'
                       : story.hasViewed
-                      ? 'bg-slate-700/80'
-                      : 'bg-gradient-to-tr from-vyro-primary via-vyro-accent to-vyro-cyan animate-[spin_8s_linear_infinite]'
+                      ? 'bg-white/15'
+                      : 'bg-gradient-to-tr from-indigo-500 via-rose-500 to-amber-400'
                   }`}
                 >
-                  <div className="p-[2px] bg-vyro-bg rounded-full">
+                  <div className="p-[2px] bg-black/60 rounded-full">
                     <Avatar
                       src={story.user.avatarUrl}
                       alt={story.user.displayName}
@@ -99,10 +107,10 @@ export const StoryBar: React.FC = () => {
                   )}
                 </div>
 
-                <span className="text-[11px] text-slate-300 font-medium max-w-[72px] truncate group-hover:text-white transition">
+                <span className="text-[11px] text-white/70 font-medium max-w-[72px] truncate group-hover:text-white transition">
                   {story.user.username}
                 </span>
-              </button>
+              </motion.button>
             );
           })
         )}

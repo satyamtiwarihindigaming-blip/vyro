@@ -60,19 +60,19 @@ export const MiniChess: React.FC = () => {
   return (
     <div className="flex flex-col items-center p-3 select-none">
       <div className="flex items-center justify-between w-full max-w-[280px] mb-2 text-xs">
-        <span className="font-bold text-white capitalize">
-          Turn: <span className={turn === 'white' ? 'text-vyro-cyan' : 'text-vyro-accent'}>{turn}</span>
+        <span className="font-semibold text-white capitalize">
+          Turn: <span className={turn === 'white' ? 'text-cyan-300' : 'text-rose-400'}>{turn}</span>
         </span>
         <button
           onClick={resetGame}
-          className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-white"
+          className="flex items-center gap-1 text-[11px] text-white/50 hover:text-white transition-colors"
         >
           <RotateCcw className="w-3 h-3" /> Reset
         </button>
       </div>
 
       {/* 8x8 Chessboard Grid */}
-      <div className="grid grid-cols-8 border-2 border-vyro-border rounded-xl overflow-hidden shadow-2xl">
+      <div className="grid grid-cols-8 border border-white/15 rounded-2xl overflow-hidden shadow-2xl">
         {board.map((row, r) =>
           row.map((cell, c) => {
             const isDark = (r + c) % 2 === 1;
@@ -84,11 +84,11 @@ export const MiniChess: React.FC = () => {
                 onClick={() => handleCellClick(r, c)}
                 className={`w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-base sm:text-lg font-bold transition-colors ${
                   isSelected
-                    ? 'bg-vyro-primary text-white shadow-inner'
+                    ? 'bg-cyan-500/50 text-white shadow-inner'
                     : isDark
-                    ? 'bg-slate-900 text-slate-200'
-                    : 'bg-slate-800 text-slate-100'
-                } hover:bg-vyro-primary/40`}
+                    ? 'bg-black/70 text-white/80'
+                    : 'bg-white/10 text-white'
+                } hover:bg-cyan-500/20`}
               >
                 {cell}
               </button>
@@ -98,7 +98,7 @@ export const MiniChess: React.FC = () => {
       </div>
 
       {captured.length > 0 && (
-        <div className="mt-2 text-xs text-slate-400 truncate max-w-[280px]">
+        <div className="mt-2 text-xs text-white/50 truncate max-w-[280px]">
           Captured: {captured.join(' ')}
         </div>
       )}

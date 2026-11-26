@@ -11,64 +11,64 @@ export const LegalPage: React.FC = () => {
     <div className="max-w-3xl mx-auto py-8 px-4 space-y-6">
       <button
         onClick={() => navigate(-1)}
-        className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-white"
+        className="flex items-center gap-1.5 text-xs font-semibold text-white/60 hover:text-white transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         <span>Back</span>
       </button>
 
-      <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-vyro-border space-y-6">
-        <div className="flex items-center gap-3 pb-4 border-b border-vyro-border">
+      <div className="liquid-glass rounded-[32px] p-6 sm:p-8 space-y-6 shadow-2xl">
+        <div className="flex items-center gap-3 pb-4 border-b border-white/10">
           {isPrivacy ? (
             <ShieldCheck className="w-7 h-7 text-emerald-400" />
           ) : (
-            <FileText className="w-7 h-7 text-vyro-primary" />
+            <FileText className="w-7 h-7 text-cyan-300" />
           )}
           <div>
-            <h1 className="text-xl font-bold text-white">
+            <h1 className="text-xl font-semibold text-white tracking-tight">
               {isPrivacy ? 'VYRO Privacy Policy' : 'VYRO Terms of Service & Guidelines'}
             </h1>
-            <p className="text-xs text-slate-400">Effective Date: November 2026 • Version 1.0</p>
+            <p className="text-xs text-white/50">Effective Date: November 2026 • Version 1.0</p>
           </div>
         </div>
 
         {isPrivacy ? (
-          <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
-            <h3 className="text-sm font-bold text-white">1. Our Core Commitment to Privacy</h3>
+          <div className="space-y-4 text-xs text-white/80 leading-relaxed">
+            <h3 className="text-sm font-semibold text-white">1. Our Core Commitment to Privacy</h3>
             <p>
               VYRO is engineered on the principle of data minimization and zero behavioral spyware. We do not sell your personal data, interaction history, or direct messaging logs to advertising networks or external data brokers.
             </p>
 
-            <h3 className="text-sm font-bold text-white">2. Data We Collect and Why</h3>
-            <ul className="list-disc list-inside space-y-1 text-slate-400">
+            <h3 className="text-sm font-semibold text-white">2. Data We Collect and Why</h3>
+            <ul className="list-disc list-inside space-y-1 text-white/60">
               <li><strong>Account Credentials:</strong> Username, email, and cryptographically hashed passwords for authentication.</li>
               <li><strong>Content You Publish:</strong> Photos, reels, stories, captions, and audio attachments stored securely on cloud CDN storage.</li>
               <li><strong>Realtime Signaling:</strong> Ephemeral WebRTC session descriptions (SDP offers/answers) used strictly to establish direct peer-to-peer audio and video calls.</li>
             </ul>
 
-            <h3 className="text-sm font-bold text-white">3. Camera & Microphone Access</h3>
+            <h3 className="text-sm font-semibold text-white">3. Camera & Microphone Access</h3>
             <p>
               VYRO will never access your camera or microphone without an explicit prompt and user interaction. WebRTC media streams are encrypted peer-to-peer (DTLS-SRTP).
             </p>
 
-            <h3 className="text-sm font-bold text-white">4. Account Deletion & Right to be Forgotten</h3>
+            <h3 className="text-sm font-semibold text-white">4. Account Deletion & Right to be Forgotten</h3>
             <p>
               You have the right to request the permanent deletion of your account at any time through Settings &gt; Danger Zone. All associated database records and cloud media assets are completely purged within 24 hours.
             </p>
           </div>
         ) : (
-          <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
-            <h3 className="text-sm font-bold text-white">1. Community Standards</h3>
+          <div className="space-y-4 text-xs text-white/80 leading-relaxed">
+            <h3 className="text-sm font-semibold text-white">1. Community Standards</h3>
             <p>
               VYRO is a creative platform built on mutual respect. We prohibit harassment, hate speech, illegal distribution of non-consensual imagery, and manipulative bot behavior.
             </p>
 
-            <h3 className="text-sm font-bold text-white">2. Copyright and Audio Licensing</h3>
+            <h3 className="text-sm font-semibold text-white">2. Copyright and Audio Licensing</h3>
             <p>
               Users may only upload original creator audio or music licensed under Creative Commons Zero (CC0) or royalty-free public domain licenses. Uploading commercial music without written mechanical and synchronization rights is strictly prohibited.
             </p>
 
-            <h3 className="text-sm font-bold text-white">3. Content Moderation & Reporting</h3>
+            <h3 className="text-sm font-semibold text-white">3. Content Moderation & Reporting</h3>
             <p>
               Posts flagged by community members undergo review. Content that violates safety guidelines is quarantined or permanently removed, and repeat offenders face account termination.
             </p>

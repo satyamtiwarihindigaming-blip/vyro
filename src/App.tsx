@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Outlet, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, MotionConfig } from 'framer-motion';
 import { AuthProvider } from './context/AuthContext';
 import { WebSocketProvider } from './context/WebSocketContext';
 import { SocialProvider } from './context/SocialContext';
@@ -30,32 +30,44 @@ import { ProfilePage } from './pages/ProfilePage';
 import { SettingsPage } from './pages/SettingsPage';
 import { LegalPage } from './pages/LegalPage';
 import { AdminPage } from './pages/AdminPage';
+import { PAGE_TRANSITION } from './lib/motion';
 
 const MainLayout: React.FC = () => {
   const location = useLocation();
   const isStudioOrReel = location.pathname === '/create' || location.pathname === '/reels';
 
   return (
-    <div className="relative flex min-h-screen bg-vyro-bg text-slate-100 selection:bg-amber-500 selection:text-slate-950">
-      {/* Handcrafted Ambient Floating Glow Orbs */}
-      <div className="ambient-glow-orb-1" aria-hidden="true" />
-      <div className="ambient-glow-orb-2" aria-hidden="true" />
+    <div className="relative flex min-h-screen text-slate-100 selection:bg-white/20 selection:text-white">
+      {/* Living Silk Mesh Canvas (Apple visionOS Spatial Background) */}
+      <div className="living-silk-mesh" aria-hidden="true">
+        <div className="silk-orb-indigo" />
+        <div className="silk-orb-violet" />
+        <div className="silk-orb-rose" />
+        <div className="silk-orb-cyan" />
+      </div>
+      <div className="silk-grain-overlay" aria-hidden="true" />
 
+      {/* Floating Desktop Sidebar */}
       <Sidebar />
 
-      <div className="relative z-10 flex-1 flex flex-col min-w-0">
+      {/* Main Content Viewport */}
+      <div className="relative z-10 flex-1 flex flex-col min-w-0 md:pl-[17rem] lg:pl-[19rem]">
         {!isStudioOrReel && <Navbar />}
         <motion.main
           key={location.pathname}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2 }}
-          className="flex-1 pb-20 md:pb-8 overflow-x-hidden"
+          initial={PAGE_TRANSITION.initial}
+          animate={PAGE_TRANSITION.animate}
+          exit={PAGE_TRANSITION.exit}
+          transition={PAGE_TRANSITION.transition}
+          className={`flex-1 pb-24 md:pb-12 overflow-x-hidden ${
+            !isStudioOrReel ? 'pt-24 sm:pt-28 px-3 sm:px-6' : ''
+          }`}
         >
           <Outlet />
         </motion.main>
       </div>
 
+      {/* Global Overlays & Docks */}
       <FloatingAudioPlayer />
       <GlobalCallOverlay />
       <PermissionPromptModal />
@@ -66,44 +78,46 @@ const MainLayout: React.FC = () => {
 
 export const App: React.FC = () => {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <WebSocketProvider>
-          <SocialProvider>
-            <AudioProvider>
-              <CallProvider>
-                <AppBootSplash />
-                <ThemeSelectorModal />
-                <BrowserRouter>
-                <Routes>
-                  {/* Public Instagram-style Login / Signup & Legal */}
-                  <Route path="/" element={<LandingPage defaultMode="login" />} />
-                  <Route path="/login" element={<LandingPage defaultMode="login" />} />
-                  <Route path="/signup" element={<LandingPage defaultMode="signup" />} />
-                  <Route path="/legal/privacy" element={<LegalPage />} />
-                  <Route path="/legal/terms" element={<LegalPage />} />
+    <MotionConfig reducedMotion="user">
+      <ThemeProvider>
+        <AuthProvider>
+          <WebSocketProvider>
+            <SocialProvider>
+              <AudioProvider>
+                <CallProvider>
+                  <AppBootSplash />
+                  <ThemeSelectorModal />
+                  <BrowserRouter>
+                    <Routes>
+                      {/* Public Authentication & Legal */}
+                      <Route path="/" element={<LandingPage defaultMode="login" />} />
+                      <Route path="/login" element={<LandingPage defaultMode="login" />} />
+                      <Route path="/signup" element={<LandingPage defaultMode="signup" />} />
+                      <Route path="/legal/privacy" element={<LegalPage />} />
+                      <Route path="/legal/terms" element={<LegalPage />} />
 
-                  {/* Platform Shell */}
-                  <Route element={<MainLayout />}>
-                    <Route path="/feed" element={<FeedPage />} />
-                    <Route path="/reels" element={<ReelsPage />} />
-                    <Route path="/explore" element={<ExplorePage />} />
-                    <Route path="/create" element={<StudioPage />} />
-                    <Route path="/direct" element={<DirectPage />} />
-                    <Route path="/music" element={<MusicPage />} />
-                    <Route path="/games" element={<GamesPage />} />
-                    <Route path="/settings" element={<SettingsPage />} />
-                    <Route path="/admin" element={<AdminPage />} />
-                    <Route path="/:username" element={<ProfilePage />} />
-                  </Route>
-                </Routes>
-              </BrowserRouter>
-            </CallProvider>
-          </AudioProvider>
-        </SocialProvider>
-      </WebSocketProvider>
-    </AuthProvider>
-  </ThemeProvider>
+                      {/* Spatial App Shell */}
+                      <Route element={<MainLayout />}>
+                        <Route path="/feed" element={<FeedPage />} />
+                        <Route path="/reels" element={<ReelsPage />} />
+                        <Route path="/explore" element={<ExplorePage />} />
+                        <Route path="/create" element={<StudioPage />} />
+                        <Route path="/direct" element={<DirectPage />} />
+                        <Route path="/music" element={<MusicPage />} />
+                        <Route path="/games" element={<GamesPage />} />
+                        <Route path="/settings" element={<SettingsPage />} />
+                        <Route path="/admin" element={<AdminPage />} />
+                        <Route path="/:username" element={<ProfilePage />} />
+                      </Route>
+                    </Routes>
+                  </BrowserRouter>
+                </CallProvider>
+              </AudioProvider>
+            </SocialProvider>
+          </WebSocketProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </MotionConfig>
   );
 };
 

@@ -109,7 +109,7 @@ export const GlobalCallOverlay: React.FC = () => {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.96 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[60] bg-black/95 backdrop-blur-2xl flex flex-col justify-between p-4 sm:p-6 overflow-y-auto"
+          className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-3xl flex flex-col justify-between p-4 sm:p-6 overflow-y-auto"
         >
           {/* Dedicated active audio element so Voice & Video call audio ALWAYS plays reliably */}
           <audio ref={remoteAudioRef} autoPlay playsInline className="sr-only" />
@@ -322,14 +322,14 @@ export const GlobalCallOverlay: React.FC = () => {
             </div>
           )}
 
-          {/* Call Toolbar */}
+          {/* Call Toolbar - Floating visionOS Glass Pill */}
           {callStatus !== 'ringing' && (
-            <div className="flex items-center justify-center gap-4">
+            <div className="flex items-center justify-center gap-4 py-2.5 px-6 rounded-full liquid-glass-elevated border-white/20 shadow-2xl mx-auto">
               <button
                 onClick={toggleMute}
                 disabled={!localStream?.getAudioTracks().length}
                 className={`p-3.5 rounded-full transition-colors disabled:opacity-40 ${
-                  isMuted ? 'bg-rose-500 text-white' : 'bg-white/20 text-white hover:bg-white/30'
+                  isMuted ? 'bg-rose-500 text-white shadow-md' : 'bg-white/15 text-white hover:bg-white/25'
                 }`}
                 title={isMuted ? 'Unmute Mic' : 'Mute Mic'}
               >
@@ -341,7 +341,7 @@ export const GlobalCallOverlay: React.FC = () => {
                   onClick={toggleCamera}
                   disabled={!localStream?.getVideoTracks().length}
                   className={`p-3.5 rounded-full transition-colors disabled:opacity-40 ${
-                    isCameraOff ? 'bg-rose-500 text-white' : 'bg-white/20 text-white hover:bg-white/30'
+                    isCameraOff ? 'bg-rose-500 text-white shadow-md' : 'bg-white/15 text-white hover:bg-white/25'
                   }`}
                   title={isCameraOff ? 'Turn Camera On' : 'Turn Camera Off'}
                 >
@@ -351,7 +351,7 @@ export const GlobalCallOverlay: React.FC = () => {
 
               <button
                 onClick={declineOrEndCall}
-                className="p-3.5 rounded-full bg-rose-600 hover:bg-rose-700 text-white shadow-lg active:scale-90 transition-transform"
+                className="p-3.5 rounded-full bg-rose-600 hover:bg-rose-500 text-white shadow-[0_0_20px_rgba(225,29,72,0.4)] active:scale-90 transition-transform"
                 title="End Call"
               >
                 <PhoneOff className="w-5 h-5" />

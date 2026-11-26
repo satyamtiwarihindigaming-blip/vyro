@@ -34,8 +34,23 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['Inter', 'Plus Jakarta Sans', 'system-ui', 'sans-serif'],
-        display: ['Poppins', 'Inter', 'sans-serif'],
+        sans: [
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'SF Pro Display',
+          'Inter',
+          'Plus Jakarta Sans',
+          'system-ui',
+          'sans-serif',
+        ],
+        display: [
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'SF Pro Display',
+          'Poppins',
+          'Inter',
+          'sans-serif',
+        ],
       },
       boxShadow: {
         'glow-purple': '0 0 25px -5px rgba(139, 92, 246, 0.4)',

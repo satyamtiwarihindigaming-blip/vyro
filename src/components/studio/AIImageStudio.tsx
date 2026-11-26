@@ -1,20 +1,19 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import {
   Sparkles,
   Wand2,
   RefreshCw,
   Download,
-  Share2,
   Send,
   CheckCircle,
-  AlertCircle,
   Image as ImageIcon,
   Flame,
 } from 'lucide-react';
-import { Button } from '../ui/Button';
 import { soundEngine } from '../../lib/soundEngine';
 import { useSocial } from '../../context/SocialContext';
 import { useNavigate } from 'react-router-dom';
+import { SPRING_SNAPPY } from '../../lib/motion';
 
 type AspectRatio = '1:1' | '9:16' | '16:9';
 
@@ -122,7 +121,6 @@ export const AIImageStudio: React.FC = () => {
       soundEngine.playChime();
     };
     img.onerror = () => {
-      // Fallback in case of network issue
       setGeneratedImageUrl(synthesisUrl);
       setIsGenerating(false);
       soundEngine.playChime();
@@ -183,18 +181,18 @@ export const AIImageStudio: React.FC = () => {
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6 select-none p-1">
       {/* Header Banner */}
-      <div className="glass-panel p-5 rounded-3xl border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="liquid-glass p-5 rounded-[28px] flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-black text-white flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-vyro-accent animate-pulse" />
+          <h2 className="text-lg font-semibold text-white flex items-center gap-2 tracking-tight">
+            <Sparkles className="w-5 h-5 text-amber-300 animate-pulse" />
             Native AI Image Synthesis Studio
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-white/60 mt-1">
             Generate 8K photoreal & cinematic artwork directly in VYRO • Zero API keys required
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 p-1 rounded-full liquid-glass-inner">
           {(['1:1', '9:16', '16:9'] as AspectRatio[]).map((ratio) => (
             <button
               key={ratio}
@@ -202,10 +200,10 @@ export const AIImageStudio: React.FC = () => {
                 soundEngine.playHapticClick();
                 setAspectRatio(ratio);
               }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition ${
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition ${
                 aspectRatio === ratio
-                  ? 'bg-vyro-primary text-white border-vyro-accent shadow-glow-purple'
-                  : 'bg-black/40 text-slate-400 border-white/10 hover:text-white'
+                  ? 'bg-white/20 text-white shadow-sm'
+                  : 'text-white/60 hover:text-white'
               }`}
             >
               {ratio} {ratio === '1:1' ? 'Feed' : ratio === '9:16' ? 'Story' : 'Cover'}
@@ -219,15 +217,15 @@ export const AIImageStudio: React.FC = () => {
         {/* Controls Column (7 Cols) */}
         <div className="md:col-span-7 space-y-4">
           {/* Prompt Box */}
-          <div className="glass-panel p-4 rounded-3xl border border-white/10 space-y-3">
+          <div className="liquid-glass p-5 rounded-[28px] space-y-3">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-extrabold text-white uppercase tracking-wider">
+              <label className="text-xs font-semibold text-white/80 uppercase tracking-wider">
                 Creative Prompt
               </label>
               <button
                 type="button"
                 onClick={handleMagicPolish}
-                className="text-xs text-vyro-cyan hover:text-white font-bold flex items-center gap-1 transition"
+                className="text-xs text-cyan-300 hover:text-white font-semibold flex items-center gap-1 transition"
               >
                 <Wand2 className="w-3.5 h-3.5" /> Magic Polish
               </button>
@@ -238,12 +236,12 @@ export const AIImageStudio: React.FC = () => {
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="Describe your vision (e.g. 'Cyberpunk cybernetic warrior with glowing neon wings atop a futuristic skyscraper')..."
               rows={3}
-              className="w-full bg-black/60 border border-white/15 rounded-2xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-vyro-primary resize-none"
+              className="w-full liquid-glass-inner rounded-2xl p-3.5 text-xs text-white placeholder-white/40 focus:outline-none focus:border-white/30 resize-none transition-colors"
             />
 
             {/* Curated Aesthetic Presets */}
-            <div className="space-y-1.5">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+            <div className="space-y-2 pt-1">
+              <span className="text-[10px] font-semibold text-white/50 uppercase tracking-wider block">
                 Aesthetic Style Presets
               </span>
               <div className="flex flex-wrap gap-2">
@@ -256,10 +254,10 @@ export const AIImageStudio: React.FC = () => {
                         soundEngine.playHapticClick();
                         setSelectedPreset(preset);
                       }}
-                      className={`px-3 py-1.5 rounded-full text-xs font-bold border transition flex items-center gap-1.5 ${
+                      className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition flex items-center gap-1.5 ${
                         isSelected
-                          ? 'bg-gradient-to-r from-vyro-primary to-vyro-accent text-white border-vyro-accent shadow-glow-pink'
-                          : 'bg-black/40 text-slate-300 border-white/10 hover:border-white/30'
+                          ? 'bg-white/20 border border-white/30 text-white shadow-sm'
+                          : 'liquid-glass-inner text-white/60 hover:text-white'
                       }`}
                     >
                       <span>{preset.emoji}</span>
@@ -271,31 +269,32 @@ export const AIImageStudio: React.FC = () => {
             </div>
 
             {/* Generate Action Button */}
-            <Button
-              variant="gradient"
-              size="md"
+            <motion.button
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
+              transition={SPRING_SNAPPY}
               onClick={handleGenerate}
               disabled={isGenerating || !prompt.trim()}
-              className="w-full py-3 mt-2 font-black tracking-wider shadow-glow-purple"
+              className="w-full py-3 mt-3 rounded-full liquid-pill-cta text-xs font-semibold flex items-center justify-center gap-2 shadow-xl disabled:opacity-40"
             >
               {isGenerating ? (
                 <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  Synthesizing 8K Art...
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <span>Synthesizing 8K Art...</span>
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Generate Masterpiece
+                  <Sparkles className="w-4 h-4" />
+                  <span>Generate Masterpiece</span>
                 </>
               )}
-            </Button>
+            </motion.button>
           </div>
 
           {/* Caption & Publish Options (Visible when image generated) */}
           {generatedImageUrl && (
-            <div className="glass-panel p-4 rounded-3xl border border-white/10 space-y-3">
-              <label className="text-xs font-bold text-white uppercase tracking-wider">
+            <div className="liquid-glass p-5 rounded-[28px] space-y-3">
+              <label className="text-xs font-semibold text-white/80 uppercase tracking-wider">
                 Post Caption (Optional)
               </label>
               <input
@@ -303,37 +302,35 @@ export const AIImageStudio: React.FC = () => {
                 value={caption}
                 onChange={(e) => setCaption(e.target.value)}
                 placeholder="Write an epic caption for your followers..."
-                className="w-full bg-black/60 border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-vyro-primary"
+                className="w-full liquid-glass-inner rounded-2xl px-4 py-2.5 text-xs text-white placeholder-white/40 focus:outline-none focus:border-white/30"
               />
 
               {publishSuccess && (
-                <div className="p-2.5 rounded-xl bg-vyro-primary/20 border border-vyro-accent text-xs font-bold text-white flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-vyro-cyan" />
+                <div className="p-3 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 text-xs font-semibold text-emerald-200 flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-emerald-300" />
                   {publishSuccess}
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-2 pt-1">
-                <Button
-                  variant="primary"
-                  size="sm"
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <button
+                  type="button"
                   onClick={handlePublishToFeed}
                   disabled={isPublishing}
-                  className="w-full text-xs font-bold"
+                  className="w-full py-2.5 rounded-full liquid-glass-inner text-xs font-semibold text-white hover:bg-white/15 flex items-center justify-center gap-1.5 transition-colors disabled:opacity-40"
                 >
-                  <Send className="w-3.5 h-3.5 mr-1.5" />
-                  Publish to Feed
-                </Button>
-                <Button
-                  variant="gradient"
-                  size="sm"
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Publish to Feed</span>
+                </button>
+                <button
+                  type="button"
                   onClick={handlePublishToStory}
                   disabled={isPublishing}
-                  className="w-full text-xs font-bold shadow-glow-pink"
+                  className="w-full py-2.5 rounded-full liquid-pill-cta text-xs font-semibold text-white flex items-center justify-center gap-1.5 shadow-lg disabled:opacity-40"
                 >
-                  <Flame className="w-3.5 h-3.5 mr-1.5" />
-                  Publish to 24h Story
-                </Button>
+                  <Flame className="w-3.5 h-3.5" />
+                  <span>Publish to 24h Story</span>
+                </button>
               </div>
             </div>
           )}
@@ -342,7 +339,7 @@ export const AIImageStudio: React.FC = () => {
         {/* Live Image Canvas (5 Cols) */}
         <div className="md:col-span-5 flex flex-col items-center justify-center">
           <div
-            className={`relative w-full rounded-3xl overflow-hidden glass-panel border border-white/15 flex items-center justify-center shadow-2xl bg-black/50 ${
+            className={`relative w-full rounded-[28px] overflow-hidden liquid-glass flex items-center justify-center shadow-2xl bg-black/50 ${
               aspectRatio === '9:16'
                 ? 'aspect-[9/16] max-h-[520px]'
                 : aspectRatio === '16:9'
@@ -352,12 +349,12 @@ export const AIImageStudio: React.FC = () => {
           >
             {isGenerating ? (
               <div className="flex flex-col items-center justify-center text-center p-6 space-y-3">
-                <div className="w-14 h-14 rounded-2xl bg-vyro-primary/20 border border-vyro-accent flex items-center justify-center animate-spin">
-                  <Sparkles className="w-7 h-7 text-vyro-accent" />
+                <div className="w-14 h-14 rounded-2xl liquid-glass-elevated flex items-center justify-center animate-spin">
+                  <Sparkles className="w-7 h-7 text-amber-300" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-black text-white">Rendering Diffusion Canvas</h4>
-                  <p className="text-[11px] text-slate-400 mt-1">
+                  <h4 className="text-sm font-semibold text-white">Rendering Diffusion Canvas</h4>
+                  <p className="text-[11px] text-white/50 mt-1">
                     Applying {selectedPreset.name} shaders...
                   </p>
                 </div>
@@ -371,15 +368,15 @@ export const AIImageStudio: React.FC = () => {
                 />
                 <button
                   onClick={handleDownloadImage}
-                  className="absolute bottom-3 right-3 p-2.5 rounded-full bg-black/70 hover:bg-black text-white border border-white/20 backdrop-blur-md shadow-lg transition"
+                  className="absolute bottom-3 right-3 p-2.5 rounded-full bg-black/60 hover:bg-black/80 text-white backdrop-blur-md shadow-lg transition"
                   title="Download Image"
                 >
                   <Download className="w-4 h-4" />
                 </button>
               </>
             ) : (
-              <div className="flex flex-col items-center justify-center text-center p-6 text-slate-500 space-y-2">
-                <ImageIcon className="w-12 h-12 stroke-[1.5] text-slate-600" />
+              <div className="flex flex-col items-center justify-center text-center p-6 text-white/40 space-y-2">
+                <ImageIcon className="w-12 h-12 stroke-[1.5]" />
                 <p className="text-xs">
                   Your AI masterpiece preview will appear here in ultra 8K clarity.
                 </p>

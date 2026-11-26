@@ -29,8 +29,8 @@ export const Avatar: React.FC<AvatarProps> = ({
 
   const ringStyles = hasStory
     ? isViewed
-      ? 'p-[2px] bg-slate-600 rounded-full'
-      : 'p-[2px] bg-gradient-to-tr from-vyro-primary via-vyro-accent to-vyro-cyan rounded-full animate-pulse-slow'
+      ? 'p-[2px] rounded-full ring-1 ring-white/20'
+      : 'p-[2px] rounded-full bg-gradient-to-tr from-amber-400 via-rose-500 to-violet-500 shadow-[0_0_12px_rgba(244,63,94,0.4)]'
     : '';
 
   const initials = alt ? alt.trim().slice(0, 2).toUpperCase() : 'VY';
@@ -42,12 +42,12 @@ export const Avatar: React.FC<AvatarProps> = ({
           src={src}
           alt={alt}
           onError={() => setImgError(true)}
-          className={`${sizes[size]} rounded-full object-cover bg-vyro-card border border-vyro-border`}
+          className={`${sizes[size]} rounded-full object-cover ring-1 ring-white/25 bg-white/5`}
           loading="lazy"
         />
       ) : (
         <div
-          className={`${sizes[size]} rounded-full bg-gradient-to-br from-vyro-primary via-vyro-accent to-vyro-cyan flex items-center justify-center font-bold text-white uppercase select-none shadow-glow-purple/30`}
+          className={`${sizes[size]} rounded-full bg-gradient-to-br from-white/20 via-white/10 to-white/5 ring-1 ring-white/25 backdrop-blur-md flex items-center justify-center font-bold text-white uppercase select-none`}
         >
           {initials}
         </div>

@@ -121,7 +121,7 @@ export const PermissionPromptModal: React.FC = () => {
             initial={{ scale: 0.92, y: 12 }}
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.92, y: 12 }}
-            className="w-full max-w-md glass-panel rounded-3xl p-6 border border-vyro-primary/40 shadow-2xl space-y-5 relative"
+            className="w-full max-w-md liquid-glass-elevated rounded-[30px] p-6 shadow-2xl space-y-5 relative"
           >
             <button
               onClick={handleDismiss}

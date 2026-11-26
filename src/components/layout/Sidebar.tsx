@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   Home,
   Compass,
@@ -18,10 +19,12 @@ import { Logo } from './Logo';
 import { useAuth } from '../../context/AuthContext';
 import { VerifiedBadge } from '../ui/VerifiedBadge';
 import { AuthModal } from '../auth/AuthModal';
+import { soundEngine } from '../../lib/soundEngine';
 
 export const Sidebar: React.FC = () => {
   const { currentUser, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [authOpen, setAuthOpen] = useState(false);
 
   const navItems = [
@@ -41,42 +44,59 @@ export const Sidebar: React.FC = () => {
   ];
 
   const handleLogout = () => {
+    soundEngine.playHapticClick();
     logout();
     navigate('/');
   };
 
   return (
     <>
-      <aside className="hidden md:flex flex-col w-64 lg:w-72 h-screen sticky top-0 bg-vyro-bg/95 border-r border-vyro-border/70 p-5 z-40 select-none">
-        <div className="px-2 py-4">
+      {/* Floating Spatial Sidebar Dock (visionOS Glass Material) */}
+      <aside className="hidden md:flex flex-col fixed left-4 top-24 bottom-6 z-30 w-64 lg:w-72 rounded-[28px] liquid-glass-elevated p-5 select-none shadow-2xl">
+        <div className="px-2 py-2 mb-2">
           <Logo size="md" />
         </div>
 
-        <nav className="flex-1 mt-6 space-y-1.5 overflow-y-auto no-scrollbar">
+        <nav className="flex-1 space-y-1 overflow-y-auto no-scrollbar py-2">
           {navItems.map((item) => {
             const Icon = item.icon;
+            const isActive = location.pathname === item.to;
+
             return (
               <NavLink
                 key={item.to}
                 to={item.to}
-                className={({ isActive }) =>
-                  `flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold transition-all duration-200 group ${
-                    isActive
-                      ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
-                      : 'text-slate-400 hover:text-white hover:bg-white/5'
-                  }`
-                }
+                onClick={() => soundEngine.playHapticClick()}
+                className={`relative flex items-center justify-between px-3.5 py-2.5 rounded-[16px] text-xs font-semibold transition-all duration-200 group ${
+                  isActive ? 'text-white' : 'text-white/60 hover:text-white hover:bg-white/[0.06]'
+                }`}
               >
-                <div className="flex items-center gap-3.5">
-                  <Icon className="w-5 h-5 transition-transform group-hover:scale-110" />
+                {/* Framer Motion Sliding Active Pill */}
+                {isActive && (
+                  <motion.div
+                    layoutId="sidebarActivePill"
+                    className="absolute inset-0 rounded-[16px] bg-white/[0.12] border border-white/20 shadow-[0_0_20px_rgba(255,255,255,0.12)] -z-10"
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  />
+                )}
+
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`p-1.5 rounded-xl transition-colors ${
+                      isActive ? 'text-amber-400 bg-amber-400/10' : 'text-white/70 group-hover:text-white'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                  </div>
                   <span>{item.name}</span>
                 </div>
+
                 {item.badge && (
                   <span
-                    className={`px-2 py-0.5 text-[10px] font-extrabold text-white rounded-full ${
+                    className={`px-2 py-0.5 text-[9px] font-bold rounded-full ${
                       item.badge === 'ADMIN'
-                        ? 'bg-gradient-to-r from-amber-500 to-rose-500'
-                        : 'bg-gradient-to-r from-vyro-accent to-rose-500'
+                        ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30'
+                        : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
                     }`}
                   >
                     {item.badge}
@@ -87,49 +107,43 @@ export const Sidebar: React.FC = () => {
           })}
         </nav>
 
-        {/* Quick Create Studio CTA & Session Info */}
-        <div className="pt-4 border-t border-vyro-border/70 space-y-3">
+        {/* Studio CTA & Session Dock */}
+        <div className="pt-3 border-t border-white/10 space-y-2.5">
           <NavLink
             to="/create"
-            className="flex items-center justify-center gap-2.5 w-full py-3 px-4 rounded-xl font-black text-sm text-slate-950 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:brightness-105 shadow-[0_0_20px_rgba(245,158,11,0.35)] transition-all duration-200 active:scale-95"
+            onClick={() => soundEngine.playPop()}
+            className="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-full font-semibold text-xs liquid-pill-cta"
           >
-            <PlusSquare className="w-5 h-5 stroke-[2.5]" />
+            <PlusSquare className="w-4 h-4" />
             <span>Studio & Camera</span>
           </NavLink>
 
           {currentUser ? (
-            <div className="p-3 rounded-xl bg-vyro-card/60 border border-vyro-border flex items-center justify-between gap-2">
-              <div className="min-w-0">
-                <div className="flex items-center gap-1">
-                  <p className="text-xs font-bold text-slate-200 truncate">
-                    @{currentUser.username}
-                  </p>
-                  <VerifiedBadge
-                    isVerified={currentUser.isVerified}
-                    isPro={currentUser.isPro}
-                    proBadge={currentUser.proBadge}
-                  />
+            <div className="flex items-center justify-between p-2 rounded-2xl liquid-glass-inner">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-7 h-7 rounded-full bg-white/10 ring-1 ring-white/20 flex items-center justify-center text-[10px] font-bold text-white uppercase shrink-0">
+                  {currentUser.username.slice(0, 2)}
                 </div>
-                <p className="text-[10px] text-slate-400 truncate capitalize">
-                  {currentUser.role} Account
-                </p>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-white truncate">@{currentUser.username}</p>
+                  <p className="text-[10px] text-white/40 truncate">{currentUser.displayName}</p>
+                </div>
               </div>
               <button
                 onClick={handleLogout}
-                className="p-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                className="p-1.5 text-white/40 hover:text-rose-400 transition"
                 title="Sign Out"
-                aria-label="Sign Out"
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut className="w-3.5 h-3.5" />
               </button>
             </div>
           ) : (
             <button
               onClick={() => setAuthOpen(true)}
-              className="w-full py-2.5 px-4 rounded-xl bg-vyro-card hover:bg-vyro-cardHover border border-vyro-border text-xs font-bold text-slate-200 flex items-center justify-center gap-2 transition-colors hover:border-amber-500/40"
+              className="flex items-center justify-center gap-2 w-full py-2 px-3 rounded-full text-xs font-medium text-white/75 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition"
             >
-              <LogIn className="w-4 h-4 text-amber-400" />
-              <span>Sign In / Join VYRO</span>
+              <LogIn className="w-3.5 h-3.5" />
+              <span>Sign In / Register</span>
             </button>
           )}
         </div>

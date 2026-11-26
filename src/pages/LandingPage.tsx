@@ -7,18 +7,19 @@ import {
   Video,
   Gamepad2,
   ShieldCheck,
-  AtSign,
   Lock,
   Mail,
   User,
   Check,
   AlertCircle,
   Sparkles,
+  ArrowRight,
 } from 'lucide-react';
 import { Logo } from '../components/layout/Logo';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { useAuth } from '../context/AuthContext';
+import { soundEngine } from '../lib/soundEngine';
 
 export const LandingPage: React.FC<{ defaultMode?: 'login' | 'signup' }> = ({
   defaultMode = 'login',
@@ -68,6 +69,7 @@ export const LandingPage: React.FC<{ defaultMode?: 'login' | 'signup' }> = ({
   };
 
   const switchMode = (next: 'login' | 'signup' | 'forgot') => {
+    soundEngine.playHapticClick();
     setMode(next);
     setErrorMsg('');
     setSuccessMsg('');
@@ -75,6 +77,7 @@ export const LandingPage: React.FC<{ defaultMode?: 'login' | 'signup' }> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    soundEngine.playPop();
     setErrorMsg('');
     setSuccessMsg('');
     setIsSubmitting(true);
@@ -102,346 +105,281 @@ export const LandingPage: React.FC<{ defaultMode?: 'login' | 'signup' }> = ({
         setErrorMsg('Password must be at least 6 characters.');
         return;
       }
+
       const res = await signup({
         username,
         email,
-        displayName: displayName.trim() || username,
+        displayName: displayName || username,
         pass: password,
       });
       setIsSubmitting(false);
       if (res.success) {
-        setSuccessMsg(`Welcome to VYRO, @${username}!`);
+        setSuccessMsg('Account created successfully! Taking you to feed...');
         navigate('/feed');
       } else {
-        setErrorMsg(res.error || 'Could not create account.');
+        setErrorMsg(res.error || 'Signup failed. Please try again.');
       }
       return;
     }
 
-    setIsSubmitting(false);
-    setSuccessMsg('If this email is registered, recovery instructions have been queued.');
+    if (mode === 'forgot') {
+      setIsSubmitting(false);
+      setSuccessMsg('If an account matches that email, a password reset link has been dispatched.');
+    }
   };
 
   return (
-    <div className="min-h-screen bg-vyro-bg text-slate-100 flex flex-col justify-between relative overflow-hidden">
-      {/* Animated Kinetic Ambient Backdrop */}
-      <motion.div
-        animate={{ scale: [1, 1.15, 1], opacity: [0.3, 0.5, 0.3] }}
-        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute -top-32 -left-32 w-[500px] h-[500px] bg-vyro-primary/25 rounded-full blur-[130px] pointer-events-none"
-      />
-      <motion.div
-        animate={{ scale: [1, 1.2, 1], opacity: [0.25, 0.45, 0.25] }}
-        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-        className="absolute -bottom-40 -right-32 w-[520px] h-[520px] bg-vyro-accent/20 rounded-full blur-[140px] pointer-events-none"
-      />
+    <div className="relative min-h-screen flex items-center justify-center p-4 sm:p-6 select-none overflow-hidden">
+      {/* Living Silk Mesh Canvas */}
+      <div className="living-silk-mesh" aria-hidden="true">
+        <div className="silk-orb-indigo" />
+        <div className="silk-orb-violet" />
+        <div className="silk-orb-rose" />
+        <div className="silk-orb-cyan" />
+      </div>
+      <div className="silk-grain-overlay" aria-hidden="true" />
 
-      {/* Main Centered Split Showcase + Auth Container */}
-      <main className="flex-1 flex items-center justify-center px-4 py-10 relative z-10">
-        <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-          {/* Left Column: Kinetic Motion Graphics Phone Preview (Zero Fake Photos) */}
-          <div className="hidden lg:flex flex-col items-center justify-center relative">
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7 }}
-              className="relative w-80 h-[520px] rounded-[44px] p-3 glass-panel border-2 border-vyro-border shadow-2xl"
-            >
-              {/* Inner Mobile UI Preview */}
-              <div className="w-full h-full rounded-[34px] bg-slate-950/90 border border-white/5 p-5 flex flex-col justify-between overflow-hidden relative">
-                {/* Animated Top Gradient Orb */}
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-                  className="absolute -top-20 -right-20 w-48 h-48 bg-gradient-to-tr from-vyro-primary/40 via-vyro-accent/30 to-vyro-cyan/40 rounded-full blur-2xl"
-                />
-
-                <div className="flex items-center justify-between relative z-10">
-                  <span className="text-sm font-extrabold gradient-text-primary tracking-wider">
-                    VYRO
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">
-                    LIVE P2P
-                  </span>
-                </div>
-
-                {/* Motion Graphic Feature Stack */}
-                <div className="space-y-3 relative z-10">
-                  <motion.div
-                    animate={{ y: [0, -6, 0] }}
-                    transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                    className="p-3.5 rounded-2xl glass-card border border-vyro-primary/40 flex items-center gap-3"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-vyro-primary to-vyro-accent flex items-center justify-center text-white">
-                      <Camera className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-white">HD Camera & Reels</p>
-                      <p className="text-[10px] text-slate-400">Live filters, stickers & WebP</p>
-                    </div>
-                  </motion.div>
-
-                  <motion.div
-                    animate={{ y: [0, 6, 0] }}
-                    transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
-                    className="p-3.5 rounded-2xl glass-card border border-vyro-cyan/40 flex items-center gap-3"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-vyro-cyan to-blue-600 flex items-center justify-center text-white">
-                      <Video className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-white">WebRTC Voice & Video</p>
-                      <p className="text-[10px] text-slate-400">Encrypted direct peer calls</p>
-                    </div>
-                  </motion.div>
-
-                  <motion.div
-                    animate={{ y: [0, -5, 0] }}
-                    transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
-                    className="p-3.5 rounded-2xl glass-card border border-vyro-accent/40 flex items-center gap-3"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-pink-500 to-rose-600 flex items-center justify-center text-white">
-                      <Music className="w-5 h-5" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs font-bold text-white">CC0 Audio Visualizer</p>
-                      {/* Animated Equalizer Bars */}
-                      <div className="flex items-end gap-1 h-3 mt-1">
-                        {[0.6, 1, 0.4, 0.9, 0.5, 0.8].map((h, i) => (
-                          <motion.span
-                            key={i}
-                            animate={{ height: ['30%', `${h * 100}%`, '30%'] }}
-                            transition={{ duration: 0.9, repeat: Infinity, delay: i * 0.12 }}
-                            className="w-1 bg-vyro-accent rounded-full"
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  </motion.div>
-
-                  <motion.div
-                    animate={{ y: [0, 5, 0] }}
-                    transition={{ duration: 4.8, repeat: Infinity, ease: 'easeInOut', delay: 1.2 }}
-                    className="p-3.5 rounded-2xl glass-card border border-emerald-500/40 flex items-center gap-3"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-600 flex items-center justify-center text-white">
-                      <Gamepad2 className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-white">In-Chat Arcade</p>
-                      <p className="text-[10px] text-slate-400">Chess, Tic-Tac-Toe & Trivia</p>
-                    </div>
-                  </motion.div>
-                </div>
-
-                <div className="flex items-center justify-center gap-1.5 text-[10px] text-slate-400 relative z-10">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>100% Real Profiles • Zero Bots</span>
-                </div>
-              </div>
-            </motion.div>
+      <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center z-10 py-8">
+        {/* Left: Apple Product Vision Hero */}
+        <motion.div
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="lg:col-span-7 space-y-6 text-center lg:text-left"
+        >
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full liquid-glass-inner text-xs font-semibold text-white/80">
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <span>The Human-Designed Social Operating System</span>
           </div>
 
-          {/* Right Column: Clean Instagram-Style Auth Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="w-full max-w-sm mx-auto space-y-4"
-          >
-            {/* Primary Auth Card */}
-            <div className="glass-panel rounded-3xl p-7 border border-vyro-border shadow-2xl space-y-6">
-              <div className="flex flex-col items-center text-center space-y-2">
-                <Logo size="lg" />
-                <p className="text-xs text-slate-400">
-                  {mode === 'login'
-                    ? 'Sign in to connect, create, and call.'
-                    : mode === 'signup'
-                    ? 'Sign up to see photos, reels, and messages from real people.'
-                    : 'Enter your email to recover your account.'}
-                </p>
+          <div className="space-y-3">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.08]">
+              Where Creators <br />
+              <span className="bg-gradient-to-r from-amber-300 via-rose-300 to-violet-300 bg-clip-text text-transparent">
+                Actually Connect.
+              </span>
+            </h1>
+            <p className="text-base sm:text-lg text-white/60 max-w-xl mx-auto lg:mx-0 font-normal leading-relaxed">
+              Zero fake bots. Zero algorithm manipulation. Pure 320kbps full-length music, real-time WebRTC group calls, and authentic Cyber Ludo King arena.
+            </p>
+          </div>
+
+          {/* Floating Spatial Feature Badges */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+            <div className="p-4 rounded-2xl liquid-glass-inner space-y-1.5 text-left">
+              <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-pink-400">
+                <Music className="w-4 h-4" />
               </div>
+              <h4 className="text-xs font-semibold text-white">Apple Music Engine</h4>
+              <p className="text-[11px] text-white/50">35+ studio tracks with auto-play next & crossfade.</p>
+            </div>
 
-              <AnimatePresence mode="wait">
-                <motion.form
-                  key={mode}
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
-                  transition={{ duration: 0.18 }}
-                  onSubmit={handleSubmit}
-                  className="space-y-3.5"
-                >
-                  {errorMsg && (
-                    <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                      <span>{errorMsg}</span>
-                    </div>
-                  )}
-
-                  {successMsg && (
-                    <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
-                      <Check className="w-4 h-4 flex-shrink-0" />
-                      <span>{successMsg}</span>
-                    </div>
-                  )}
-
-                  {mode === 'login' ? (
-                    <Input
-                      placeholder="Username or email"
-                      type="text"
-                      value={loginIdentifier}
-                      onChange={(e) => setLoginIdentifier(e.target.value)}
-                      icon={<AtSign className="w-4 h-4" />}
-                      required
-                    />
-                  ) : mode === 'signup' ? (
-                    <>
-                      <div>
-                        <Input
-                          placeholder="Username (unique)"
-                          value={username}
-                          onChange={(e) => handleUsernameChange(e.target.value)}
-                          icon={<AtSign className="w-4 h-4" />}
-                          required
-                        />
-                        {usernameStatus !== 'idle' && (
-                          <div className="mt-1 text-[11px] flex items-center gap-1">
-                            {usernameStatus === 'checking' && (
-                              <span className="text-slate-400">Checking...</span>
-                            )}
-                            {usernameStatus === 'available' && (
-                              <span className="text-emerald-400 flex items-center gap-1">
-                                <Check className="w-3 h-3" /> @{username} available
-                              </span>
-                            )}
-                            {usernameStatus === 'taken' && (
-                              <span className="text-rose-400">Username taken or reserved</span>
-                            )}
-                            {usernameStatus === 'invalid' && (
-                              <span className="text-amber-400">Use 3-30 letters, numbers, . or _</span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-
-                      <Input
-                        placeholder="Full Name"
-                        value={displayName}
-                        onChange={(e) => setDisplayName(e.target.value)}
-                        icon={<User className="w-4 h-4" />}
-                        required
-                      />
-
-                      <Input
-                        placeholder="Email address"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        icon={<Mail className="w-4 h-4" />}
-                        required
-                      />
-                    </>
-                  ) : (
-                    <Input
-                      placeholder="Email address"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      icon={<Mail className="w-4 h-4" />}
-                      required
-                    />
-                  )}
-
-                  {mode !== 'forgot' && (
-                    <Input
-                      placeholder="Password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      icon={<Lock className="w-4 h-4" />}
-                      required
-                    />
-                  )}
-
-                  <Button
-                    type="submit"
-                    variant="gradient"
-                    className="w-full py-2.5 font-bold"
-                    isLoading={isSubmitting}
-                  >
-                    {mode === 'login' ? 'Log In' : mode === 'signup' ? 'Sign Up' : 'Send Recovery Link'}
-                  </Button>
-                </motion.form>
-              </AnimatePresence>
-
-              {/* Divider */}
-              <div className="flex items-center gap-3">
-                <div className="h-px flex-1 bg-vyro-border" />
-                <span className="text-[10px] font-bold uppercase text-slate-500">OR</span>
-                <div className="h-px flex-1 bg-vyro-border" />
+            <div className="p-4 rounded-2xl liquid-glass-inner space-y-1.5 text-left">
+              <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-amber-400">
+                <Gamepad2 className="w-4 h-4" />
               </div>
+              <h4 className="text-xs font-semibold text-white">Ludo King 2.0</h4>
+              <p className="text-[11px] text-white/50">Red vs Yellow opposite corners & fair crypto dice.</p>
+            </div>
 
-              <div className="text-center space-y-2">
+            <div className="p-4 rounded-2xl liquid-glass-inner space-y-1.5 text-left">
+              <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-cyan-400">
+                <Video className="w-4 h-4" />
+              </div>
+              <h4 className="text-xs font-semibold text-white">FaceTime Calls</h4>
+              <p className="text-[11px] text-white/50">Crystal clear voice & video with WebRTC signaling.</p>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Right: Centerpiece Liquid Glass Auth Card */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          className="lg:col-span-5"
+        >
+          <div className="liquid-glass-elevated rounded-[32px] p-6 sm:p-8 shadow-2xl border-white/20">
+            {/* Logo */}
+            <div className="flex justify-center mb-6">
+              <Logo size="md" />
+            </div>
+
+            {/* Segmented Sliding Tabs */}
+            <div className="relative flex p-1 rounded-full bg-white/[0.08] border border-white/15 mb-6">
+              <button
+                type="button"
+                onClick={() => switchMode('login')}
+                className={`relative flex-1 py-2 text-xs font-semibold transition-colors z-10 ${
+                  mode === 'login' ? 'text-slate-950' : 'text-white/60 hover:text-white'
+                }`}
+              >
                 {mode === 'login' && (
-                  <button
-                    type="button"
-                    onClick={() => switchMode('forgot')}
-                    className="text-xs text-slate-400 hover:text-white transition-colors"
-                  >
-                    Forgot password?
-                  </button>
+                  <motion.div
+                    layoutId="authTabPill"
+                    className="absolute inset-0 rounded-full bg-white shadow-md -z-10"
+                    transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+                  />
                 )}
+                <span>Sign In</span>
+              </button>
 
-                <div>
-                  <Link
-                    to="/feed"
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-vyro-cyan hover:underline"
-                  >
-                    <Sparkles className="w-3.5 h-3.5" />
-                    <span>Browse Public Feed</span>
-                  </Link>
-                </div>
-              </div>
+              <button
+                type="button"
+                onClick={() => switchMode('signup')}
+                className={`relative flex-1 py-2 text-xs font-semibold transition-colors z-10 ${
+                  mode === 'signup' ? 'text-slate-950' : 'text-white/60 hover:text-white'
+                }`}
+              >
+                {mode === 'signup' && (
+                  <motion.div
+                    layoutId="authTabPill"
+                    className="absolute inset-0 rounded-full bg-white shadow-md -z-10"
+                    transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+                  />
+                )}
+                <span>Create Account</span>
+              </button>
             </div>
 
-            {/* Bottom Switch Card (Classic Clean Instagram Pattern) */}
-            <div className="glass-card rounded-2xl p-4 border border-vyro-border text-center text-xs text-slate-300">
-              {mode === 'login' ? (
-                <span>
-                  Don't have an account?{' '}
-                  <button
-                    type="button"
-                    onClick={() => switchMode('signup')}
-                    className="text-vyro-primary font-extrabold hover:underline"
-                  >
-                    Sign up
-                  </button>
-                </span>
-              ) : (
-                <span>
-                  Have an account?{' '}
-                  <button
-                    type="button"
-                    onClick={() => switchMode('login')}
-                    className="text-vyro-primary font-extrabold hover:underline"
-                  >
-                    Log in
-                  </button>
-                </span>
+            {/* Alert Banners */}
+            <AnimatePresence mode="wait">
+              {errorMsg && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  className="mb-4 p-3 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-medium flex items-center gap-2"
+                >
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                  <span>{errorMsg}</span>
+                </motion.div>
               )}
-            </div>
-          </motion.div>
-        </div>
-      </main>
 
-      {/* Clean Footer */}
-      <footer className="py-6 px-4 text-center text-[11px] text-slate-500 flex flex-wrap items-center justify-center gap-5 relative z-10">
-        <span>© 2026 VYRO</span>
-        <Link to="/legal/privacy" className="hover:text-slate-300">Privacy</Link>
-        <Link to="/legal/terms" className="hover:text-slate-300">Terms</Link>
-        <Link to="/feed" className="hover:text-slate-300">Explore</Link>
-      </footer>
+              {successMsg && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  className="mb-4 p-3 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-medium flex items-center gap-2"
+                >
+                  <Check className="w-4 h-4 shrink-0 text-emerald-400" />
+                  <span>{successMsg}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-3.5">
+              {mode === 'signup' && (
+                <>
+                  <div className="space-y-1">
+                    <Input
+                      label="Unique Handle"
+                      placeholder="username (e.g. satyam)"
+                      value={username}
+                      onChange={(e) => handleUsernameChange(e.target.value)}
+                      required
+                      autoComplete="username"
+                    />
+                    <div className="flex items-center justify-between px-1 text-[11px]">
+                      <span className="text-white/40">Lowercase, digits, dots or underscores</span>
+                      {usernameStatus === 'checking' && (
+                        <span className="text-amber-400 font-medium">Checking...</span>
+                      )}
+                      {usernameStatus === 'available' && (
+                        <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                          <Check className="w-3 h-3" /> Available
+                        </span>
+                      )}
+                      {usernameStatus === 'taken' && (
+                        <span className="text-rose-400 font-semibold">Already Taken</span>
+                      )}
+                      {usernameStatus === 'invalid' && (
+                        <span className="text-rose-400 font-semibold">Invalid Format</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <Input
+                    label="Display Name"
+                    placeholder="Your Full Name or Alias"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                  />
+
+                  <Input
+                    label="Email Address"
+                    type="email"
+                    placeholder="you@domain.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoComplete="email"
+                  />
+                </>
+              )}
+
+              {mode === 'login' && (
+                <Input
+                  label="Username or Email"
+                  placeholder="e.g. satyam or admin@vyro.world"
+                  value={loginIdentifier}
+                  onChange={(e) => setLoginIdentifier(e.target.value)}
+                  required
+                  autoComplete="username"
+                />
+              )}
+
+              {mode !== 'forgot' && (
+                <Input
+                  label="Password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                />
+              )}
+
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                isLoading={isSubmitting}
+                className="w-full mt-4 font-semibold text-sm"
+              >
+                <span>
+                  {mode === 'login'
+                    ? 'Enter VYRO Platform'
+                    : mode === 'signup'
+                    ? 'Create Creator Account'
+                    : 'Send Password Reset'}
+                </span>
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+            </form>
+
+            {/* Quick Helper Links */}
+            <div className="mt-5 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-white/50">
+              <Link to="/legal/privacy" className="hover:text-white transition">
+                Privacy
+              </Link>
+              <Link to="/legal/terms" className="hover:text-white transition">
+                Terms
+              </Link>
+              <button
+                type="button"
+                onClick={() => switchMode(mode === 'login' ? 'signup' : 'login')}
+                className="text-white hover:underline font-medium"
+              >
+                {mode === 'login' ? 'Need an account? Register' : 'Already have account? Sign in'}
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      </div>
     </div>
   );
 };

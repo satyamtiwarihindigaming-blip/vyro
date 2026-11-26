@@ -16,7 +16,7 @@ export const ThemeSelectorModal: React.FC = () => {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.94, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-        className="w-full max-w-xl glass-panel border border-white/20 rounded-3xl p-6 shadow-2xl space-y-5"
+        className="w-full max-w-xl liquid-glass-elevated rounded-[30px] p-6 shadow-2xl space-y-5"
       >
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-white/10">

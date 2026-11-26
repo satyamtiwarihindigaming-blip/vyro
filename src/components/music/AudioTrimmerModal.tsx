@@ -101,8 +101,8 @@ export const AudioTrimmerModal: React.FC<AudioTrimmerModalProps> = ({
   });
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 select-none">
-      <div className="w-full max-w-lg glass-panel border border-white/20 rounded-3xl p-6 shadow-2xl space-y-5 bg-zinc-950/95 font-sans">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 select-none">
+      <div className="w-full max-w-lg liquid-glass-elevated rounded-[30px] p-6 shadow-2xl space-y-5 font-sans">
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-white/10">
           <div className="flex items-center gap-3">
