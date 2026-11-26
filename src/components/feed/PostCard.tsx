@@ -23,7 +23,8 @@ import { useAuth } from '../../context/AuthContext';
 import { useAudio } from '../../context/AudioContext';
 import { apiRequest } from '../../lib/api';
 import { formatMetric } from '../../lib/musicCatalog';
-import { SPRING_SNAPPY, SPRING_SMOOTH } from '../../lib/motion';
+import { soundEngine } from '../../lib/soundEngine';
+import { SPRING_SNAPPY } from '../../lib/motion';
 
 export interface PostCardProps {
   post: Post;
@@ -44,7 +45,7 @@ export const PostCard: React.FC<PostCardProps> = ({
 }) => {
   const { currentUser, isAdmin } = useAuth();
   const { currentTrack, isPlaying, playTrack } = useAudio();
-  const [showHeartPop, setShowHeartPop] = useState(false);
+  const [heartBurst, setHeartBurst] = useState<{ id: string; x: number; y: number } | null>(null);
   const [showMenu, setShowMenu] = useState(false);
   const [showExternalEmbed, setShowExternalEmbed] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -56,11 +57,34 @@ export const PostCard: React.FC<PostCardProps> = ({
 
   const canDelete = currentUser && (currentUser.id === post.userId || isAdmin);
 
-  const handleLike = () => {
+  const triggerLikeWithBurst = (x: number, y: number) => {
+    soundEngine.playPop();
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      try {
+        navigator.vibrate([20, 40]);
+      } catch {}
+    }
     if (onToggleLike) onToggleLike();
+
+    const burstId = `burst_${Date.now()}`;
+    setHeartBurst({ id: burstId, x, y });
+    setTimeout(() => {
+      setHeartBurst((prev) => (prev?.id === burstId ? null : prev));
+    }, 900);
+  };
+
+  const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    triggerLikeWithBurst(x, y);
+  };
+
+  const handleLikeButton = () => {
+    if (onToggleLike) onToggleLike();
+    soundEngine.playPop();
     if (!post.isLiked) {
-      setShowHeartPop(true);
-      setTimeout(() => setShowHeartPop(false), 800);
+      triggerLikeWithBurst(150, 150);
     }
   };
 
@@ -235,11 +259,11 @@ export const PostCard: React.FC<PostCardProps> = ({
         </div>
       </header>
 
-      {/* Post Media Framing */}
+      {/* Post Media Framing with (x, y) Double-Tap Reaction Burst */}
       {mediaItem && (
         <div
           className="mx-3 rounded-[22px] overflow-hidden bg-black/60 aspect-square sm:aspect-[4/3] flex items-center justify-center relative cursor-pointer select-none"
-          onDoubleClick={handleLike}
+          onDoubleClick={handleDoubleClick}
         >
           {mediaItem.type === 'video' ? (
             <video
@@ -257,17 +281,20 @@ export const PostCard: React.FC<PostCardProps> = ({
             />
           )}
 
+          {/* Spring-animated Floating Reaction Burst at (x, y) */}
           <AnimatePresence>
-            {showHeartPop && (
+            {heartBurst && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1.2 }}
-                exit={{ opacity: 0, scale: 0.8 }}
+                key={heartBurst.id}
+                initial={{ opacity: 0, scale: 0.3, y: 0 }}
+                animate={{ opacity: [0, 1, 1, 0], scale: [0.3, 1.25, 1.1, 0.9], y: -35 }}
+                exit={{ opacity: 0 }}
                 transition={SPRING_SNAPPY}
-                className="absolute inset-0 flex items-center justify-center pointer-events-none z-20"
+                style={{ left: heartBurst.x, top: heartBurst.y }}
+                className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none z-30 flex items-center justify-center"
               >
                 <div className="relative flex items-center justify-center">
-                  <Heart className="w-24 h-24 text-rose-500 fill-rose-500 filter drop-shadow-[0_0_30px_rgba(244,63,94,0.9)]" />
+                  <Heart className="w-24 h-24 text-rose-500 fill-rose-500 filter drop-shadow-[0_0_35px_rgba(244,63,94,0.95)]" />
                   <span className="absolute -top-3 -right-3 text-amber-300 text-xl animate-ping">✨</span>
                   <span className="absolute -bottom-2 -left-2 text-pink-300 text-base animate-ping">✨</span>
                 </div>
@@ -326,7 +353,7 @@ export const PostCard: React.FC<PostCardProps> = ({
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               transition={SPRING_SNAPPY}
-              onClick={handleLike}
+              onClick={handleLikeButton}
               className={`flex items-center gap-1.5 text-sm p-1.5 rounded-full transition-colors ${
                 post.isLiked ? 'text-rose-500' : 'text-white/70 hover:text-white'
               }`}

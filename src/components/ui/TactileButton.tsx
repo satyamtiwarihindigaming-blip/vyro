@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, HTMLMotionProps } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { SPRING_SNAPPY } from '../../lib/motion';
+import { soundEngine } from '../../lib/soundEngine';
 
 export interface TactileButtonProps extends Omit<HTMLMotionProps<'button'>, 'children'> {
   children?: React.ReactNode;
@@ -52,6 +53,10 @@ export const TactileButton: React.FC<TactileButtonProps> = ({
       className={`${baseStyles} ${sizeStyles} ${variantStyles} ${className}`}
       disabled={disabled || isLoading}
       {...props}
+      onClick={(e) => {
+        soundEngine.playHapticClick();
+        if (props.onClick) props.onClick(e);
+      }}
     >
       {isLoading ? (
         <Loader2 className="w-4 h-4 animate-spin text-current" />

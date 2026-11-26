@@ -10,6 +10,7 @@ import {
   Music,
   Share2,
   MapPin,
+  Pause,
 } from 'lucide-react';
 import { Avatar } from '../ui/Avatar';
 import { VerifiedBadge } from '../ui/VerifiedBadge';
@@ -278,7 +279,7 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
         transition={{ type: 'spring', stiffness: 380, damping: 30 }}
         className="relative w-full max-w-[420px] h-[92vh] max-h-[820px] rounded-3xl overflow-hidden shadow-2xl border border-white/10 bg-black flex flex-col justify-between"
       >
-        {/* Top Multi-Segment Progress Indicators */}
+        {/* Top Multi-Segment Progress Indicators with Liquid Glass Glow */}
         <div className="absolute top-3 left-3 right-3 z-30 flex items-center gap-1.5">
           {currentCreatorGroup.items.map((item, idx) => {
             const isCompleted = idx < segmentIndex;
@@ -286,10 +287,10 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
             return (
               <div
                 key={item.id}
-                className="h-1 flex-1 bg-white/30 rounded-full overflow-hidden backdrop-blur-sm"
+                className="h-1 flex-1 bg-white/25 rounded-full overflow-hidden backdrop-blur-sm shadow-inner"
               >
                 <div
-                  className="h-full bg-white rounded-full transition-all duration-75"
+                  className="h-full bg-white rounded-full transition-all duration-75 shadow-[0_0_8px_rgba(255,255,255,0.85)]"
                   style={{
                     width: isCompleted ? '100%' : isActive ? `${progress}%` : '0%',
                   }}
@@ -378,6 +379,21 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
               className="w-full h-full object-cover select-none pointer-events-none"
             />
           )}
+
+          {/* Hold-to-Pause Visual Indicator */}
+          <AnimatePresence>
+            {isPaused && (
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                className="absolute z-40 pointer-events-none px-4 py-2 rounded-full liquid-glass-elevated flex items-center gap-2 border border-white/20 shadow-2xl backdrop-blur-md"
+              >
+                <Pause className="w-4 h-4 text-white fill-white" />
+                <span className="text-xs font-semibold text-white tracking-wider uppercase">Paused</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Interactive Music Sticker (If track exists) */}
           <div className="absolute top-20 left-4 z-20 flex items-center gap-2 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 shadow-lg pointer-events-none">
@@ -486,13 +502,13 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
               type="text"
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
-              placeholder={`Send message to ${currentCreatorGroup.user.username}...`}
-              className="flex-1 bg-white/15 border border-white/20 rounded-full px-4 py-2.5 text-xs text-white placeholder-white/60 focus:outline-none focus:border-white/50 backdrop-blur-md"
+              placeholder={`Send message to @${currentCreatorGroup.user.username}...`}
+              className="flex-1 bg-white/10 hover:bg-white/15 focus:bg-white/20 border border-white/20 rounded-full px-4 py-2.5 text-xs text-white placeholder-white/60 focus:outline-none focus:border-white/50 backdrop-blur-md transition-all"
             />
             <button
               type="submit"
               disabled={!replyText.trim()}
-              className="p-2.5 rounded-full bg-gradient-to-r from-vyro-primary to-vyro-accent text-white disabled:opacity-40 hover:opacity-90 transition shadow-glow-pink"
+              className="p-2.5 rounded-full liquid-pill-cta text-white disabled:opacity-40 hover:opacity-90 active:scale-95 transition shadow-lg flex items-center justify-center"
             >
               <Send className="w-4 h-4" />
             </button>
@@ -500,13 +516,16 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
               type="button"
               onClick={() => {
                 soundEngine.playPop();
+                if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+                  navigator.vibrate([15, 30]);
+                }
                 setIsLiked(!isLiked);
                 handleEmojiReaction(isLiked ? '💔' : '❤️');
               }}
-              className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition backdrop-blur-md"
+              className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white transition backdrop-blur-md"
             >
               <Heart
-                className={`w-4 h-4 ${isLiked ? 'fill-rose-500 text-rose-500' : 'text-white'}`}
+                className={`w-4 h-4 transition-transform ${isLiked ? 'fill-rose-500 text-rose-500 scale-110' : 'text-white'}`}
               />
             </button>
           </form>

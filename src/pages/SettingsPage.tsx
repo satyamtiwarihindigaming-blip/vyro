@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import {
   Shield,
   Moon,
@@ -16,6 +17,8 @@ import { openPermissionPrompt } from '../components/permissions/PermissionPrompt
 import { useAuth } from '../context/AuthContext';
 import { useSocial } from '../context/SocialContext';
 import { useNavigate } from 'react-router-dom';
+import { soundEngine } from '../lib/soundEngine';
+import { SPRING_SNAPPY } from '../lib/motion';
 
 export const SettingsPage: React.FC = () => {
   const { currentUser, isPro, updateProfile, deleteAccount, logout } = useAuth();
@@ -153,18 +156,21 @@ export const SettingsPage: React.FC = () => {
             <p className="text-xs font-semibold text-white">Private Account</p>
             <p className="text-[10px] text-white/50">Only approved followers can see your posts and reels</p>
           </div>
-          {/* iOS Toggle Switch */}
+          {/* iOS Toggle Switch with Spring Layout Physics */}
           <button
             type="button"
-            onClick={() => setIsPrivate(!isPrivate)}
-            className={`w-12 h-7 rounded-full p-1 transition-colors duration-200 ease-in-out ${
-              isPrivate ? 'bg-cyan-500' : 'bg-white/20'
+            onClick={() => {
+              soundEngine.playHapticClick();
+              setIsPrivate(!isPrivate);
+            }}
+            className={`w-12 h-7 rounded-full p-1 transition-colors duration-200 flex items-center ${
+              isPrivate ? 'bg-cyan-500 justify-end' : 'bg-white/20 justify-start'
             }`}
           >
-            <div
-              className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform duration-200 ease-in-out ${
-                isPrivate ? 'translate-x-5' : 'translate-x-0'
-              }`}
+            <motion.div
+              layout
+              transition={SPRING_SNAPPY}
+              className="w-5 h-5 rounded-full bg-white shadow-md"
             />
           </button>
         </div>

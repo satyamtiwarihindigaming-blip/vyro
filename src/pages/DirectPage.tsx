@@ -27,6 +27,7 @@ import {
   Laugh,
   Rocket,
   Trophy,
+  Reply,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCall } from '../context/CallContext';
@@ -174,6 +175,47 @@ export const DirectPage: React.FC = () => {
   const [showGifPicker, setShowGifPicker] = useState(false);
   const [showStickerPicker, setShowStickerPicker] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+
+  // Swipe to reply & In-Chat Reactions
+  const [replyingToMessage, setReplyingToMessage] = useState<Message | null>(null);
+  const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
+  const [messageReactions, setMessageReactions] = useState<Record<string, Record<string, number>>>({});
+  const [messageBurst, setMessageBurst] = useState<{ id: string; msgId: string; x: number; y: number; emoji: string } | null>(null);
+
+  const handleReaction = (msgId: string, emoji: string) => {
+    soundEngine.playPop();
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      navigator.vibrate([15, 30]);
+    }
+    setMessageReactions((prev) => {
+      const current = prev[msgId] || {};
+      const newCount = (current[emoji] || 0) + 1;
+      return {
+        ...prev,
+        [msgId]: {
+          ...current,
+          [emoji]: newCount,
+        },
+      };
+    });
+  };
+
+  const handleBubbleDoubleTap = (e: React.MouseEvent, m: Message) => {
+    e.stopPropagation();
+    soundEngine.playPop();
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      navigator.vibrate([20, 40]);
+    }
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const burstId = `burst_${Date.now()}`;
+    setMessageBurst({ id: burstId, msgId: m.id, x, y, emoji: '❤️' });
+    handleReaction(m.id, '❤️');
+    setTimeout(() => {
+      setMessageBurst((curr) => (curr?.id === burstId ? null : curr));
+    }, 1200);
+  };
 
   // Voice Recording state
   const [isRecordingAudio, setIsRecordingAudio] = useState(false);
@@ -335,11 +377,18 @@ export const DirectPage: React.FC = () => {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    const text = inputText.trim();
-    if (!text || !activeConv || !currentUser) return;
+    const rawText = inputText.trim();
+    if (!rawText || !activeConv || !currentUser) return;
 
     soundEngine.playPop();
     setInputText('');
+
+    const replyContext = replyingToMessage;
+    setReplyingToMessage(null);
+
+    const text = replyContext
+      ? `💬 Replying to @${replyContext.sender ? replyContext.sender.username : 'member'}: "${replyContext.content.slice(0, 40)}..."\n${rawText}`
+      : rawText;
 
     try {
       const payload =
@@ -872,7 +921,9 @@ export const DirectPage: React.FC = () => {
                       initial={{ opacity: 0, scale: 0.95, y: 8 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       transition={SPRING_SNAPPY}
-                      className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
+                      className={`flex flex-col group/msg relative ${isMe ? 'items-end' : 'items-start'}`}
+                      onMouseEnter={() => setHoveredMessageId(m.id)}
+                      onMouseLeave={() => setHoveredMessageId((curr) => (curr === m.id ? null : curr))}
                     >
                       {activeConv.type === 'group' && !isMe && (
                         <span className="text-[10px] font-semibold text-white/60 mb-0.5 px-1">
@@ -880,54 +931,147 @@ export const DirectPage: React.FC = () => {
                         </span>
                       )}
 
-                      {/* Liquid Message Bubble */}
-                      <div
-                        className={`relative max-w-[80%] sm:max-w-[70%] px-3.5 py-2.5 rounded-3xl text-xs leading-relaxed shadow-md ${
-                          isMe
-                            ? `bg-gradient-to-tr ${currentThemeConfig.bubbleClass} rounded-br-sm shadow-lg`
-                            : 'liquid-glass-inner text-white rounded-bl-sm border border-white/10 shadow-md'
-                        } ${isLudoMsg ? 'border-amber-400/50' : ''}`}
-                      >
-                        {isAudioMsg ? (
-                          <AudioMessageBubble url={m.mediaUrl || m.content} isMe={isMe} />
-                        ) : isImageMsg ? (
-                          <div className="space-y-1">
-                            <img
-                              src={m.mediaUrl || m.content}
-                              alt="Shared photo"
-                              onClick={() => setLightboxImage(m.mediaUrl || m.content)}
-                              className="max-w-[260px] sm:max-w-[320px] max-h-[240px] rounded-2xl object-cover cursor-pointer hover:brightness-105 shadow-xl transition-all"
-                            />
-                            {m.content && m.content !== '📷 Photo' && (
-                              <p className="text-xs pt-1 px-1">{m.content}</p>
-                            )}
-                          </div>
-                        ) : isGif ? (
-                          <img
-                            src={m.content}
-                            alt="Shared GIF"
-                            className="max-w-[220px] max-h-[170px] rounded-2xl object-cover shadow-lg my-1"
-                          />
-                        ) : (
-                          <div>
-                            <p className="break-words">{m.content}</p>
-                            {isLudoMsg && !isMe && !gameActive && (
+                      {/* Message Bubble Container with Swipe to Reply & Hover Bar */}
+                      <div className="relative flex flex-col items-start max-w-[85%] sm:max-w-[75%]">
+                        {/* Hover Quick Emoji Reaction & Reply Bar */}
+                        <AnimatePresence>
+                          {hoveredMessageId === m.id && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 4, scale: 0.9 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: 4, scale: 0.9 }}
+                              transition={SPRING_SNAPPY}
+                              className={`absolute -top-8 z-30 flex items-center gap-1 px-2 py-1 rounded-full liquid-glass-elevated border border-white/20 shadow-2xl backdrop-blur-xl ${
+                                isMe ? 'right-0' : 'left-0'
+                              }`}
+                            >
+                              {['❤️', '😂', '🔥', '😮', '👏', '🙏'].map((emoji) => (
+                                <button
+                                  key={emoji}
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleReaction(m.id, emoji);
+                                  }}
+                                  className="w-5 h-5 flex items-center justify-center text-xs hover:scale-130 active:scale-90 transition-transform"
+                                  title={`React ${emoji}`}
+                                >
+                                  {emoji}
+                                </button>
+                              ))}
                               <button
                                 type="button"
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   soundEngine.playPop();
-                                  setGameActive(true);
-                                  setActiveGameType('ludo');
+                                  setReplyingToMessage(m);
                                 }}
-                                className="mt-2 px-3 py-1 rounded-full liquid-glass-inner text-white font-semibold text-[10px] flex items-center gap-1.5 shadow-md hover:scale-105 transition-transform"
+                                className="w-5 h-5 flex items-center justify-center text-white/70 hover:text-white hover:scale-110 active:scale-90 transition-all ml-0.5 border-l border-white/15 pl-1"
+                                title="Reply"
                               >
-                                <Gamepad2 className="w-3.5 h-3.5" />
-                                <span>Play Ludo Together 🎲</span>
+                                <Reply className="w-3.5 h-3.5" />
                               </button>
-                            )}
-                          </div>
-                        )}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+
+                        {/* Draggable Liquid Message Bubble for Swipe-to-Reply */}
+                        <motion.div
+                          drag="x"
+                          dragConstraints={{ left: 0, right: 0 }}
+                          dragElastic={0.4}
+                          onDragEnd={(_, info) => {
+                            if (Math.abs(info.offset.x) > 35) {
+                              soundEngine.playPop();
+                              if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+                                navigator.vibrate([20, 30]);
+                              }
+                              setReplyingToMessage(m);
+                            }
+                          }}
+                          onDoubleClick={(e) => handleBubbleDoubleTap(e, m)}
+                          className={`relative px-3.5 py-2.5 rounded-3xl text-xs leading-relaxed shadow-md cursor-pointer select-none transition-shadow ${
+                            isMe
+                              ? `bg-gradient-to-tr ${currentThemeConfig.bubbleClass} rounded-br-sm shadow-lg`
+                              : 'liquid-glass-inner text-white rounded-bl-sm border border-white/10 shadow-md'
+                          } ${isLudoMsg ? 'border-amber-400/50' : ''}`}
+                        >
+                          {/* Floating Reaction Burst at (x, y) */}
+                          {messageBurst && messageBurst.msgId === m.id && (
+                            <motion.div
+                              key={messageBurst.id}
+                              initial={{ opacity: 1, scale: 0.4, y: 0 }}
+                              animate={{ opacity: 0, scale: 2.2, y: -65 }}
+                              transition={{ duration: 0.8, ease: 'easeOut' }}
+                              style={{ left: messageBurst.x, top: messageBurst.y }}
+                              className="absolute pointer-events-none z-40 text-3xl -translate-x-1/2 -translate-y-1/2 drop-shadow-[0_4px_16px_rgba(244,63,94,0.7)]"
+                            >
+                              {messageBurst.emoji}
+                            </motion.div>
+                          )}
+
+                          {isAudioMsg ? (
+                            <AudioMessageBubble url={m.mediaUrl || m.content} isMe={isMe} />
+                          ) : isImageMsg ? (
+                            <div className="space-y-1">
+                              <img
+                                src={m.mediaUrl || m.content}
+                                alt="Shared photo"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setLightboxImage(m.mediaUrl || m.content);
+                                }}
+                                className="max-w-[260px] sm:max-w-[320px] max-h-[240px] rounded-2xl object-cover cursor-pointer hover:brightness-105 shadow-xl transition-all"
+                              />
+                              {m.content && m.content !== '📷 Photo' && (
+                                <p className="text-xs pt-1 px-1">{m.content}</p>
+                              )}
+                            </div>
+                          ) : isGif ? (
+                            <img
+                              src={m.content}
+                              alt="Shared GIF"
+                              className="max-w-[220px] max-h-[170px] rounded-2xl object-cover shadow-lg my-1"
+                            />
+                          ) : (
+                            <div>
+                              <p className="break-words">{m.content}</p>
+                              {isLudoMsg && !isMe && !gameActive && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    soundEngine.playPop();
+                                    setGameActive(true);
+                                    setActiveGameType('ludo');
+                                  }}
+                                  className="mt-2 px-3 py-1 rounded-full liquid-glass-inner text-white font-semibold text-[10px] flex items-center gap-1.5 shadow-md hover:scale-105 transition-transform"
+                                >
+                                  <Gamepad2 className="w-3.5 h-3.5" />
+                                  <span>Play Ludo Together 🎲</span>
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </motion.div>
                       </div>
+
+                      {/* Reaction Pills attached under message */}
+                      {messageReactions[m.id] && Object.keys(messageReactions[m.id]).length > 0 && (
+                        <div className={`flex items-center gap-1 mt-1 px-1 flex-wrap ${isMe ? 'justify-end' : 'justify-start'}`}>
+                          {Object.entries(messageReactions[m.id]).map(([emoji, count]) => (
+                            <button
+                              key={emoji}
+                              type="button"
+                              onClick={() => handleReaction(m.id, emoji)}
+                              className="px-2 py-0.5 rounded-full liquid-glass-inner text-[11px] font-semibold flex items-center gap-1 border border-white/10 hover:border-white/30 transition-all hover:scale-110 active:scale-95 shadow-sm"
+                            >
+                              <span>{emoji}</span>
+                              <span className="text-[9px] text-white/70">{count}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
 
                       <span className="text-[9px] text-white/40 mt-1 px-1">
                         {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -1071,11 +1215,46 @@ export const DirectPage: React.FC = () => {
                 </div>
               </div>
             ) : (
-              /* Standard Input Deck */
-              <form
-                onSubmit={handleSendMessage}
-                className="p-3 border-t border-white/10 liquid-glass-inner flex items-center gap-2 relative"
-              >
+              <>
+                {/* Quoted Reply Preview Bar */}
+                <AnimatePresence>
+                  {replyingToMessage && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={SPRING_SNAPPY}
+                      className="px-4 py-2 border-t border-white/10 liquid-glass-inner flex items-center justify-between gap-3 text-xs overflow-hidden"
+                    >
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <div className="w-1 h-7 rounded-full bg-cyan-400 flex-shrink-0" />
+                        <Reply className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />
+                        <div className="overflow-hidden">
+                          <p className="text-[10px] font-semibold text-cyan-300 truncate">
+                            Replying to {replyingToMessage.sender ? replyingToMessage.sender.displayName : (replyingToMessage.senderId === currentUser?.id ? 'Yourself' : 'Member')}
+                          </p>
+                          <p className="text-[11px] text-white/70 truncate max-w-sm">
+                            {replyingToMessage.content}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setReplyingToMessage(null)}
+                        className="p-1 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+                        title="Cancel Reply"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Standard Input Deck */}
+                <form
+                  onSubmit={handleSendMessage}
+                  className="p-3 border-t border-white/10 liquid-glass-inner flex items-center gap-2 relative"
+                >
                 {/* Emoji Toggle */}
                 <button
                   type="button"
@@ -1168,7 +1347,8 @@ export const DirectPage: React.FC = () => {
                   <Send className="w-4 h-4" />
                 </motion.button>
               </form>
-            )}
+            </>
+          )}
           </>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-center p-8 space-y-3">

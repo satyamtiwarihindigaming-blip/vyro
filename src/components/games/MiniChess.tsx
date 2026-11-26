@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { RotateCcw } from 'lucide-react';
+import { soundEngine } from '../../lib/soundEngine';
 
 type Piece = string | null;
 
@@ -32,6 +33,10 @@ export const MiniChess: React.FC = () => {
       const sourcePiece = board[fromR][fromC];
 
       // Execute move
+      soundEngine.playPop();
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+        navigator.vibrate([15, 25]);
+      }
       const newBoard = board.map((row) => [...row]);
       newBoard[r][c] = sourcePiece;
       newBoard[fromR][fromC] = null;
@@ -45,12 +50,14 @@ export const MiniChess: React.FC = () => {
       setTurn(turn === 'white' ? 'black' : 'white');
     } else {
       if (board[r][c]) {
+        soundEngine.playHapticClick();
         setSelectedCell([r, c]);
       }
     }
   };
 
   const resetGame = () => {
+    soundEngine.playHapticClick();
     setBoard(INITIAL_BOARD);
     setSelectedCell(null);
     setTurn('white');
@@ -58,10 +65,13 @@ export const MiniChess: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center p-3 select-none">
+    <div className="flex flex-col items-center p-3 select-none liquid-glass-inner rounded-3xl border border-white/10 shadow-xl">
       <div className="flex items-center justify-between w-full max-w-[280px] mb-2 text-xs">
-        <span className="font-semibold text-white capitalize">
-          Turn: <span className={turn === 'white' ? 'text-cyan-300' : 'text-rose-400'}>{turn}</span>
+        <span className="font-semibold text-white capitalize flex items-center gap-1.5">
+          <span>Turn:</span>
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${turn === 'white' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'}`}>
+            {turn}
+          </span>
         </span>
         <button
           onClick={resetGame}
