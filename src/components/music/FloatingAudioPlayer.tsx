@@ -47,8 +47,8 @@ export const FloatingAudioPlayer: React.FC = () => {
   const [showTopIsland, setShowTopIsland] = useState(false);
   const autoHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Strictly hide audio floating player on Reels to prevent overlapping video UI
-  const isHiddenRoute = location.pathname === '/reels';
+  // Hide floating player everywhere EXCEPT /music page (clean UX, no overlap)
+  const isHiddenRoute = location.pathname !== '/music';
 
   // iPhone-Style Top Dynamic Island Animation on Play / Track Change
   useEffect(() => {
@@ -175,23 +175,12 @@ export const FloatingAudioPlayer: React.FC = () => {
                   }`}
                   style={{ backgroundImage: `url(${currentTrack.coverUrl})`, backgroundSize: 'cover' }}
                 />
-                <motion.img
-                  drag="x"
-                  dragConstraints={{ left: 0, right: 0 }}
-                  dragElastic={0.4}
-                  onDragEnd={(_, info) => {
-                    if (info.offset.x < -35) {
-                      soundEngine.playPop();
-                      playNext();
-                    } else if (info.offset.x > 35) {
-                      soundEngine.playPop();
-                      playPrev();
-                    }
-                  }}
+                <SmartCover
                   src={currentTrack.coverUrl}
-                  alt={currentTrack.title}
-                  className="relative w-16 h-16 rounded-2xl object-cover ring-1 ring-white/25 shadow-xl cursor-grab active:cursor-grabbing"
-                  title="Swipe left/right to change tracks"
+                  title={currentTrack.title}
+                  artist={currentTrack.artist}
+                  className="relative w-16 h-16 rounded-2xl ring-1 ring-white/25 shadow-xl"
+                  showVinylGrooves={true}
                 />
               </div>
 
