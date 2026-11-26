@@ -41,10 +41,10 @@ export const Logo: React.FC<LogoProps> = ({ size = 'md', showText = true, onLogo
       {/* Aerodynamic Prismatic Monogram Insignia */}
       <div className={`relative ${iconSizes[size]} flex items-center justify-center flex-shrink-0`}>
         {/* Dynamic Backlight Halo Glow */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-vyro-primary via-vyro-accent to-vyro-cyan rounded-2xl blur-md opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500 will-change-transform" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-amber-500 via-amber-400 to-rose-500 rounded-2xl blur-md opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500 will-change-transform" />
 
         {/* Outer Titanium Facet Border */}
-        <div className="relative w-full h-full rounded-2xl p-[1.5px] bg-gradient-to-br from-white/40 via-vyro-primary/60 to-vyro-cyan/50 shadow-2xl backdrop-blur-md overflow-hidden">
+        <div className="relative w-full h-full rounded-2xl p-[1.5px] bg-gradient-to-br from-white/40 via-amber-500/60 to-rose-500/50 shadow-2xl backdrop-blur-md overflow-hidden">
           {/* Animated Specular Shimmer Sweep */}
           <div className="absolute inset-0 w-[200%] h-full bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
 
@@ -54,32 +54,32 @@ export const Logo: React.FC<LogoProps> = ({ size = 'md', showText = true, onLogo
               viewBox="0 0 48 48"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
-              className="w-4/5 h-4/5 transform group-hover:scale-105 transition-transform duration-300 drop-shadow-[0_2px_12px_rgba(139,92,246,0.6)]"
+              className="w-4/5 h-4/5 transform group-hover:scale-105 transition-transform duration-300 drop-shadow-[0_2px_12px_rgba(245,158,11,0.5)]"
             >
               <defs>
                 {/* Outer Wing Gradient */}
                 <linearGradient id="vyro-wing-left" x1="6" y1="8" x2="24" y2="40" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#E2E8F0" />
-                  <stop offset="0.5" stopColor="#8B5CF6" />
-                  <stop offset="1" stopColor="#EC4899" />
+                  <stop stopColor="#FEF08A" />
+                  <stop offset="0.5" stopColor="#F59E0B" />
+                  <stop offset="1" stopColor="#F43F5E" />
                 </linearGradient>
 
                 <linearGradient id="vyro-wing-right" x1="42" y1="8" x2="24" y2="40" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#38BDF8" />
-                  <stop offset="0.5" stopColor="#06B6D4" />
-                  <stop offset="1" stopColor="#8B5CF6" />
+                  <stop stopColor="#FDE047" />
+                  <stop offset="0.5" stopColor="#D97706" />
+                  <stop offset="1" stopColor="#E11D48" />
                 </linearGradient>
 
                 {/* Inner Optical Prism Gradient */}
                 <linearGradient id="vyro-prism" x1="24" y1="14" x2="24" y2="34" gradientUnits="userSpaceOnUse">
                   <stop stopColor="#F43F5E" />
-                  <stop offset="1" stopColor="#A855F7" />
+                  <stop offset="1" stopColor="#F59E0B" />
                 </linearGradient>
 
                 {/* Core Laser Node Radial Glow */}
                 <radialGradient id="vyro-core-glow" cx="24" cy="20" r="6" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#00F0FF" />
-                  <stop offset="0.6" stopColor="#8B5CF6" />
+                  <stop stopColor="#FEF08A" />
+                  <stop offset="0.6" stopColor="#F59E0B" />
                   <stop offset="1" stopColor="transparent" />
                 </radialGradient>
               </defs>
@@ -125,7 +125,7 @@ export const Logo: React.FC<LogoProps> = ({ size = 'md', showText = true, onLogo
             VYRO
           </span>
           {size === 'lg' || size === 'xl' ? (
-            <span className="text-[10px] uppercase font-bold tracking-[0.35em] text-vyro-cyan/90 -mt-1">
+            <span className="text-[10px] uppercase font-bold tracking-[0.35em] text-amber-400/90 -mt-1">
               OS • 1B CREATOR PLATFORM
             </span>
           ) : null}

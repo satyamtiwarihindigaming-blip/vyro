@@ -132,7 +132,7 @@ export const FBITacticalTerminal: React.FC<FBITacticalTerminalProps> = ({
     setTimeout(() => setActionNotice(null), 3000);
   };
 
-  // God-Mode 1 Billion Followers Injector
+  // Admin Control: 1 Billion Followers Injector
   const handleGrant1Billion = async (targetId: string, username: string) => {
     soundEngine.playHapticClick();
     try {
@@ -147,7 +147,7 @@ export const FBITacticalTerminal: React.FC<FBITacticalTerminalProps> = ({
     }
   };
 
-  // God-Mode Verified Blue Tick & Founder Pro Badges
+  // Admin Control: Verified Blue Tick & Founder Pro Badges
   const handleToggleVerification = async (targetId: string, username: string) => {
     soundEngine.playHapticClick();
     try {
@@ -159,7 +159,7 @@ export const FBITacticalTerminal: React.FC<FBITacticalTerminalProps> = ({
     }
   };
 
-  // God-Mode Founder Pro Badge
+  // Admin Control: Founder Pro Badge
   const handleToggleProBadge = async (targetId: string, username: string) => {
     soundEngine.playHapticClick();
     try {
@@ -171,7 +171,7 @@ export const FBITacticalTerminal: React.FC<FBITacticalTerminalProps> = ({
     }
   };
 
-  // God-Mode Strategic Red Alert Broadcast
+  // Admin Control: Strategic Red Alert Broadcast
   const handleSendBroadcast = async () => {
     if (!broadcastMessage.trim()) return;
     setIsBroadcasting(true);
@@ -382,7 +382,7 @@ export const FBITacticalTerminal: React.FC<FBITacticalTerminalProps> = ({
         </div>
       </div>
 
-      {/* User Dossier & God-Mode Weaponry Section */}
+      {/* User Dossier & Admin Controls Section */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 mt-5">
         {/* Directory Search & Selection (5 Cols) */}
         <div className="lg:col-span-5 bg-[#030A07] border border-[#00FF66]/40 rounded-xl p-4">
@@ -446,7 +446,7 @@ export const FBITacticalTerminal: React.FC<FBITacticalTerminalProps> = ({
           </div>
         </div>
 
-        {/* Selected User Dossier & God-Mode Weaponry (7 Cols) */}
+        {/* Selected User Dossier & Admin Controls (7 Cols) */}
         <div className="lg:col-span-7 bg-[#030A07] border border-[#00FF66]/40 rounded-xl p-4 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between border-b border-[#00FF66]/20 pb-2 mb-3">
@@ -506,10 +506,10 @@ export const FBITacticalTerminal: React.FC<FBITacticalTerminalProps> = ({
                   </div>
                 </div>
 
-                {/* God-Mode Arsenal Controls */}
+                {/* Admin Arsenal Controls */}
                 <div className="mt-5 space-y-2">
                   <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase block">
-                    STRATEGIC GOD-MODE CONTROLS
+                    ADMIN CONTROLS
                   </span>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">

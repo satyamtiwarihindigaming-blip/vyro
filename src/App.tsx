@@ -35,10 +35,14 @@ const MainLayout: React.FC = () => {
   const isStudioOrReel = location.pathname === '/create' || location.pathname === '/reels';
 
   return (
-    <div className="flex min-h-screen bg-vyro-bg text-slate-100 selection:bg-vyro-primary selection:text-white">
+    <div className="relative flex min-h-screen bg-vyro-bg text-slate-100 selection:bg-amber-500 selection:text-slate-950">
+      {/* Handcrafted Ambient Floating Glow Orbs */}
+      <div className="ambient-glow-orb-1" aria-hidden="true" />
+      <div className="ambient-glow-orb-2" aria-hidden="true" />
+
       <Sidebar />
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="relative z-10 flex-1 flex flex-col min-w-0">
         {!isStudioOrReel && <Navbar />}
         <motion.main
           key={location.pathname}

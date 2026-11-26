@@ -112,7 +112,7 @@ export const Navbar: React.FC = () => {
                 setShowDropdown(true);
               }}
               placeholder="Fast search @username..."
-              className="w-full bg-vyro-card/90 border border-vyro-border rounded-xl pl-10 pr-8 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-vyro-primary transition-colors"
+              className="w-full bg-vyro-card/90 border border-vyro-border rounded-xl pl-10 pr-8 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-400/80 focus:ring-1 focus:ring-amber-400/25 transition-all"
             />
             {searchTerm && (
               <button
@@ -207,7 +207,7 @@ export const Navbar: React.FC = () => {
                                 </p>
                               </div>
                             </div>
-                            <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/30">
+                            <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
                               {track.genre || 'Trending'}
                             </span>
                           </button>
@@ -217,8 +217,8 @@ export const Navbar: React.FC = () => {
 
                     {/* Verified Creators */}
                     <div>
-                      <div className="flex items-center gap-1.5 text-[11px] font-bold text-vyro-cyan uppercase tracking-wider mb-1.5">
-                        <Users className="w-3.5 h-3.5 text-vyro-cyan" />
+                      <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-400 uppercase tracking-wider mb-1.5">
+                        <Users className="w-3.5 h-3.5 text-amber-400" />
                         <span>Featured Creators</span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -403,7 +403,7 @@ export const Navbar: React.FC = () => {
           ) : (
             <button
               onClick={() => setAuthOpen(true)}
-              className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-vyro-primary to-vyro-accent text-white text-xs font-bold flex items-center gap-1.5 shadow-glow-purple/30 touch-spring"
+              className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-[0_0_15px_rgba(245,158,11,0.35)] hover:shadow-[0_0_20px_rgba(245,158,11,0.55)] transition-all touch-spring"
             >
               <LogIn className="w-3.5 h-3.5" />
               <span>Sign In</span>

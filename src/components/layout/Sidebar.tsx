@@ -62,7 +62,7 @@ export const Sidebar: React.FC = () => {
                 className={({ isActive }) =>
                   `flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold transition-all duration-200 group ${
                     isActive
-                      ? 'bg-vyro-primary/15 text-vyro-primary border border-vyro-primary/30 shadow-glow-purple/20'
+                      ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
                       : 'text-slate-400 hover:text-white hover:bg-white/5'
                   }`
                 }
@@ -91,9 +91,9 @@ export const Sidebar: React.FC = () => {
         <div className="pt-4 border-t border-vyro-border/70 space-y-3">
           <NavLink
             to="/create"
-            className="flex items-center justify-center gap-2.5 w-full py-3 px-4 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-vyro-primary via-vyro-accent to-vyro-cyan hover:opacity-95 shadow-glow-pink transition-all duration-200 active:scale-95"
+            className="flex items-center justify-center gap-2.5 w-full py-3 px-4 rounded-xl font-black text-sm text-slate-950 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:brightness-105 shadow-[0_0_20px_rgba(245,158,11,0.35)] transition-all duration-200 active:scale-95"
           >
-            <PlusSquare className="w-5 h-5" />
+            <PlusSquare className="w-5 h-5 stroke-[2.5]" />
             <span>Studio & Camera</span>
           </NavLink>
 
@@ -126,9 +126,9 @@ export const Sidebar: React.FC = () => {
           ) : (
             <button
               onClick={() => setAuthOpen(true)}
-              className="w-full py-2.5 px-4 rounded-xl bg-vyro-card hover:bg-vyro-cardHover border border-vyro-border text-xs font-bold text-slate-200 flex items-center justify-center gap-2 transition-colors"
+              className="w-full py-2.5 px-4 rounded-xl bg-vyro-card hover:bg-vyro-cardHover border border-vyro-border text-xs font-bold text-slate-200 flex items-center justify-center gap-2 transition-colors hover:border-amber-500/40"
             >
-              <LogIn className="w-4 h-4 text-vyro-primary" />
+              <LogIn className="w-4 h-4 text-amber-400" />
               <span>Sign In / Join VYRO</span>
             </button>
           )}

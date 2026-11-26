@@ -68,10 +68,10 @@ export const PLAYER_CONFIG: Record<PlayerColor, PlayerConfig> = {
   },
   yellow: {
     name: 'Yellow',
-    hex: '#F59E0B',
-    darkHex: '#92400E',
-    lightHex: '#FDE68A',
-    glowHex: 'rgba(245, 158, 11, 0.6)',
+    hex: '#FACC15',
+    darkHex: '#CA8A04',
+    lightHex: '#FEF08A',
+    glowHex: 'rgba(250, 204, 21, 0.65)',
     startTrackIdx: 26,
     homeEntryIdx: 24,
     docks: [
@@ -225,7 +225,7 @@ export const LudoGame: React.FC<LudoGameProps> = ({ inChat = false, onGameAction
   const [lastKillEffect, setLastKillEffect] = useState<{ x: number; y: number } | null>(null);
 
   const activeColors: PlayerColor[] = useMemo(
-    () => (playerCount === 2 ? ['red', 'green'] : ['red', 'green', 'yellow', 'blue']),
+    () => (playerCount === 2 ? ['red', 'yellow'] : ['red', 'green', 'yellow', 'blue']),
     [playerCount]
   );
   const currentColor = activeColors[activePlayerIndex];
@@ -821,7 +821,7 @@ export const LudoGame: React.FC<LudoGameProps> = ({ inChat = false, onGameAction
           ))}
 
           {/* Yellow Base (Bottom-Right) */}
-          <rect x="360" y="360" width="240" height="240" fill="#F59E0B" fillOpacity="0.18" />
+          <rect x="360" y="360" width="240" height="240" fill="#FACC15" fillOpacity="0.18" />
           <rect
             x="384"
             y="384"
@@ -829,9 +829,9 @@ export const LudoGame: React.FC<LudoGameProps> = ({ inChat = false, onGameAction
             height="192"
             rx="28"
             fill="#111827"
-            stroke="#F59E0B"
+            stroke="#FACC15"
             strokeWidth="3.5"
-            filter="drop-shadow(0 4px 10px rgba(245,158,11,0.3))"
+            filter="drop-shadow(0 4px 10px rgba(250,204,21,0.35))"
           />
           {PLAYER_CONFIG.yellow.docks.map(([r, c], i) => (
             <circle
@@ -840,7 +840,7 @@ export const LudoGame: React.FC<LudoGameProps> = ({ inChat = false, onGameAction
               cy={r * CELL_SIZE}
               r="22"
               fill="#1F2937"
-              stroke="#F59E0B"
+              stroke="#FACC15"
               strokeWidth="2.5"
             />
           ))}
@@ -950,9 +950,9 @@ export const LudoGame: React.FC<LudoGameProps> = ({ inChat = false, onGameAction
               width={CELL_SIZE - 2}
               height={CELL_SIZE - 2}
               rx="6"
-              fill="#F59E0B"
+              fill="#FACC15"
               fillOpacity={0.6 + i * 0.08}
-              stroke="#B45309"
+              stroke="#CA8A04"
               strokeWidth="1.5"
             />
           ))}
