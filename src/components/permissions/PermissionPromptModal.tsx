@@ -132,7 +132,7 @@ export const PermissionPromptModal: React.FC = () => {
             </button>
 
             <div className="flex flex-col items-center text-center space-y-2">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-vyro-primary via-vyro-accent to-vyro-cyan flex items-center justify-center text-white shadow-glow-pink">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-500 via-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-[0_0_24px_rgba(6,182,212,0.4)] border border-white/20">
                 <ShieldCheck className="w-6 h-6" />
               </div>
               <h3 className="text-lg font-extrabold text-white">
@@ -168,8 +168,8 @@ export const PermissionPromptModal: React.FC = () => {
             </div>
 
             {errorDetail && (
-              <div className="p-3 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-200 text-[11px] flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+              <div className="p-3 rounded-xl bg-violet-950/40 border border-violet-500/30 text-violet-200 text-[11px] flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5" />
                 <span>{errorDetail}</span>
               </div>
             )}

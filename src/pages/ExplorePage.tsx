@@ -65,7 +65,7 @@ export const ExplorePage: React.FC = () => {
   });
 
   return (
-    <div className="max-w-5xl mx-auto py-6 px-4 space-y-6">
+    <div className="max-w-5xl mx-auto py-6 px-4 pb-28 sm:pb-36 space-y-6">
       {/* Search & Filter Header */}
       <div className="liquid-glass rounded-[28px] p-4 flex flex-col md:flex-row items-stretch md:items-center gap-4">
         <div className="relative flex-1">
@@ -126,7 +126,7 @@ export const ExplorePage: React.FC = () => {
       </div>
 
       {/* Cyber Ludo Arena Spotlight Banner */}
-      <div className="liquid-glass rounded-[28px] p-5 border border-amber-500/20 bg-gradient-to-r from-amber-500/10 via-rose-500/10 to-indigo-500/10 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
+      <div className="liquid-glass rounded-[28px] p-5 border border-cyan-500/25 bg-gradient-to-r from-cyan-500/10 via-indigo-500/10 to-violet-500/10 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
         <div className="flex items-center gap-3.5">
           <div className="w-12 h-12 rounded-2xl liquid-glass-elevated flex items-center justify-center text-2xl shadow-md flex-shrink-0">
             🎲
