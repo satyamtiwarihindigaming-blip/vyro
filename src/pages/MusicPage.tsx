@@ -45,11 +45,22 @@ export const MusicPage: React.FC = () => {
       } else {
         const filtered = TRENDING_GLOBAL_TRACKS.filter((t) => {
           const g = (t.genre || '').toLowerCase();
-          if (selectedGenre === 'haryanvi') return g.includes('haryanvi');
-          if (selectedGenre === 'punjabi') return g.includes('punjabi');
-          if (selectedGenre === 'bollywood') return g.includes('bollywood');
-          if (selectedGenre === 'global') return g.includes('global') || g.includes('synthwave');
-          if (selectedGenre === 'lofi') return g.includes('lofi') || g.includes('indie');
+          const art = (t.artist || '').toLowerCase();
+          if (selectedGenre === 'haryanvi') {
+            return g.includes('haryanvi') || art.includes('addi') || art.includes('dhanda') || art.includes('masoom') || art.includes('gulzaar') || art.includes('diler');
+          }
+          if (selectedGenre === 'punjabi') {
+            return g.includes('punjabi') || art.includes('diljit') || art.includes('aujla') || art.includes('shubh') || art.includes('sidhu') || art.includes('dhillon') || art.includes('randhawa');
+          }
+          if (selectedGenre === 'bollywood') {
+            return g.includes('bollywood') || art.includes('arijit') || art.includes('pritam') || art.includes('vishal') || art.includes('jasleen') || art.includes('sachin') || art.includes('chauhan');
+          }
+          if (selectedGenre === 'global') {
+            return g.includes('global') || g.includes('synthwave') || art.includes('weeknd') || art.includes('walker') || art.includes('post malone') || art.includes('dua lipa');
+          }
+          if (selectedGenre === 'lofi') {
+            return g.includes('lofi') || g.includes('chill') || art.includes('anuv') || art.includes('kuhad') || art.includes('ritviz');
+          }
           return true;
         });
         setTracks(filtered.length > 0 ? filtered : TRENDING_GLOBAL_TRACKS);
@@ -95,7 +106,7 @@ export const MusicPage: React.FC = () => {
       if (currentTrack?.id === track.id) {
         togglePlay();
       } else {
-        playTrack(track);
+        playTrack(track, tracks);
       }
     }
   };
@@ -392,7 +403,7 @@ export const MusicPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleUseAudio(track)}
-                    className="text-xs px-3.5 py-1.5 rounded-xl bg-vyro-primary/20 hover:bg-vyro-primary text-vyro-primary hover:text-white font-bold transition whitespace-nowrap active:scale-95 flex items-center gap-1"
+                    className="text-xs px-3.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500 text-amber-400 hover:text-slate-950 font-bold transition whitespace-nowrap active:scale-95 flex items-center gap-1 border border-amber-500/30"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Use Sound</span>
@@ -430,53 +441,42 @@ export const MusicPage: React.FC = () => {
             </div>
           );
         })}
-      </div>
 
-      {/* Floating Bottom Music Bar when track is playing */}
-      {currentTrack && isPlaying && (
-        <div className="fixed bottom-16 md:bottom-4 left-4 right-4 max-w-4xl mx-auto z-40 p-3 rounded-2xl glass-panel border border-vyro-primary/50 shadow-[0_0_25px_rgba(139,92,246,0.35)] flex items-center justify-between gap-4 backdrop-blur-2xl bg-black/90">
-          <div className="flex items-center gap-3 min-w-0">
-            <img
-              src={currentTrack.coverUrl}
-              alt={currentTrack.title}
-              className="w-10 h-10 rounded-xl object-cover border border-white/10 shrink-0 animate-vinyl"
-            />
-            <div className="min-w-0">
-              <p className="text-xs font-bold text-white truncate flex items-center gap-1.5">
-                <span>{currentTrack.title}</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              </p>
-              <p className="text-[11px] text-slate-400 truncate">{currentTrack.artist}</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* Equalizer animation */}
-            <div className="hidden sm:flex items-end gap-0.5 h-4">
-              <span className="w-0.5 bg-pink-400 rounded-full animate-eq-1" />
-              <span className="w-0.5 bg-pink-400 rounded-full animate-eq-2" />
-              <span className="w-0.5 bg-pink-400 rounded-full animate-eq-3" />
-              <span className="w-0.5 bg-pink-400 rounded-full animate-eq-4" />
-            </div>
-
-            <button
-              onClick={() => togglePlay()}
-              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors"
-              aria-label="Pause"
-            >
-              <Pause className="w-4 h-4" />
-            </button>
-
-            <button
-              onClick={() => handleUseAudio(currentTrack)}
-              className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-vyro-primary to-vyro-accent text-white text-xs font-bold shadow-glow-purple flex items-center gap-1"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Use in Reel</span>
-            </button>
-          </div>
+        {/* Endless Continuous Stream Discovery Footer */}
+        <div className="pt-4 text-center">
+          <button
+            type="button"
+            onClick={async () => {
+              soundEngine.playPop();
+              setIsSearching(true);
+              const terms = ['Diljit', 'Arijit', 'Karan Aujla', 'Sidhu Moose Wala', 'Shubh', 'Dhanda Nyoliwala', 'The Weeknd'];
+              const randomTerm = terms[Math.floor(Math.random() * terms.length)];
+              const extra = await searchMusicTracks(randomTerm, 15);
+              if (extra.length > 0) {
+                const combined = [...tracks];
+                const existingIds = new Set(combined.map((t) => t.id));
+                for (const t of extra) {
+                  if (!existingIds.has(t.id)) {
+                    combined.push(t);
+                    existingIds.add(t.id);
+                  }
+                }
+                setTracks(combined);
+              }
+              setIsSearching(false);
+            }}
+            disabled={isSearching}
+            className="px-6 py-2.5 rounded-2xl bg-white/5 hover:bg-amber-500/15 border border-white/10 hover:border-amber-500/35 text-xs font-bold text-slate-300 hover:text-amber-400 transition-all shadow-md active:scale-95 inline-flex items-center gap-2"
+          >
+            {isSearching ? (
+              <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
+            ) : (
+              <Sparkles className="w-4 h-4 text-amber-400" />
+            )}
+            <span>Load More Continuous Hits & Stream Endless Songs ⚡</span>
+          </button>
         </div>
-      )}
+      </div>
     </div>
   );
 };
